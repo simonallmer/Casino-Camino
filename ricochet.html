@@ -402,15 +402,10 @@
         <!-- Game Over / Win Overlay -->
         <div id="overlay">
             <h1 id="overlay-title">BUSTED</h1>
-            <div id="game-over-overlay">
-                <h1>GAME OVER</h1>
-                <div id="final-stats">You lost everything.</div>
-                <button onclick="game.resetGame()">Try Again</button>
-                <a href="index.html" style="text-decoration: none;">
-                    <button
-                        style="margin-top: 20px; background: transparent; border: 1px solid var(--gold); font-size: 0.8rem;"
-                        onclick="game.saveAndExit()">Menu</button>
-                </a>
+            <p id="overlay-desc">You lost the signal.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="primary" onclick="game.resetGame()">Play Again</button>
+                <a href="index.html"><button class="primary">Menu</button></a>
             </div>
         </div>
 
