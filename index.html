@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Camino</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --gold: #D4AF37;
+            --gold-bright: #FFD700;
+            --gold-dim: #aa8c2c;
+            --black: #050505;
+            --velvet: #051a12;
+            --red: #8a0e0e;
+            --text-light: #f0f0f0;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1a0f08 0%, #000 100%);
+        }
+
+        /* Global Top Bank Style (Fixed width to prevent shrinking) */
+        #global-bank {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(20, 10, 0, 0.8));
+            border: 1px solid var(--gold);
+            padding: 10px 0;
+            width: 200px;
+            /* Fixed width */
+            text-align: center;
+            border-radius: 30px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #global-bank .label {
+            font-size: 0.7rem;
+            color: #aaa;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Playfair Display', serif;
+        }
+
+        #global-bank .value {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Cinzel', serif;
+        }
+
+        .menu-container {
+            z-index: 2;
+            text-align: center;
+            padding: 40px;
+            background: rgba(10, 5, 2, 0.85);
+            /* Darker, more solid background */
+            border: 2px solid var(--gold-dim);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        /* Decorative Corners */
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gold);
+            transition: all 0.5s ease;
+        }
+
+        .top-left {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .top-right {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .bottom-left {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .bottom-right {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .menu-container:hover .corner {
+            width: 50px;
+            height: 50px;
+            border-color: var(--gold-bright);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            letter-spacing: 5px;
+        }
+
+        p.subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #aaa;
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+        }
+
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .menu-item {
+            text-decoration: none;
+            position: relative;
+        }
+
+        button {
+            width: 100%;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+            color: var(--gold-bright);
+        }
+
+        .coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #333;
+            color: #555;
+        }
+
+        .coming-soon:hover {
+            background: none;
+            box-shadow: none;
+            transform: none;
+            color: #555;
+            border-color: #333;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-family: 'Playfair Display', serif;
+            color: #444;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="global-bank">
+        <span class="label">Total Bank</span>
+        <span class="value" id="bank-display">€500</span>
+    </div>
+
+    <div class="menu-container">
+        <!-- Decoration -->
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+
+        <h1>Casino Camino</h1>
+        <p class="subtitle">From Vanity to Decadence</p>
+
+        <div class="menu-grid">
+            <a href="ricochet.html" class="menu-item">
+                <button>Ricochet</button>
+            </a>
+
+            <a href="fortuna.html" class="menu-item">
+                <button>Fortuna</button>
+            </a>
+
+            <button class="coming-soon">GAME IN DEVELOPMENT</button>
+            <button class="coming-soon">GAME IN DEVELOPMENT</button>
+        </div>
+
+        <div class="footer">
+            EST. 2026 - Allmer Games<br>
+            <span style="font-size: 0.6rem; opacity: 0.7; font-family: sans-serif;">Game Design: Simon Allmer | © 2026
+                Simon Allmer Entertainment</span>
+        </div>
+    </div>
+
+    <a href="https://simonallmer.com" style="position: absolute; top: 20px; right: 20px; text-decoration: none;">
+        <button style="width: auto; padding: 10px 20px; font-size: 0.8rem;"
+            onclick="localStorage.setItem('casino_camino_bank', bank)">Back to SA</button>
+    </a>
+
+    <div style="display: none;"></div>
+
+    <script>
+        // Global Money Management
+        // Check if bank exists in localStorage, otherwise init 500
+        let bank = localStorage.getItem('casino_camino_bank');
+        if (bank === null) {
+            bank = 500;
+            localStorage.setItem('casino_camino_bank', bank);
+        } else {
+            bank = parseInt(bank);
+        }
+
+        document.getElementById('bank-display').innerText = '€' + bank;
+    </script>
+
+</body>
+
+</html>

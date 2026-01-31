@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camino Ricochet</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --gold: #D4AF37;
+            --gold-bright: #FFD700;
+            --gold-dim: #aa8c2c;
+            --black: #050505;
+            --velvet: #051a12;
+            /* Darker, richer green */
+            --wood: #3e1e12;
+            --red: #8a0e0e;
+            --text-light: #f0f0f0;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            background: radial-gradient(circle at center, #0f2e22 0%, #000 100%);
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            padding: 20px;
+            /* Art Nouveau Pattern Overlay */
+            background-color: var(--velvet);
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20c10 0 20-10 20-20H0c0 10 10 20 20 20zm0 0c-10 0-20 10-20 20h40c0-10-10-20-20-20z' fill='%23143d2e' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            border-radius: 20px;
+            border: 2px solid #333;
+            box-shadow:
+                inset 0 0 150px #000,
+                0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Global Top Bank Style (Fixed width) */
+        #global-bank {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(20, 10, 0, 0.8));
+            border: 1px solid var(--gold);
+            padding: 10px 0;
+            width: 200px;
+            text-align: center;
+            border-radius: 30px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #global-bank .label {
+            font-size: 0.7rem;
+            color: #aaa;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 0;
+            /* Override generic label margin */
+        }
+
+        #global-bank .value {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* UI Elements */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 25px;
+            border-bottom: 2px solid var(--gold-dim);
+            margin-bottom: 20px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .label {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.75rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        /* Remove duplicate bank display from index container if present */
+        .bank-display {
+            display: none;
+        }
+
+        .value {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            /* Use text-shadow instead of box-shadow to avoid rectangle background effect */
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            z-index: 5;
+        }
+
+        #message-area {
+            height: 40px;
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: white;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+            text-shadow: 0 2px 4px #000;
+            font-size: 1.1rem;
+        }
+
+        /* Canvas */
+        canvas {
+            border-radius: 50%;
+            box-shadow:
+                0 0 0 8px #2a160e,
+                /* Inner wood rim */
+                0 0 0 10px var(--gold),
+                /* Gold Trim */
+                0 0 60px rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        canvas:active {
+            transform: scale(0.99);
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+
+        button {
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 15px 35px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            border-color: #444;
+            color: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        button.primary {
+            background: linear-gradient(to bottom, var(--gold), #8a6e15);
+            color: #050505;
+            font-weight: 800;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        button.primary:hover {
+            background: linear-gradient(to bottom, #ffe066, #bba040);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+        }
+
+        button.panic {
+            border-color: var(--red);
+            color: #ff4444;
+            background: rgba(50, 0, 0, 0.6);
+        }
+
+        button.panic:hover {
+            background: rgba(100, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+        }
+
+        .btn-small {
+            padding: 10px 15px;
+            font-size: 0.8rem;
+            border-color: #666;
+            color: #aaa;
+        }
+
+        .btn-small:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .inventory {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            height: 40px;
+            align-items: center;
+        }
+
+        .item {
+            font-size: 1.6rem;
+            opacity: 0.15;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: grayscale(100%);
+            position: relative;
+        }
+
+        .item.active {
+            opacity: 1;
+            filter: grayscale(0%);
+            text-shadow: 0 0 20px var(--gold);
+            transform: scale(1.2);
+        }
+
+        /* Overlays */
+        #overlay,
+        #rules-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 8, 0.96);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        #overlay.visible,
+        #rules-modal.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #overlay h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+        }
+
+        #overlay p {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 40px;
+            font-size: 1.4rem;
+            color: #ddd;
+        }
+
+        /* Rules Content */
+        #rules-content {
+            width: 80%;
+            max-width: 500px;
+            text-align: left;
+            color: #ddd;
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        #rules-content h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #rules-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #rules-content li {
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+
+        #rules-content strong {
+            color: var(--gold-bright);
+        }
+
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="index.html" id="back-btn"><button class="btn-small">Back to Menu</button></a>
+    <a href="https://simonallmer.com"
+        style="position: absolute; top: 20px; right: 20px; z-index: 100; text-decoration: none;">
+        <button class="btn-small" onclick="game.saveAndExit()">Back to SA</button>
+    </a>
+
+    <div id="global-bank">
+        <span class="label">Total Bank</span>
+        <span class="value" id="bank-display">€500</span>
+    </div>
+
+    <div id="game-container">
+        <div class="hud">
+            <!-- Bank removed from here, moved to top -->
+            <div class="hud-item">
+                <span class="label">Current Pot</span>
+                <span class="value" id="pot-display">€100</span>
+            </div>
+            <div class="hud-item">
+                <span class="label">Round</span>
+                <span class="value" id="round-display">1 / 10</span>
+            </div>
+        </div>
+
+        <div id="message-area">Welcome to Ricochet.</div>
+
+        <canvas id="wheel" width="400" height="400"></canvas>
+
+        <div class="inventory">
+            <div class="item" id="heart-icon" title="Extra Life">❤️</div>
+            <div class="item" id="horseshoe-icon" title="Auto-Correct">🧲</div>
+            <div class="item" id="hourglass-icon" title="Speed Frozen">⏳</div>
+            <div class="item" id="glass-icon" title="True Sight">🔍</div>
+        </div>
+
+        <div class="controls">
+            <button id="rules-btn" class="btn-small" onclick="game.toggleRules()">?</button>
+            <button id="cashout-btn" onclick="game.handleCashOutClick()">Leave (50%)</button>
+            <button id="action-btn" class="primary" onclick="game.handleAction()">Start Round</button>
+        </div>
+
+        <!-- Game Over / Win Overlay -->
+        <div id="overlay">
+            <h1 id="overlay-title">BUSTED</h1>
+            <div id="game-over-overlay">
+                <h1>GAME OVER</h1>
+                <div id="final-stats">You lost everything.</div>
+                <button onclick="game.resetGame()">Try Again</button>
+                <a href="index.html" style="text-decoration: none;">
+                    <button
+                        style="margin-top: 20px; background: transparent; border: 1px solid var(--gold); font-size: 0.8rem;"
+                        onclick="game.saveAndExit()">Menu</button>
+                </a>
+            </div>
+        </div>
+
+        <div
+            style="width: 100%; text-align: center; color: var(--gold); font-size: 0.6rem; opacity: 0.5; font-family: sans-serif; pointer-events: none; margin-top: 15px;">
+            Game Design: Simon Allmer | © 2026 Simon Allmer Entertainment
+        </div>
+    </div> <!-- Rules Modal -->
+    <div id="rules-modal">
+        <div id="rules-content">
+            <h2>Ricochet House Rules</h2>
+            <ul>
+                <li><strong>Goal:</strong> Survive 10 Rounds to beat the House and keep 100% of the Pot.</li>
+                <li><strong>Walk Out:</strong> Cash out safely between rounds for only <strong>50%</strong> of the
+                    Pot.</li>
+                <li><strong>Panic Escape:</strong> Cash out WHILE spinning for <strong>25%</strong> of the Pot.</li>
+                <li><strong>Cursed Rounds:</strong> 7% Chance the wheel is 100% Skulls. Panic Escape or Die.</li>
+                <li><strong>Hidden Zones:</strong> Pockets flip over after 1.5s.</li>
+            </ul>
+        </div>
+        <button class="primary" style="margin-top:20px" onclick="game.toggleRules()">Close</button>
+    </div>
+    </div>
+
+    <script>
+        class CasinoGame {
+            constructor() {
+                this.canvas = document.getElementById('wheel');
+                this.ctx = this.canvas.getContext('2d');
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+                this.radius = this.width / 2 - 20;
+
+                // State
+                // Load Bank from LocalStorage or default to 500
+                let savedBank = localStorage.getItem('casino_camino_bank');
+                this.bank = savedBank !== null ? parseInt(savedBank) : 500;
+
+                // Allow this.bank to be 0 if they lost everything, but if it's null (first run), it's 500.
+                // Actually request said "starting capital 500 from now on". 
+                // If they have 0, they can't play. We might want a reset or daily bonus later, 
+                // but for now we follow the logic: Carry over.
+
+                this.initialBet = 100;
+                this.pot = 0;
+                this.round = 1;
+                this.maxRounds = 10;
+                this.difficultyLevel = 1;
+
+                // Items
+                this.lives = 0;
+                this.hasHorseshoe = false;
+                this.speedFrozen = false;
+                this.hasGlass = false; // True Sight
+
+                // Animation
+                this.isSpinning = false;
+                this.rotation = 0;
+                this.speed = 0;
+                this.targetSpeed = 0;
+                this.zones = [];
+                this.spinStartTime = 0;
+                this.isCursed = false; // Track if current round is all death
+
+                // UI
+                this.els = {
+                    bank: document.getElementById('bank-display'),
+                    pot: document.getElementById('pot-display'),
+                    round: document.getElementById('round-display'),
+                    msg: document.getElementById('message-area'),
+                    btn: document.getElementById('action-btn'),
+                    cashout: document.getElementById('cashout-btn'),
+                    heart: document.getElementById('heart-icon'),
+                    shoe: document.getElementById('horseshoe-icon'),
+                    glass: document.getElementById('hourglass-icon'),
+                    magGlass: document.getElementById('glass-icon'),
+                    overlay: document.getElementById('overlay'),
+                    overlayTitle: document.getElementById('overlay-title'),
+                    overlayDesc: document.getElementById('overlay-desc'),
+                    rules: document.getElementById('rules-modal')
+                };
+
+                this.bindEvents();
+                this.resetGame();
+                this.loop();
+            }
+
+            bindEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' && !this.els.overlay.classList.contains('visible') && !this.els.rules.classList.contains('visible')) {
+                        this.handleAction();
+                    }
+                });
+                this.canvas.addEventListener('click', (e) => {
+                    if (!this.els.overlay.classList.contains('visible') && !this.els.rules.classList.contains('visible')) {
+                        this.handleAction();
+                    }
+                });
+            }
+
+            toggleRules() {
+                this.els.rules.classList.toggle('visible');
+            }
+
+            updateUI() {
+                this.els.bank.innerText = '€' + Math.floor(this.bank);
+                this.els.pot.innerText = '€' + Math.floor(this.pot);
+
+                // Save to LocalStorage whenever UI updates (money changes)
+                localStorage.setItem('casino_camino_bank', this.bank);
+
+                this.els.round.innerText = this.round + ' / ' + this.maxRounds;
+
+                this.els.heart.classList.toggle('active', this.lives > 0);
+                this.els.shoe.classList.toggle('active', this.hasHorseshoe);
+                this.els.glass.classList.toggle('active', this.speedFrozen);
+                this.els.magGlass.classList.toggle('active', this.hasGlass);
+
+                if (this.lives > 0) this.els.heart.innerHTML = '❤️ <span style="font-size:0.6em; vertical-align:top">' + this.lives + '</span>';
+                else this.els.heart.innerHTML = '❤️';
+            }
+
+            resetGame() {
+                this.pot = 0;
+                this.round = 1;
+                this.difficultyLevel = 1;
+                this.lives = 0;
+                this.hasHorseshoe = false;
+                this.speedFrozen = false;
+                this.hasGlass = false;
+                this.isCursed = false;
+                this.els.overlay.classList.remove('visible');
+                this.els.btn.innerText = "Start Round";
+                this.els.btn.disabled = false;
+                this.els.cashout.disabled = true;
+                this.els.cashout.innerText = "Leave (50%)";
+                this.els.cashout.classList.remove('panic');
+                this.isSpinning = false;
+                this.rotation = 0;
+                this.setMessage("Place your bets. Initial buy-in: €100");
+                this.updateUI();
+
+                // Generate empty/neutral zones for the start
+                this.generateZones(true); // true = neutral/preview mode
+                this.draw();
+            }
+
+            startRound() {
+                if (this.pot === 0) {
+                    if (this.bank < this.initialBet) {
+                        this.setMessage("Insufficient funds.");
+                        return;
+                    }
+                    this.bank -= this.initialBet;
+                    this.pot = this.initialBet;
+                    this.updateUI();
+                }
+
+                this.isSpinning = true;
+                this.spinStartTime = performance.now();
+                this.els.btn.innerText = "DROP BALL (SPACE)";
+
+                // Allow Panic Cashout
+                this.els.cashout.disabled = false;
+                this.els.cashout.innerText = "PANIC (25%)";
+                this.els.cashout.classList.add('panic');
+
+                this.generateZones();
+
+                if (this.speedFrozen) {
+                    this.setMessage("Hourglass Active: Speed Frozen");
+                    this.speedFrozen = false;
+                    this.updateUI();
+                } else {
+                    this.difficultyLevel = this.round;
+                    this.setMessage("Watch closely...");
+                }
+
+                const baseSpeed = 0.05;
+                this.targetSpeed = baseSpeed + (this.difficultyLevel * 0.005);
+                this.speed = 0;
+            }
+
+            stopRound() {
+                this.isSpinning = false;
+
+                // Revert Button State
+                this.els.cashout.innerText = "Leave (50%)";
+                this.els.cashout.classList.remove('panic');
+
+                let normalizedRot = this.rotation % (Math.PI * 2);
+                if (normalizedRot < 0) normalizedRot += Math.PI * 2;
+
+                let hitAngle = (Math.PI * 1.5 - normalizedRot);
+                if (hitAngle < 0) hitAngle += (Math.PI * 2);
+                if (hitAngle > Math.PI * 2) hitAngle -= (Math.PI * 2);
+
+                let hit = this.zones.find(z => hitAngle >= z.start && hitAngle <= z.end);
+
+                if (!hit) {
+                    this.handleLoss("VOID");
+                } else {
+                    this.handleHit(hit);
+                }
+            }
+
+            handleAction() {
+                if (this.isSpinning) {
+                    this.stopRound();
+                } else {
+                    this.startRound();
+                }
+            }
+
+            handleHit(zone) {
+                let safe = false;
+                let message = "";
+
+                if (zone.type === 'win') {
+                    safe = true;
+                    if (this.round === 1) {
+                        message = "Bet Secured. Moving to Round 2.";
+                    } else {
+                        this.pot += this.initialBet;
+                        message = "Pocket Hit! +€" + this.initialBet;
+                    }
+                    this.triggerVisualEffect('#D4AF37');
+                } else if (zone.type === 'x2') {
+                    safe = true;
+                    this.pot *= 2;
+                    message = "Jackpot! Pot x2";
+                    this.triggerVisualEffect('#9b59b6');
+                } else if (zone.type === 'heart') {
+                    safe = true;
+                    this.lives++;
+                    this.pot += 50;
+                    message = "Extra Life Acquired";
+                    this.triggerVisualEffect('#e74c3c');
+                } else if (zone.type === 'shoe') {
+                    safe = true;
+                    this.hasHorseshoe = true;
+                    this.pot += 50;
+                    message = "Magnet Acquired";
+                    this.triggerVisualEffect('#1abc9c');
+                } else if (zone.type === 'hourglass') {
+                    safe = true;
+                    this.speedFrozen = true;
+                    this.pot += 50;
+                    message = "Time Dilation: Next Speed Frozen";
+                    this.triggerVisualEffect('#87CEEB');
+                } else if (zone.type === 'glass') {
+                    safe = true;
+                    this.hasGlass = true;
+                    this.pot += 50;
+                    message = "True Sight! Zones Revealed.";
+                    this.triggerVisualEffect('#ffffff');
+                } else if (zone.type === 'death') {
+                    this.handleLoss("DEATH");
+                    return;
+                }
+
+                if (safe) {
+                    // Check WIN condition BEFORE incrementing round improperly
+                    // logic: If we just finished round 10, we win.
+
+                    if (this.round >= this.maxRounds) {
+                        this.cashOut(true);
+                        return;
+                    }
+
+                    this.round++;
+                    this.els.btn.innerText = "Next Spin";
+                    this.els.cashout.disabled = false;
+                    this.setMessage(message);
+                    this.updateUI();
+                }
+            }
+
+            handleLoss(type) {
+                // MAGNET LOGIC
+                // If Magnet engages, we need to save the player.
+                // But if it's a CURSED ROUND (all skulls), magnet has nowhere to go unless we force a win.
+                // Since User requested heavy luck component: If Cursed Round, Magnet FAILS.
+                // Only Panic Cashout saves you from Cursed Round.
+
+                if (this.hasHorseshoe && type === "VOID" && !this.isCursed) {
+                    this.hasHorseshoe = false;
+                    this.setMessage("Magnet engaged! Saved.");
+
+                    if (this.round > 1) this.pot += this.initialBet;
+
+                    if (this.round >= this.maxRounds) {
+                        this.cashOut(true);
+                        return;
+                    }
+
+                    this.round++;
+                    this.els.btn.innerText = "Next Spin";
+                    this.els.cashout.disabled = false;
+                    this.updateUI();
+                    this.triggerVisualEffect('#1abc9c');
+                    return;
+                } else if (this.hasHorseshoe && this.isCursed) {
+                    // Magnet fails in Cursed Round
+                    this.setMessage("Magnet failed! No safe zones detected!");
+                    // Continue to death logic...
+                }
+
+                if (this.lives > 0 && type !== "DEATH") {
+                    this.lives--;
+                    this.setMessage("Life Used! Respinning same layer.");
+                    this.els.btn.innerText = "Retry Spin";
+                    this.els.cashout.disabled = false;
+
+                    // Reset Button State
+                    this.els.cashout.innerText = "Leave (50%)";
+                    this.els.cashout.classList.remove('panic');
+
+                    this.updateUI();
+                    this.triggerVisualEffect('#e74c3c');
+                    return;
+                }
+
+                let reason = type === "DEATH" ? "You hit the Skull." : "Ball landed on the rim.";
+                if (this.isCursed && type === "DEATH") reason = "Cursed Round! No survivors.";
+
+                this.showGameOver("HOUSE WINS", reason);
+            }
+
+            handleCashOutClick() {
+                if (this.isSpinning) {
+                    // PANIC Cashout (25%)
+                    this.cashOut(false, true);
+                } else {
+                    // Standard Cashout (50%)
+                    this.cashOut(false, false);
+                }
+            }
+
+            cashOut(victory = false, panic = false) {
+                let payoutMultiplier = 0.5; // Standard Exit
+                let msg = "You escaped with half the loot.";
+
+                if (victory) {
+                    payoutMultiplier = 1.0;
+                    msg = "You beat the House! Full Payout.";
+                } else if (panic) {
+                    payoutMultiplier = 0.25;
+                    msg = "Panic Exit! You salvaged 25%.";
+                }
+
+                let payout = Math.floor(this.pot * payoutMultiplier);
+                this.bank += payout;
+
+                this.updateUI();
+
+                let title = victory ? "CASINO DEFEATED" : "WALKED AWAY";
+                if (panic) title = "EMERGENCY ESCAPE";
+
+                let desc = `${msg} Total: €${payout}`;
+                this.pot = 0;
+                this.isSpinning = false; // Ensure spin stops logic
+                this.showGameOver(title, desc);
+            }
+
+            showGameOver(title, desc) {
+                this.els.overlayTitle.innerText = title;
+                this.els.overlayDesc.innerText = desc;
+                this.els.overlay.classList.add('visible');
+            }
+
+            setMessage(text) {
+                this.els.msg.style.opacity = 0;
+                setTimeout(() => {
+                    this.els.msg.innerText = text;
+                    this.els.msg.style.opacity = 1;
+                }, 300);
+            }
+
+            generateZones(isNeutral = false) {
+                this.zones = [];
+                this.isCursed = false;
+
+                let zoneCount = 4 + Math.floor(this.round / 2);
+                if (zoneCount > 10) zoneCount = 10;
+
+                let coverage = Math.max(0.12, 0.50 - (this.difficultyLevel * 0.03));
+                let anglePerZone = (Math.PI * 2 * coverage) / zoneCount;
+                let currentAngle = 0;
+
+                // 7% Chance for Cursed Round (All Skulls)
+                // Only calc curse if not neutral.
+                // Increase base risk: Coverage shrinks faster.
+                if (!isNeutral && Math.random() < 0.10) { // Increased to 10%
+                    this.isCursed = true;
+                    this.setMessage("WARNING: CURSED ROUND DETECTED");
+                }
+
+                for (let i = 0; i < zoneCount; i++) {
+                    let gap = (Math.PI * 2 * (1 - coverage)) / zoneCount;
+                    currentAngle += gap;
+
+                    let start = currentAngle;
+                    let end = currentAngle + anglePerZone;
+
+                    let type = 'win';
+
+                    if (isNeutral) {
+                        type = 'neutral';
+                    } else if (this.isCursed) {
+                        type = 'death';
+                    } else {
+                        let rand = Math.random();
+                        if (rand > 0.96) type = 'x2';
+                        else if (rand > 0.94 && !this.hasGlass) type = 'glass';
+                        else if (rand > 0.89 && !this.hasHorseshoe) type = 'shoe';
+                        else if (rand > 0.84) type = 'heart';
+                        else if (rand > 0.78) type = 'hourglass';
+                        else if (rand > 0.50) type = 'death'; // Increased death chance substantially (was 0.55)
+                    }
+
+                    this.zones.push({ start, end, type });
+                    currentAngle += anglePerZone;
+                }
+            }
+
+            triggerVisualEffect(color) {
+                this.canvas.style.boxShadow = `0 0 0 10px #2a160e, 0 0 0 12px ${color}, 0 0 50px ${color}`;
+                setTimeout(() => {
+                    this.canvas.style.boxShadow = `0 0 0 10px #2a160e, 0 0 0 12px #d4af37, 0 0 60px rgba(0,0,0,0.9)`;
+                }, 400);
+            }
+
+            saveAndExit() {
+                localStorage.setItem('casino_camino_bank', this.bank);
+                // The link will handle navigation, this just ensures save.
+            }
+
+            loop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            }
+
+            update() {
+                if (this.isSpinning) {
+                    if (this.speed < this.targetSpeed) {
+                        this.speed += 0.001;
+                    }
+                    this.rotation += this.speed;
+                } else {
+                    this.speed = 0;
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+
+                this.ctx.save();
+                this.ctx.translate(this.centerX, this.centerY);
+                this.ctx.rotate(this.rotation);
+
+                // Hide Zones Logic
+                let hideZones = false;
+                if (this.isSpinning && !this.hasGlass) {
+                    if (performance.now() - this.spinStartTime > 1500) {
+                        hideZones = true;
+                    }
+                }
+
+                // --- WHEEL BODY ---
+                let grad = this.ctx.createRadialGradient(0, 0, this.radius * 0.2, 0, 0, this.radius);
+                grad.addColorStop(0, "#4a2c20");
+                grad.addColorStop(1, "#1a0f08");
+
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = grad;
+                this.ctx.fill();
+
+                // Decorative Rings
+                this.ctx.strokeStyle = "rgba(212, 175, 55, 0.1)";
+                this.ctx.lineWidth = 1;
+                this.ctx.beginPath(); this.ctx.arc(0, 0, this.radius * 0.92, 0, Math.PI * 2); this.ctx.stroke();
+                this.ctx.beginPath(); this.ctx.arc(0, 0, this.radius * 0.82, 0, Math.PI * 2); this.ctx.stroke();
+
+                // --- ZONES (Pockets) ---
+                this.zones.forEach(zone => {
+                    // Background Wedge for depth
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 0);
+                    this.ctx.arc(0, 0, this.radius - 8, zone.start, zone.end);
+                    this.ctx.lineTo(0, 0);
+                    this.ctx.closePath();
+
+                    // Pocket Shape
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, this.radius - 5, zone.start, zone.end);
+                    this.ctx.arc(0, 0, this.radius * 0.65, zone.end, zone.start, true);
+                    this.ctx.closePath();
+
+                    let pocketColor;
+                    let textColor = "#fff";
+                    let label = "";
+                    let isHidden = hideZones;
+
+                    // Determine visual properties
+                    if (zone.type === 'neutral') {
+                        // Start screen / layout mode
+                        pocketColor = "#1a0f08"; // Dark background
+                        label = "";
+                        this.ctx.strokeStyle = "#443311";
+                    } else if (isHidden) {
+                        // Hidden State: Generic Metallic/Wood Backing
+                        let hiddenGrad = this.ctx.createLinearGradient(-50, -50, 50, 50);
+                        hiddenGrad.addColorStop(0, "#886622"); // Dull Gold
+                        hiddenGrad.addColorStop(1, "#554411");
+                        pocketColor = hiddenGrad;
+                        label = "";
+                    } else {
+                        // Revealed State
+                        switch (zone.type) {
+                            case 'win':
+                                pocketColor = "#111";
+                                label = "€";
+                                break;
+                            case 'x2':
+                                pocketColor = "#5e2d79";
+                                label = "x2";
+                                break;
+                            case 'heart':
+                                pocketColor = "#7a0c0c";
+                                label = "❤";
+                                break;
+                            case 'shoe':
+                                pocketColor = "#1e6648";
+                                label = "🧲";
+                                break;
+                            case 'hourglass':
+                                pocketColor = "#296a8c";
+                                label = "⏳";
+                                break;
+                            case 'glass':
+                                pocketColor = "#d4f1f9";
+                                textColor = "#000";
+                                label = "🔍";
+                                break;
+                            case 'death':
+                                pocketColor = "#dcdcdc";
+                                textColor = "#000";
+                                label = "☠";
+                                break;
+                        }
+
+                        if (zone.type === 'win') {
+                            let pGrad = this.ctx.createLinearGradient(-50, -50, 50, 50);
+                            pGrad.addColorStop(0, "#bf9b30");
+                            pGrad.addColorStop(1, "#8a6e15");
+                            pocketColor = pGrad;
+                            textColor = "#000";
+                        }
+                    }
+
+                    this.ctx.fillStyle = pocketColor;
+                    this.ctx.fill();
+                    this.ctx.lineWidth = 1.5;
+                    if (zone.type !== 'neutral') this.ctx.strokeStyle = "#silver";
+                    this.ctx.stroke();
+
+                    // Draw Hidden Pattern or Symbol
+                    if (isHidden) {
+                        this.ctx.save();
+                        this.ctx.clip();
+                        this.ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                        this.ctx.lineWidth = 2;
+                        for (let i = -50; i < 50; i += 10) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(i, -100);
+                            this.ctx.lineTo(i + 50, 100);
+                            this.ctx.stroke();
+                        }
+                        this.ctx.restore();
+                    } else if (zone.type !== 'neutral') {
+                        this.ctx.save();
+                        let angle = (zone.start + zone.end) / 2;
+                        this.ctx.rotate(angle);
+                        this.ctx.translate(this.radius * 0.82, 0);
+                        this.ctx.rotate(Math.PI / 2);
+
+                        this.ctx.fillStyle = textColor;
+                        this.ctx.font = "bold 22px Cinzel";
+                        this.ctx.textAlign = "center";
+                        this.ctx.textBaseline = "middle";
+                        this.ctx.shadowColor = "rgba(0,0,0,0.8)";
+                        this.ctx.shadowBlur = 4;
+                        this.ctx.fillText(label, 0, 0);
+                        this.ctx.restore();
+                    }
+                });
+
+                // --- CENTER TURRET ---
+                let turretGrad = this.ctx.createRadialGradient(-20, -20, 5, 0, 0, 60);
+                turretGrad.addColorStop(0, "#f0f0f0");
+                turretGrad.addColorStop(0.2, "#d0d0d0");
+                turretGrad.addColorStop(1, "#505050");
+
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 60, 0, Math.PI * 2);
+                this.ctx.fillStyle = turretGrad;
+                this.ctx.fill();
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = "#222";
+                this.ctx.stroke();
+
+                // Inner Gold Ring
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 52, 0, Math.PI * 2);
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeStyle = "#D4AF37";
+                this.ctx.stroke();
+
+                // Symmetrical Deco Patterns
+                this.ctx.save();
+                for (let i = 0; i < 8; i++) {
+                    this.ctx.rotate(Math.PI / 4);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 40);
+                    this.ctx.lineTo(5, 52);
+                    this.ctx.lineTo(-5, 52);
+                    this.ctx.closePath();
+                    this.ctx.fillStyle = "#333";
+                    this.ctx.fill();
+                }
+                this.ctx.restore();
+
+                // CASINO CAMINO Text
+                this.ctx.fillStyle = "#FFD700";
+                this.ctx.font = "800 12px Cinzel";
+                this.ctx.textAlign = "center";
+                this.ctx.textBaseline = "middle";
+                this.ctx.shadowColor = "#000";
+                this.ctx.shadowBlur = 4;
+                this.ctx.fillText("CASINO", 0, -8);
+                this.ctx.fillText("CAMINO", 0, 8);
+                this.ctx.restore();
+
+                // --- THE NEEDLE ---
+                this.ctx.save();
+                this.ctx.translate(this.centerX, this.centerY);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -this.radius - 25);
+                this.ctx.lineTo(-15, -this.radius - 40);
+                this.ctx.lineTo(15, -this.radius - 40);
+                this.ctx.closePath();
+                this.ctx.fillStyle = "#D4AF37";
+                this.ctx.shadowColor = "#000";
+                this.ctx.shadowBlur = 10;
+                this.ctx.fill();
+
+                this.ctx.beginPath();
+                this.ctx.arc(0, -this.radius + 15, 9, 0, Math.PI * 2);
+                let ballGrad = this.ctx.createRadialGradient(-3, -this.radius + 12, 2, 0, -this.radius + 15, 9);
+                ballGrad.addColorStop(0, "#fff");
+                ballGrad.addColorStop(1, "#ddd");
+                this.ctx.fillStyle = ballGrad;
+                this.ctx.fill();
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -this.radius + 5);
+                this.ctx.lineTo(-4, -this.radius - 5);
+                this.ctx.lineTo(4, -this.radius - 5);
+                this.ctx.closePath();
+                this.ctx.fillStyle = "#bba040";
+                this.ctx.fill();
+
+                this.ctx.restore();
+            }
+
+            createGradient(color1, color2) {
+                let grad = this.ctx.createLinearGradient(0, 0, this.width, 0);
+                grad.addColorStop(0, color1);
+                grad.addColorStop(1, color2);
+                return grad;
+            }
+        }
+
+        const game = new CasinoGame();
+    </script>
+
+</body>
+
+</html>
