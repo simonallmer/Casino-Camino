@@ -28,8 +28,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
             background: radial-gradient(circle at center, #1a0f08 0%, #000 100%);
+            overflow: hidden;
         }
 
         /* Global Top Bank Style (Fixed width to prevent shrinking) */
@@ -129,6 +129,7 @@
             margin-bottom: 10px;
             background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
             letter-spacing: 5px;
@@ -214,8 +215,74 @@
         .footer {
             margin-top: 40px;
             font-family: 'Playfair Display', serif;
-            color: #444;
+            color: #777;
             font-size: 0.8rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: rgba(15, 10, 5, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            font-family: 'Playfair Display', serif;
+            color: #ccc;
+            line-height: 1.8;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .modal-content a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .modal-content a:hover {
+            color: var(--gold-bright);
+            text-decoration: underline;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: var(--gold);
+            font-size: 2rem;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--gold-bright);
+        }
+
+        .modal-open {
+            display: flex;
         }
     </style>
 </head>
@@ -235,7 +302,7 @@
         <div class="corner bottom-right"></div>
 
         <h1>Casino Camino</h1>
-        <p class="subtitle">From Vanity to Decadence</p>
+        <p class="subtitle">A New Home for All Your Vices</p>
 
         <div class="menu-grid">
             <a href="ricochet.html" class="menu-item">
@@ -251,11 +318,32 @@
         </div>
 
         <div class="footer">
-            EST. 2026 - Allmer Games<br>
-            <span style="font-size: 0.6rem; opacity: 0.7; font-family: sans-serif;">Game Design: Simon Allmer | © 2026
-                Simon Allmer Entertainment</span>
+            <span style="font-size: 0.6rem; opacity: 1; font-family: sans-serif;">Game Design: Simon Allmer | © 2026
+                Simon Allmer Entertainment</span><br>
+            <a href="https://casinocamino.com"
+                style="color: var(--gold); text-decoration: none; font-size: 0.8rem; letter-spacing: 2px; display: inline-block; margin-top: 5px;">CASINOCAMINO.COM</a>
         </div>
     </div>
+
+    <div id="about-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAbout()">&times;</span>
+            <p>As modernity faded into functional monotony, the Casino endured as the last true realm of magic.</p>
+            <p>Casino Camino introduces a distinct collection of original games within a sophisticated atmosphere. While
+                rooted in chance, these titles incorporate a layer of strategy absent in traditional offerings, allowing
+                players to exercise a degree of skill to influence outcomes. The digital platform at <a
+                    href="https://casinocamino.com">casinocamino.com</a> provides a space to explore these unique
+                mechanics.</p>
+            <p>The virtual experience is strictly No-Stakes Entry. <a href="https://simonallmer.com">Simon Allmer
+                    Entertainment</a> firmly distinguishes this project from online gambling; the platform accepts no
+                payments and operates without financial risk. True to its name, the Camino represents the path ahead,
+                leading into the physical realm, where premium game sets and an Integrated Resort are currently in
+                development to bring the magic back into your life.</p>
+        </div>
+    </div>
+
+    <button style="position: absolute; top: 20px; left: 20px; width: auto; padding: 10px 20px; font-size: 0.8rem;"
+        onclick="openAbout()">ABOUT</button>
 
     <a href="https://simonallmer.com" style="position: absolute; top: 20px; right: 20px; text-decoration: none;">
         <button style="width: auto; padding: 10px 20px; font-size: 0.8rem;"
@@ -276,6 +364,22 @@
         }
 
         document.getElementById('bank-display').innerText = '€' + bank;
+
+        function openAbout() {
+            document.getElementById('about-modal').classList.add('modal-open');
+        }
+
+        function closeAbout() {
+            document.getElementById('about-modal').classList.remove('modal-open');
+        }
+
+        // Close on clicking outside the content
+        window.onclick = function (event) {
+            let modal = document.getElementById('about-modal');
+            if (event.target == modal) {
+                closeAbout();
+            }
+        }
     </script>
 
 </body>
