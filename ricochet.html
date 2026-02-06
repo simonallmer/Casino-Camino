@@ -302,6 +302,7 @@
             font-size: 3.5rem;
             background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
@@ -359,7 +360,7 @@
 <body>
 
     <a href="index.html" id="back-btn"><button class="btn-small">Back to Menu</button></a>
-    <a href="https://simonallmer.com"
+    <a href="https://simonallmer.com" target="_top"
         style="position: absolute; top: 20px; right: 20px; z-index: 100; text-decoration: none;">
         <button class="btn-small" onclick="game.saveAndExit()">Back to SA</button>
     </a>
