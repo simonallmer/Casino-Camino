@@ -375,6 +375,51 @@
             font-family: 'Cinzel', serif;
         }
 
+        .die.win {
+            background: #4ade80 !important;
+            color: #000 !important;
+            box-shadow: 0 0 25px rgba(74, 222, 128, 0.6), inset 0 -4px 0 #3dbb6d !important;
+            border: none;
+        }
+
+        .die.lose {
+            background: #f87171 !important;
+            color: #fff !important;
+            box-shadow: 0 0 25px rgba(248, 113, 113, 0.6), inset 0 -4px 0 #cf5c5c !important;
+            border: none;
+        }
+
+        #sum-display {
+            margin-top: 15px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--gold-dim);
+            transition: all 0.4s;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        #sum-display.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #sum-display.win {
+            border-color: #4ade80;
+            color: #4ade80;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+        }
+
+        #sum-display.lose {
+            border-color: #f87171;
+            color: #f87171;
+            box-shadow: 0 0 15px rgba(248, 113, 113, 0.3);
+        }
+
         /* Controls */
         #controls-bar {
             position: fixed;
@@ -489,9 +534,101 @@
 
         #full-overlay h2 {
             font-family: 'Cinzel';
-            font-size: 4rem;
+            font-size: 3rem;
             color: var(--gold);
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        .performance-container {
+            width: 80%;
+            max-width: 800px;
+            height: 250px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            position: relative;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .median-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: rgba(212, 175, 55, 0.3);
+            z-index: 1;
+        }
+
+        .player-perf-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .bar-container {
+            width: 30px;
+            height: 100%;
+            position: relative;
+        }
+
+        .bar-reward {
+            position: absolute;
+            bottom: 50%;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, #4ade80, #22c55e);
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            min-height: 2px;
+            transition: height 1s ease-out;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+        }
+
+        .bar-input {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to bottom, #f87171, #ef4444);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            min-height: 2px;
+            transition: height 1s ease-out;
+            box-shadow: 0 0 15px rgba(248, 113, 113, 0.2);
+        }
+
+        .perf-name {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 10px;
+            font-family: 'Cinzel', serif;
+            position: absolute;
+            bottom: -30px;
+            white-space: nowrap;
+        }
+
+        .perf-val {
+            font-size: 0.6rem;
+            color: #fff;
+            position: absolute;
+        }
+
+        .perf-val-up {
+            top: -20px;
+            color: #4ade80;
+        }
+
+        .perf-val-down {
+            bottom: -20px;
+            color: #f87171;
         }
 
         .back-btn {
@@ -635,11 +772,12 @@
                     <div class="hub-name" id="hub-player-name">—</div>
                     <div class="hub-hint" id="hub-hint">Bet 1€ or DIE</div>
                 </div>
-                <div id="dice-ui" style="display: none;">
+                <div id="dice-ui" style="display: none; flex-direction: column; align-items: center;">
                     <div class="dice-box">
-                        <div class="die" id="die1">1</div>
-                        <div class="die" id="die2">1</div>
+                        <div class="die" id="die1">?</div>
+                        <div class="die" id="die2">?</div>
                     </div>
+                    <div id="sum-display">SUM: 0</div>
                 </div>
             </div>
             <!-- Arms injected by JS -->
@@ -683,9 +821,17 @@
     </div>
 
     <div id="full-overlay">
-        <h2 id="overlay-msg">Game Over</h2>
-        <p id="overlay-desc" style="font-size: 1.4rem; color: #aaa; margin: 20px 0 40px;"></p>
-        <button class="btn-main" onclick="location.reload()">Play Again</button>
+        <h2 id="overlay-msg">Return of Gamble</h2>
+        <div id="performance-chart" class="performance-container">
+            <div class="median-line"></div>
+        </div>
+        <p id="overlay-desc"
+            style="font-size: 1.1rem; color: #aaa; margin: 10px 0 30px; text-align: center; max-width: 600px;"></p>
+        <div style="display: flex; gap: 20px;">
+            <button class="btn-main" onclick="location.reload()">Play Again</button>
+            <a href="index.html" class="btn-main"
+                style="text-decoration: none; display: flex; align-items: center;">Menu</a>
+        </div>
     </div>
 
     <script>
@@ -729,7 +875,7 @@
                 if (saved) {
                     try {
                         let raw = JSON.parse(saved);
-                        this.players = raw.map(p => ({ ...p, active: true, betsThisRound: 0 }));
+                        this.players = raw.map(p => ({ ...p, active: true, betsThisRound: 0, totalBet: 0, totalWon: 0 }));
                     } catch (e) { window.location.href = 'index.html'; }
                 } else { window.location.href = 'index.html'; }
             }
@@ -881,6 +1027,7 @@
                 this.board[num][ring] = p.id;
                 p.cash -= 1;
                 p.betsThisRound++;
+                p.totalBet += 1;
                 this.pot += 1;
 
                 // Visual chip
@@ -991,35 +1138,55 @@
                 document.getElementById('hub-ui').style.display = 'none';
                 document.getElementById('dice-ui').style.display = 'flex';
 
+                const d1El = document.getElementById('die1');
+                const d2El = document.getElementById('die2');
+                const sumDisplay = document.getElementById('sum-display');
+
+                d1El.className = 'die';
+                d2El.className = 'die';
+                sumDisplay.className = '';
+                sumDisplay.innerText = 'SUM: ?';
+
                 // Die 1
                 const d1 = await this.rollDie('die1');
                 this.dice[0] = d1;
                 const res1 = this.resolveReflected(d1);
-                await this.processHit(res1, "Die 1");
+                const win1 = await this.processHit(res1, "Die 1", 'die1');
+
+                await new Promise(r => setTimeout(r, 600));
 
                 // Die 2
                 const d2 = await this.rollDie('die2');
                 this.dice[1] = d2;
                 const res2 = this.resolveReflected(d2);
-                await this.processHit(res2, "Die 2");
+                const win2 = await this.processHit(res2, "Die 2", 'die2');
+
+                await new Promise(r => setTimeout(r, 600));
 
                 // Sum
                 const sum = d1 + d2;
+                sumDisplay.innerText = `SUM: ${sum}`;
+                sumDisplay.classList.add('visible');
+
                 if (!this.eliminatedNumbers.includes(sum) && !this.activeHits.includes(sum)) {
-                    await this.processHit(sum, "Sum");
+                    await this.processHit(sum, "Sum", 'sum-display');
+                } else {
+                    this.addLog(`Sum ${sum}: Already hit or reflected.`, 'neutral');
+                    sumDisplay.classList.add('lose');
                 }
 
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 1500));
                 this.endRound();
             }
 
             async rollDie(id) {
                 const el = document.getElementById(id);
+                el.classList.remove('win', 'lose');
                 let val = 1;
-                for (let i = 0; i < 15; i++) {
+                for (let i = 0; i < 20; i++) {
                     val = Math.ceil(Math.random() * 6);
                     el.innerText = val;
-                    await new Promise(r => setTimeout(r, 60));
+                    await new Promise(r => setTimeout(r, 40 + (i * 5))); // Slow down for suspense
                 }
                 return val;
             }
@@ -1033,11 +1200,15 @@
                 return current;
             }
 
-            async processHit(num, label) {
+            async processHit(num, label, elementId) {
+                const el = document.getElementById(elementId);
+                let hitResult = 'neutral';
+
                 if (!num) {
                     this.addLog(`${label}: Boundary Reach (Miss)`, "neutral");
+                    if (el) el.classList.add('lose');
                     await new Promise(r => setTimeout(r, 800));
-                    return;
+                    return 'neutral';
                 }
 
                 this.activeHits.push(num);
@@ -1050,23 +1221,30 @@
                 const ring = this.getCurrentRing();
                 const owner = slots[ring];
 
-                // Sequential Fortuna Payout: Pot is split into 3 shares (Die 1, Die 2, Sum)
                 const share = Math.floor(this.pot / 3);
 
                 if (owner === 'house') {
                     this.addLog(`${label}: ${num} hit! House sweeps €${share}`, "danger");
+                    if (el) el.classList.add('lose');
+                    hitResult = 'house';
                 } else if (owner !== null) {
                     const p = this.players.find(pl => pl.id === owner);
                     if (p) {
                         p.cash += share;
+                        p.totalWon += share;
                         this.addLog(`${label}: ${num} hit! ${p.name} claims €${share}`, "success");
+                        if (el) el.classList.add('win');
+                        hitResult = 'player';
                     }
                 } else {
                     this.addLog(`${label}: ${num} hit! (No bets)`, "neutral");
+                    if (el) el.classList.add('lose');
+                    hitResult = 'none';
                 }
 
                 await new Promise(r => setTimeout(r, 1200));
                 node.classList.remove('hit');
+                return hitResult;
             }
 
             endRound() {
@@ -1082,6 +1260,7 @@
 
                 if (this.round >= this.maxRounds || this.eliminatedNumbers.length >= 12 || activePlayers.length === 0) {
                     this.phase = 'gameover';
+                    this.renderPerformanceDiagram();
                     document.getElementById('full-overlay').classList.add('visible');
                     const winners = this.players.filter(p => p.cash > 5);
                     document.getElementById('overlay-desc').innerText = winners.length
@@ -1130,6 +1309,58 @@
                 });
                 document.getElementById('pot-amount').innerText = '€' + this.pot;
                 document.getElementById('round-number').innerText = this.round + ' / 3';
+            }
+
+            renderPerformanceDiagram() {
+                const chart = document.getElementById('performance-chart');
+                // Keep the median line
+                chart.innerHTML = '<div class="median-line"></div>';
+
+                const maxVal = Math.max(...this.players.map(p => Math.max(p.totalBet, p.totalWon)), 10);
+                const scale = 100 / maxVal; // Max height is 100px (half of 200px chart)
+
+                this.players.forEach(p => {
+                    const col = document.createElement('div');
+                    col.className = 'player-perf-column';
+
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'bar-container';
+
+                    // Reward Bar (Up)
+                    const rewardH = p.totalWon * scale;
+                    const rewardBar = document.createElement('div');
+                    rewardBar.className = 'bar-reward';
+                    rewardBar.style.height = `${rewardH}px`;
+                    if (p.totalWon > 0) {
+                        const valText = document.createElement('div');
+                        valText.className = 'perf-val perf-val-up';
+                        valText.innerText = `+${p.totalWon}`;
+                        rewardBar.appendChild(valText);
+                    }
+
+                    // Input Bar (Down)
+                    const inputH = p.totalBet * scale;
+                    const inputBar = document.createElement('div');
+                    inputBar.className = 'bar-input';
+                    inputBar.style.height = `${inputH}px`;
+                    if (p.totalBet > 0) {
+                        const valText = document.createElement('div');
+                        valText.className = 'perf-val perf-val-down';
+                        valText.innerText = `-${p.totalBet}`;
+                        inputBar.appendChild(valText);
+                    }
+
+                    const name = document.createElement('div');
+                    name.className = 'perf-name';
+                    name.innerText = p.name;
+                    name.style.color = p.color.hex;
+
+                    barContainer.appendChild(rewardBar);
+                    barContainer.appendChild(inputBar);
+                    col.appendChild(barContainer);
+                    col.appendChild(name);
+                    chart.appendChild(col);
+                });
             }
         }
 
