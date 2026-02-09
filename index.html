@@ -32,39 +32,153 @@
             overflow: hidden;
         }
 
-        /* Global Top Bank Style (Fixed width to prevent shrinking) */
-        #global-bank {
+        /* Player Bar - Replaces Global Bank */
+        #player-bar {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(20, 10, 0, 0.8));
-            border: 1px solid var(--gold);
-            padding: 10px 0;
-            width: 200px;
-            /* Fixed width */
-            text-align: center;
+            border: 1px solid var(--gold-dim);
+            padding: 10px 20px;
             border-radius: 30px;
             z-index: 2000;
             display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            max-width: 90vw;
+            overflow-x: auto;
+            /* Hide scrollbar */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #player-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .player-chip {
+            display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            min-width: 60px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
         }
 
-        #global-bank .label {
+        .player-chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .player-chip.compact {
+            flex-direction: row;
+            gap: 5px;
+            padding: 5px 8px;
+            min-width: auto;
+        }
+
+        .player-chip.compact .p-name {
             font-size: 0.7rem;
-            color: #aaa;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-family: 'Playfair Display', serif;
+            margin-bottom: 0;
         }
 
-        #global-bank .value {
-            font-size: 1.5rem;
-            color: var(--gold);
-            font-weight: 700;
+        .player-chip.compact .p-cash {
+            font-size: 0.9rem;
+        }
+
+        .p-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .p-cash {
             font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .add-player-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            padding: 0;
+            /* Reset padding override */
+        }
+
+        .add-player-btn:hover,
+        .remove-player-btn:hover {
+            color: var(--gold-bright);
+            border-color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.1);
+            box-shadow: none;
+            /* Reset button shadow override */
+        }
+
+        .remove-player-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            padding: 0;
+            padding-bottom: 4px;
+            /* Align the minus better */
+        }
+
+        .reset-money-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            padding: 0 12px;
+            height: 40px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .reset-money-btn:hover {
+            color: var(--gold-bright);
+            border-color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.05);
         }
 
         .menu-container {
@@ -155,7 +269,7 @@
             position: relative;
         }
 
-        button {
+        button.menu-btn {
             width: 100%;
             background: rgba(10, 20, 15, 0.8);
             border: 1px solid var(--gold-dim);
@@ -174,7 +288,7 @@
             align-items: center;
         }
 
-        button::before {
+        button.menu-btn::before {
             content: '';
             position: absolute;
             top: 0;
@@ -185,11 +299,11 @@
             transition: 0.5s;
         }
 
-        button:hover::before {
+        button.menu-btn:hover::before {
             left: 100%;
         }
 
-        button:hover {
+        button.menu-btn:hover {
             background: rgba(212, 175, 55, 0.15);
             border-color: var(--gold-bright);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
@@ -202,6 +316,14 @@
             cursor: not-allowed;
             border-color: #333;
             color: #555;
+            background: rgba(10, 20, 15, 0.8);
+            width: 100%;
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid #333;
         }
 
         .coming-soon:hover {
@@ -288,14 +410,48 @@
         .modal-open {
             display: flex;
         }
+
+        /* Reset button override */
+        .reset-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .about-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 
 <body>
 
-    <div id="global-bank">
-        <span class="label">Total Bank</span>
-        <span class="value" id="bank-display">€500</span>
+    <div id="player-bar">
+        <!-- Players injected here -->
+        <button id="remove-btn" class="remove-player-btn" onclick="removePlayer()" title="Remove Player"
+            style="display:none;">-</button>
+        <button id="add-btn" class="add-player-btn" onclick="addPlayer()" title="Add Player">+</button>
+        <button class="reset-money-btn" onclick="resetMoney()" title="Reset All Money">Reset</button>
     </div>
 
     <div class="menu-container">
@@ -310,15 +466,16 @@
 
         <div class="menu-grid">
             <a href="ricochet.html" class="menu-item">
-                <button>Ricochet</button>
+                <button class="menu-btn">Ricochet</button>
             </a>
 
             <a href="fortuna.html" class="menu-item">
-                <button>Fortuna</button>
+                <button class="menu-btn">Fortuna</button>
             </a>
 
-            <button class="coming-soon">GAME IN DEVELOPMENT</button>
-            <button class="coming-soon">GAME IN DEVELOPMENT</button>
+
+
+            <div class="coming-soon">GAME IN DEVELOPMENT</div>
         </div>
 
         <div class="footer">
@@ -348,30 +505,138 @@
         </div>
     </div>
 
-    <button style="position: absolute; top: 20px; left: 20px; width: auto; padding: 10px 20px; font-size: 0.8rem;"
-        onclick="openAbout()">ABOUT</button>
+    <button class="about-btn" onclick="openAbout()">ABOUT</button>
 
-    <a href="https://simonallmer.com" target="_top"
-        style="position: absolute; top: 20px; right: 20px; text-decoration: none;">
-        <button style="width: auto; padding: 10px 20px; font-size: 0.8rem;"
-            onclick="localStorage.setItem('casino_camino_bank', bank)">Back to SA</button>
+    <a href="https://simonallmer.com" target="_top">
+        <button class="reset-btn">Back to SA</button>
     </a>
 
-    <div style="display: none;"></div>
-
     <script>
-        // Global Money Management
-        // Check if bank exists in localStorage, otherwise init 500
-        let bank = localStorage.getItem('casino_camino_bank');
-        if (bank === null) {
-            bank = 500;
-            localStorage.setItem('casino_camino_bank', bank);
-        } else {
-            bank = parseInt(bank);
+        // --- Shared Config ---
+        const PLAYER_COLORS = [
+            { name: 'Red', hex: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)' },
+            { name: 'Blue', hex: '#3b82f6', glow: 'rgba(59, 130, 246, 0.5)' },
+            { name: 'Green', hex: '#10b981', glow: 'rgba(16, 185, 129, 0.5)' },
+            { name: 'Yellow', hex: '#facc15', glow: 'rgba(250, 204, 21, 0.5)' },
+            { name: 'Purple', hex: '#a855f7', glow: 'rgba(168, 85, 247, 0.5)' },
+            { name: 'Orange', hex: '#f97316', glow: 'rgba(249, 115, 22, 0.5)' },
+            { name: 'Cyan', hex: '#22d3ee', glow: 'rgba(34, 211, 238, 0.5)' },
+            { name: 'Pink', hex: '#ec4899', glow: 'rgba(236, 72, 153, 0.5)' },
+            { name: 'Lime', hex: '#a3e635', glow: 'rgba(163, 230, 53, 0.5)' },
+            { name: 'Teal', hex: '#14b8a6', glow: 'rgba(20, 184, 166, 0.5)' },
+            { name: 'Indigo', hex: '#6366f1', glow: 'rgba(99, 102, 241, 0.5)' },
+            { name: 'Brown', hex: '#92400e', glow: 'rgba(146, 64, 14, 0.5)' },
+        ];
+
+        const MAX_PLAYERS = 12;
+        const STARTING_CASH = 5;
+
+        // --- State Management ---
+        let players = [];
+
+        function init() {
+            // Load players or init default
+            const saved = localStorage.getItem('casino_camino_players');
+            if (saved) {
+                players = JSON.parse(saved);
+                // Ensure legacy fix if needed (e.g., ensure color objects are fully populated)
+            } else {
+                // Initialize Player 1
+                players = [{
+                    id: 0,
+                    name: 'Player 1',
+                    cash: STARTING_CASH,
+                    color: PLAYER_COLORS[0],
+                    inventory: [],
+                    active: true
+                }];
+                savePlayers();
+            }
+            renderPlayers();
         }
 
-        document.getElementById('bank-display').innerText = '€' + bank;
+        function savePlayers() {
+            localStorage.setItem('casino_camino_players', JSON.stringify(players));
+        }
 
+        function addPlayer() {
+            if (players.length >= MAX_PLAYERS) return;
+
+            const newId = players.length;
+            const newPlayer = {
+                id: newId,
+                name: `Player ${newId + 1}`,
+                cash: STARTING_CASH,
+                color: PLAYER_COLORS[newId % PLAYER_COLORS.length],
+                inventory: [],
+                active: true
+            };
+            players.push(newPlayer);
+            savePlayers();
+            renderPlayers();
+        }
+
+        function removePlayer() {
+            if (players.length <= 1) return;
+            players.pop();
+            savePlayers();
+            renderPlayers();
+        }
+
+        function resetMoney() {
+            if (!confirm("Reset all players to €5?")) return;
+            players.forEach(p => {
+                p.cash = STARTING_CASH;
+            });
+            savePlayers();
+            renderPlayers();
+        }
+
+        function renamePlayer(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            const newName = prompt(`Enter name for ${player.name}:`, player.name);
+            if (newName && newName.trim() !== "") {
+                player.name = newName.trim().substring(0, 15); // limit length
+                savePlayers();
+                renderPlayers();
+            }
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById('player-bar');
+            const addBtn = document.getElementById('add-btn');
+            const removeBtn = document.getElementById('remove-btn');
+
+            // Clear existing chips only
+            const existingChips = container.querySelectorAll('.player-chip');
+            existingChips.forEach(chip => chip.remove());
+
+            // Determine display mode based on count
+            const isCompact = players.length > 6;
+
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `player-chip ${isCompact ? 'compact' : ''}`;
+                div.style.borderColor = p.color.hex;
+                div.style.boxShadow = `0 0 10px ${p.color.glow}`;
+                div.onclick = () => renamePlayer(p.id);
+
+                div.innerHTML = `
+                    <span class="p-name" style="color:${p.color.hex}">${isCompact ? (p.id + 1) : p.name}</span>
+                    <span class="p-cash">€${p.cash}</span>
+                `;
+
+                container.insertBefore(div, addBtn);
+            });
+
+            // Update buttons visibility
+            addBtn.style.display = players.length >= MAX_PLAYERS ? 'none' : 'flex';
+            removeBtn.style.display = players.length <= 1 ? 'none' : 'flex';
+        }
+
+        // --- Modals ---
         function openAbout() {
             document.getElementById('about-modal').classList.add('modal-open');
         }
@@ -380,13 +645,16 @@
             document.getElementById('about-modal').classList.remove('modal-open');
         }
 
-        // Close on clicking outside the content
         window.onclick = function (event) {
             let modal = document.getElementById('about-modal');
             if (event.target == modal) {
                 closeAbout();
             }
         }
+
+        // Run
+        init();
+
     </script>
 
 </body>
