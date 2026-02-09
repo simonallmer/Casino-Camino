@@ -529,7 +529,7 @@
         ];
 
         const MAX_PLAYERS = 12;
-        const STARTING_CASH = 5;
+        const STARTING_CASH = 10;
 
         // --- State Management ---
         let players = [];
@@ -584,7 +584,7 @@
         }
 
         function resetMoney() {
-            if (!confirm("Reset all players to €5?")) return;
+            if (!confirm("Reset all players to €10?")) return;
             players.forEach(p => {
                 p.cash = STARTING_CASH;
             });

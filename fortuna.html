@@ -36,138 +36,197 @@
             align-items: center;
         }
 
+        .back-btn-rect {
+            position: absolute;
+            top: 25px;
+            padding: 12px 24px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--gold-dim);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn-rect:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+            transform: translateY(-2px);
+        }
+
         #game-stage {
             width: 100vw;
             height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
             position: relative;
+            overflow: hidden;
         }
 
-        /* HUD */
+        /* HUD Level 1: Positioned absolute elements instead of a container */
         .hud-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1200px;
-            padding: 30px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            height: 100%;
+            pointer-events: none;
             z-index: 100;
         }
 
-        .hud-title {
+        .hud-turn {
+            pointer-events: all;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             flex-direction: column;
-        }
-
-        .hud-title span {
-            font-size: 0.7rem;
-            color: var(--gold-dim);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-family: 'Cinzel', serif;
-        }
-
-        .hud-title-row {
-            display: flex;
             align-items: center;
-            gap: 15px;
+            text-align: center;
+            min-width: 280px;
+            padding: 10px 40px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-top: none;
+            border-radius: 0 0 25px 25px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
         }
 
-        .hud-title h1 {
+        .turn-player-name {
             font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            margin: 0;
-            color: var(--gold);
-            letter-spacing: 6px;
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-        }
-
-        .badge {
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid var(--gold-dim);
-            color: var(--gold);
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
+            margin: 0;
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
 
-        .pot-display {
-            background: radial-gradient(circle at top, #1a1a1a, #000);
-            border: 2px solid var(--gold);
-            padding: 10px 40px;
-            border-radius: 50px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1);
-            min-width: 180px;
+        .turn-player-hint {
+            font-size: 0.75rem;
+            color: #bbb;
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.5px;
         }
 
-        .pot-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            color: var(--gold-dim);
-            font-weight: bold;
-            letter-spacing: 4px;
-        }
-
-        .pot-value {
+        .turn-player-hint strong {
+            color: var(--gold-bright);
+            font-size: 1rem;
+            font-weight: 800;
+            font-style: normal;
             font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
+            margin: 0 4px;
+        }
+
+        .round-display {
+            pointer-events: all;
+            position: absolute;
+            bottom: calc(50% + 180px);
+            /* Positioned slightly above the player list */
+            left: 40px;
+            font-family: 'Cinzel', serif;
+            text-align: left;
+        }
+
+        .round-display span {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--gold-dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .round-display b {
+            font-size: 1.8rem;
             color: #fff;
-            margin-top: -5px;
+            letter-spacing: 5px;
         }
 
-        .round-info {
-            text-align: right;
-        }
-
-        /* Player bar */
+        /* Player vertical bar on left */
         #player-bar {
+            position: absolute;
+            left: 40px;
+            top: 55%;
+            transform: translateY(-50%);
             display: flex;
+            flex-direction: column;
             gap: 15px;
-            margin-top: -10px;
             z-index: 100;
+            width: 240px;
         }
 
         .player-chip {
-            padding: 6px 18px;
-            border-radius: 25px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 4px;
+            /* Crisp rectangular look */
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
+            border: 1px solid rgba(255, 255, 255, 0.03);
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.8rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            gap: 15px;
+            font-size: 0.95rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-chip::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: currentColor;
+            opacity: 0.3;
         }
 
         .player-chip.active {
-            transform: scale(1.15) translateY(-5px);
-            border-color: var(--gold);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 0 15px currentColor;
+            transform: translateX(15px);
+            border-color: rgba(212, 175, 55, 0.4);
+            background: rgba(212, 175, 55, 0.12);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+        }
+
+        .player-chip.active::before {
+            opacity: 1;
+            box-shadow: 0 0 15px currentColor;
         }
 
         .color-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            box-shadow: 0 0 8px currentColor;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px currentColor;
         }
 
-        /* Star Board */
+        /* Star Board - Reverted Sizes */
         #star-board {
             position: relative;
             width: 850px;
             height: 850px;
-            margin-top: 0px;
             display: flex;
             justify-content: center;
             align-items: center;
+            /* Board is now totally centered in viewport */
         }
 
         .arm {
@@ -310,7 +369,7 @@
             }
         }
 
-        /* Central Hub */
+        /* Central Hub - Reverted Size */
         .central-hub {
             position: absolute;
             top: 50%;
@@ -324,13 +383,18 @@
             box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(212, 175, 55, 0.05);
             z-index: 50;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
         }
 
-        .hub-label {
+        .pot-centered-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pot-lbl {
             font-size: 0.65rem;
             color: var(--gold-dim);
             text-transform: uppercase;
@@ -339,18 +403,11 @@
             margin-bottom: 5px;
         }
 
-        .hub-name {
-            font-size: 1.4rem;
-            font-weight: 700;
+        .pot-val {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
             font-family: 'Cinzel', serif;
-            margin-bottom: 5px;
-            text-shadow: 0 0 15px currentColor;
-        }
-
-        .hub-hint {
-            font-size: 0.8rem;
-            color: #666;
-            font-style: italic;
         }
 
         /* Dice */
@@ -420,36 +477,81 @@
             box-shadow: 0 0 15px rgba(248, 113, 113, 0.3);
         }
 
-        /* Controls */
         #controls-bar {
             position: fixed;
-            bottom: 40px;
-            width: 100%;
+            bottom: 30px;
+            right: 25px;
+            width: 320px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            z-index: 100;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1001;
         }
 
         .btn-main {
-            background: linear-gradient(to bottom, #444, #222);
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
             border: 1px solid var(--gold-dim);
-            color: #fff;
-            padding: 14px 40px;
+            color: var(--gold-dim);
+            padding: 14px 30px;
             font-family: 'Cinzel', serif;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             cursor: pointer;
             border-radius: 4px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+
+        .btn-rules {
+            position: absolute;
+            right: 0;
+            top: -60px;
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: var(--gold-dim);
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-rules:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+            transform: translateY(-2px);
         }
 
         .btn-main:hover:not(:disabled) {
-            transform: translateY(-3px);
             border-color: var(--gold);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-main.primary {
+            background: linear-gradient(to bottom, var(--gold), #8a6e15);
+            color: #050505;
+            font-weight: 800;
+            border: none;
+        }
+
+        .btn-main.primary:hover {
+            background: linear-gradient(to bottom, #ffe066, #bba040);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
         }
 
         .btn-main:disabled {
@@ -462,32 +564,47 @@
             border-color: #ff4444;
         }
 
-        /* Logs */
+        /* Logs - Moved up to accommodate controls */
         #log-panel {
             position: fixed;
-            bottom: 25px;
+            bottom: 150px;
             right: 25px;
             width: 320px;
             height: 220px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(5, 10, 8, 0.95);
             border: 1px solid rgba(212, 175, 55, 0.2);
             border-radius: 12px;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
             z-index: 1000;
+            transition: all 0.4s ease;
+        }
+
+        #log-panel.collapsed {
+            height: 45px;
         }
 
         .log-header {
             padding: 12px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'Cinzel', serif;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             letter-spacing: 2px;
             color: var(--gold-dim);
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .log-toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .collapsed .log-toggle-icon {
+            transform: rotate(180deg);
         }
 
         #log-content {
@@ -548,9 +665,11 @@
             align-items: center;
             justify-content: space-around;
             position: relative;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--gold);
+            border-radius: 4px;
             padding: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 30px rgba(212, 175, 55, 0.15);
         }
 
         .median-line {
@@ -631,28 +750,7 @@
             color: #f87171;
         }
 
-        .back-btn {
-            position: fixed;
-            top: 25px;
-            padding: 10px 22px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            border-radius: 30px;
-            font-family: 'Cinzel', serif;
-            font-size: 0.7rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s;
-            z-index: 1000;
-            letter-spacing: 1px;
-        }
 
-        .back-btn:hover {
-            border-color: var(--gold);
-            color: #fff;
-            background: rgba(212, 175, 55, 0.1);
-        }
 
         /* Rules Modal (Ricochet style) */
         #rules-modal {
@@ -716,77 +814,77 @@
             letter-spacing: 1px;
         }
 
-        .btn-rules {
-            width: 44px;
-            height: 44px;
-            border-radius: 4px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--gold-dim);
-            color: var(--gold-dim);
-            font-family: 'Cinzel', serif;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        #log-panel.collapsed {
+            height: 45px;
         }
 
-        .btn-rules:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-            transform: scale(1.05);
+        .log-header {
+            cursor: pointer;
+        }
+
+        .log-toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .collapsed .log-toggle-icon {
+            transform: rotate(180deg);
         }
     </style>
 </head>
 
 <body>
-    <a href="index.html" class="back-btn" style="left: 25px;">Back to Menu</a>
-    <a href="https://simonallmer.com" target="_top" class="back-btn" style="right: 25px;">Back to SA</a>
+    <a href="index.html" class="back-btn-rect" style="left: 25px;">Back to Menu</a>
+    <a href="https://simonallmer.com" target="_top" class="back-btn-rect" style="right: 25px;">Back to SA</a>
 
     <div id="game-stage">
         <div class="hud-container">
-            <div class="hud-title">
-                <span>Casino Camino</span>
-                <div class="hud-title-row">
-                    <h1>Fortuna</h1>
-                    <div class="badge">Sequential</div>
-                </div>
+            <div class="hud-turn">
+                <span class="pot-lbl" style="letter-spacing: 2px; font-size: 0.65rem;">Active Player</span>
+                <div class="turn-player-name" id="hub-player-name">—</div>
+                <div class="turn-player-hint" id="hub-hint">Bet <strong>1€</strong> or DIE</div>
             </div>
-            <div class="pot-display">
-                <div class="pot-label">Total Pot</div>
-                <div class="pot-value" id="pot-amount">€0</div>
-            </div>
-            <div class="round-info">
-                <div class="pot-label">Round</div>
-                <div class="pot-value" id="round-number">1 / 3</div>
+
+            <div class="round-display">
+                <span>ROUND</span>
+                <b id="round-number">1 / 3</b>
             </div>
         </div>
 
-        <div id="player-bar"></div>
+        <div id="player-bar">
+            <!-- Players injected here -->
+        </div>
 
         <div id="star-board">
             <div class="central-hub">
-                <div id="hub-ui">
-                    <div class="hub-label" id="hub-status">Current Turn</div>
-                    <div class="hub-name" id="hub-player-name">—</div>
-                    <div class="hub-hint" id="hub-hint">Bet 1€ or DIE</div>
+                <div id="hub-ui" class="pot-centered-display">
+                    <span class="pot-lbl">Total Pot</span>
+                    <div class="pot-val" id="pot-amount">€0</div>
                 </div>
                 <div id="dice-ui" style="display: none; flex-direction: column; align-items: center;">
                     <div class="dice-box">
                         <div class="die" id="die1">?</div>
                         <div class="die" id="die2">?</div>
                     </div>
-                    <div id="sum-display">SUM: 0</div>
+                    <div id="sum-display" style="margin-top: 10px;">SUM: ?</div>
                 </div>
             </div>
             <!-- Arms injected by JS -->
         </div>
 
+        <div id="log-panel">
+            <div class="log-header" onclick="game.toggleLog()">
+                <span>Dealer Log</span>
+                <span class="log-toggle-icon">▾</span>
+            </div>
+            <div id="log-content"></div>
+        </div>
+
         <div id="controls-bar">
             <button class="btn-rules" onclick="game.toggleRules()">?</button>
             <button id="pass-btn" class="btn-main btn-danger">Withdraw / Pass</button>
-            <button id="roll-btn" class="btn-main" style="display:none;">Roll Dice</button>
+            <button id="roll-btn" class="btn-main"
+                style="display:none; background: linear-gradient(to bottom, #d4af37, #8a6e15); color: #000;">Roll
+                Dice</button>
         </div>
     </div>
 
@@ -797,7 +895,8 @@
             <ul>
                 <li><strong>The Goal:</strong> Be the most prosperous survivor after 3 rounds.</li>
                 <li><strong>The Board:</strong> 12 Arms, each with 3 Ring Slots (Outer, Mid, Inner).</li>
-                <li><strong>Betting:</strong> Place 1&euro; bets on any arm. Each arm can only have ONE bet per round.
+                <li><strong>Betting:</strong> Place bets on any arm. Costs increase each round: Round 1 costs 1&euro;,
+                    Round 2 costs 2&euro;, and Round 3 costs 4&euro;. Each arm can only have ONE bet per round.
                 </li>
                 <li><strong>Must Engage:</strong> You MUST place at least one bet per round or you are ELIMINATED.</li>
                 <li><strong>House Fill:</strong> Once betting stops, the House fills all vacant slots for the round.
@@ -812,25 +911,20 @@
         <button class="btn-main" style="margin-top:30px; width: 100%;" onclick="game.toggleRules()">Close Rules</button>
     </div>
 
-    <div id="log-panel">
-        <div class="log-header">
-            <span>Dealer Log</span>
-            <span style="opacity: 0.3;">•••</span>
-        </div>
-        <div id="log-content"></div>
-    </div>
+    <!-- Duplicate Removed -->
+
 
     <div id="full-overlay">
-        <h2 id="overlay-msg">Return of Gamble</h2>
+        <h2 id="overlay-msg" style="margin-bottom: 20px;">Return of Gamble</h2>
         <div id="performance-chart" class="performance-container">
             <div class="median-line"></div>
         </div>
         <p id="overlay-desc"
-            style="font-size: 1.1rem; color: #aaa; margin: 10px 0 30px; text-align: center; max-width: 600px;"></p>
-        <div style="display: flex; gap: 20px;">
-            <button class="btn-main" onclick="location.reload()">Play Again</button>
-            <a href="index.html" class="btn-main"
-                style="text-decoration: none; display: flex; align-items: center;">Menu</a>
+            style="font-size: 1.1rem; color: #aaa; margin: 10px 0 30px; text-align: center; font-family: 'Playfair Display', serif;">
+        </p>
+        <div style="display: flex; gap: 20px; width: 420px;">
+            <button class="btn-main primary" onclick="location.reload()">Play Again</button>
+            <a href="index.html" class="btn-main" style="text-decoration: none;">Menu</a>
         </div>
     </div>
 
@@ -868,6 +962,10 @@
             toggleRules() {
                 const modal = document.getElementById('rules-modal');
                 modal.classList.toggle('visible');
+            }
+
+            toggleLog() {
+                document.getElementById('log-panel').classList.toggle('collapsed');
             }
 
             loadPlayers() {
@@ -964,7 +1062,7 @@
                 const interval = setInterval(() => {
                     jumps++;
                     const randomPlayer = this.players[Math.floor(Math.random() * this.players.length)];
-                    this.updateHub(randomPlayer.name, randomPlayer.color.hex, "Selecting Starter");
+                    this.updateHub(randomPlayer.name, randomPlayer.color.hex, "Selecting Starter...");
                     if (jumps > max) {
                         clearInterval(interval);
                         const starter = this.players[Math.floor(Math.random() * this.players.length)];
@@ -1006,9 +1104,13 @@
                 if (this.eliminatedNumbers.includes(num)) return;
 
                 const ring = this.getCurrentRing();
+                const betAmount = Math.pow(2, this.round - 1);
                 const p = this.players.find(pl => pl.id === this.activePlayerIndex);
 
-                if (p.cash < 1) return;
+                if (p.cash < betAmount) {
+                    this.addLog(p.name + " doesn't have enough cash!", "danger");
+                    return;
+                }
 
                 if (!this.board[num]) this.board[num] = [null, null, null];
 
@@ -1025,10 +1127,10 @@
 
                 // Place bet
                 this.board[num][ring] = p.id;
-                p.cash -= 1;
+                p.cash -= betAmount;
                 p.betsThisRound++;
-                p.totalBet += 1;
-                this.pot += 1;
+                p.totalBet += betAmount;
+                this.pot += betAmount;
 
                 // Visual chip
                 const slot = document.getElementById(`slot-${num}-${ring}`);
@@ -1088,30 +1190,35 @@
             updateTurnUI() {
                 const p = this.players.find(pl => pl.id === this.activePlayerIndex);
                 if (p) {
-                    this.updateHub(p.name, p.color.hex, "Current Turn", "Bet 1€ or DIE");
+                    const betAmount = Math.pow(2, this.round - 1);
+                    this.updateHub(p.name, p.color.hex, `Bet <strong>${betAmount}€</strong> or DIE`);
                 }
                 this.renderPlayerBar();
             }
 
-            updateHub(name, color, status, hint = "") {
-                document.getElementById('hub-player-name').innerText = name;
-                document.getElementById('hub-player-name').style.color = color;
-                document.getElementById('hub-status').innerText = status;
-                document.getElementById('hub-hint').innerText = hint;
+            updateHub(name, color, hint = "") {
+                const nameEl = document.getElementById('hub-player-name');
+                if (nameEl) {
+                    nameEl.innerText = name;
+                    nameEl.style.color = color;
+                }
+                const hintEl = document.getElementById('hub-hint');
+                if (hintEl) hintEl.innerHTML = hint;
             }
 
             prepareRolling() {
                 this.phase = 'prepare_rolling';
-                this.updateHub("House", "var(--red)", "Table Fill", "House takes remaining slots");
+                this.updateHub("House", "var(--red)", "House fills remaining slots");
 
                 const ring = this.getCurrentRing();
+                const betAmount = Math.pow(2, this.round - 1);
                 let tableFills = 0;
                 this.numbers.forEach(n => {
                     if (this.eliminatedNumbers.includes(n)) return;
                     if (!this.board[n]) this.board[n] = [null, null, null];
                     if (this.board[n][ring] === null) {
                         this.board[n][ring] = 'house';
-                        this.pot += 1;
+                        this.pot += betAmount;
                         tableFills++;
 
                         const slot = document.getElementById(`slot-${n}-${ring}`);
@@ -1262,7 +1369,7 @@
                     this.phase = 'gameover';
                     this.renderPerformanceDiagram();
                     document.getElementById('full-overlay').classList.add('visible');
-                    const winners = this.players.filter(p => p.cash > 5);
+                    const winners = this.players.filter(p => p.cash > 10);
                     document.getElementById('overlay-desc').innerText = winners.length
                         ? "Survivors identified: " + winners.map(w => w.name + " (€" + w.cash + ")").join(", ")
                         : "All players liquidated.";
