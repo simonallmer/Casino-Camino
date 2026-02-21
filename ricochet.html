@@ -271,8 +271,7 @@
         }
 
         /* Overlays */
-        #overlay,
-        #rules-modal {
+        #overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -291,10 +290,34 @@
             backdrop-filter: blur(8px);
         }
 
-        #overlay.visible,
-        #rules-modal.visible {
+        #overlay.visible {
             opacity: 1;
             pointer-events: all;
+        }
+
+        /* Rules Modal */
+        #rules-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 650px;
+            background: rgba(5, 10, 8, 0.98);
+            border: 2px solid var(--gold-dim);
+            border-radius: 20px;
+            padding: 40px;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 100px rgba(0, 0, 0, 0.9);
+            box-sizing: border-box;
+        }
+
+        #rules-modal.visible {
+            display: flex;
         }
 
         #overlay h1 {
@@ -316,13 +339,15 @@
 
         /* Rules Content */
         #rules-content {
-            width: 80%;
-            max-width: 500px;
+            width: 100%;
+            overflow-y: auto;
+            max-height: 60vh;
             text-align: left;
             color: #ddd;
             font-family: 'Playfair Display', serif;
-            font-size: 1rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding-right: 15px;
         }
 
         #rules-content h2 {
@@ -353,17 +378,38 @@
             left: 20px;
             z-index: 100;
         }
+
+        .nav-btn {
+            position: absolute;
+            top: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            z-index: 1000;
+            letter-spacing: normal;
+            font-weight: normal;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+        }
     </style>
 </head>
 
 <body>
 
-    <a href="index.html" id="back-btn"><button class="btn-small">Back to Menu</button></a>
-
-    <a href="https://simonallmer.com" target="_top"
-        style="position: absolute; top: 20px; right: 20px; z-index: 100; text-decoration: none;">
-        <button class="btn-small">Back to SA</button>
-    </a>
+    <a href="index.html"><button class="nav-btn" style="left: 20px;">Back to Menu</button></a>
+    <a href="https://simonallmer.com" target="_top"><button class="nav-btn" style="right: 20px;">Back to SA</button></a>
 
     <div id="game-container">
 
@@ -444,7 +490,7 @@
                 <li><strong>🔍 Glass:</strong> True Sight. Allows you to see through the wooden covers.</li>
             </ul>
         </div>
-        <button class="primary" style="margin-top:20px" onclick="game.toggleRules()">Close</button>
+        <button class="primary" style="margin-top:20px" onclick="game.toggleRules()">Close Rules</button>
     </div>
 
     <script>
@@ -1455,8 +1501,30 @@
             }
         }
 
-        const game = new CasinoGame();
-        game.loop();
+        let game;
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('showRules') === 'true') {
+                const modal = document.getElementById('rules-modal');
+                modal.classList.add('visible');
+
+                document.getElementById('game-container').style.display = 'none';
+                document.body.style.background = '#000';
+                document.body.style.backgroundImage = 'none';
+
+                // Replace the 'Close Rules' button with Play and Back to Menu
+                const btn = modal.querySelector('button');
+                if (btn) {
+                    btn.outerHTML = `<div style="display:flex; gap: 10px; margin-top: 30px; width: 100%;">
+                        <button style="flex:1; background: linear-gradient(to bottom, #D4AF37, #aa8c2c); color: #000; border: none; padding: 15px 20px; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);" onclick="window.location.href='ricochet.html'">Play</button>
+                        <button style="flex:1; background: #5c1616; color: #fff; border: 1px solid #ff4444; padding: 15px 20px; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; letter-spacing: 2px;" onclick="window.location.href='index.html'">Back to Menu</button>
+                    </div>`;
+                }
+            } else {
+                game = new CasinoGame();
+                game.loop();
+            }
+        });
 
     </script>
 </body>

@@ -36,32 +36,29 @@
             align-items: center;
         }
 
-        .back-btn-rect {
+        .nav-btn {
             position: absolute;
-            top: 25px;
-            padding: 12px 24px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            background: rgba(0, 0, 0, 0.6);
-            color: var(--gold-dim);
-            text-decoration: none;
+            top: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
             font-family: 'Cinzel', serif;
-            font-size: 0.75rem;
-            letter-spacing: 3px;
+            cursor: pointer;
             text-transform: uppercase;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
+            letter-spacing: normal;
+            font-weight: normal;
+            border-radius: 0;
+            box-shadow: none;
         }
 
-        .back-btn-rect:hover {
+        .nav-btn:hover {
             border-color: var(--gold);
-            color: var(--gold);
-            background: rgba(212, 175, 55, 0.15);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
-            transform: translateY(-2px);
+            color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
         }
 
         #game-stage {
@@ -833,8 +830,8 @@
 </head>
 
 <body>
-    <a href="index.html" class="back-btn-rect" style="left: 25px;">Back to Menu</a>
-    <a href="https://simonallmer.com" target="_top" class="back-btn-rect" style="right: 25px;">Back to SA</a>
+    <a href="index.html"><button class="nav-btn" style="left: 20px;">Back to Menu</button></a>
+    <a href="https://simonallmer.com" target="_top"><button class="nav-btn" style="right: 20px;">Back to SA</button></a>
 
     <div id="game-stage">
         <div class="hud-container">
@@ -1471,7 +1468,28 @@
             }
         }
 
-        window.onload = () => new FortunaGame();
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('showRules') === 'true') {
+                // Show rules only
+                const modal = document.getElementById('rules-modal');
+                modal.classList.add('visible');
+
+                document.getElementById('game-stage').style.display = 'none';
+                document.body.style.background = '#000';
+
+                // Replace the 'Close Rules' button with Play and Back to Menu
+                const btn = modal.querySelector('button');
+                if (btn) {
+                    btn.outerHTML = `<div style="display:flex; gap: 10px; margin-top: 30px; width: 100%;">
+                        <button style="flex:1; background: linear-gradient(to bottom, #D4AF37, #aa8c2c); color: #000; border: none; padding: 15px 20px; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);" onclick="window.location.href='fortuna.html'">Play</button>
+                        <button style="flex:1; background: #5c1616; color: #fff; border: 1px solid #ff4444; padding: 15px 20px; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; letter-spacing: 2px;" onclick="window.location.href='index.html'">Back to Menu</button>
+                    </div>`;
+                }
+            } else {
+                window.game = new FortunaGame();
+            }
+        };
     </script>
 </body>
 

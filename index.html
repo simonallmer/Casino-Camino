@@ -378,7 +378,8 @@
         }
 
         .modal-content p.golden-intro {
-            color: var(--gold-dim);
+            color: var(--gold);
+            font-weight: bold;
         }
 
         .modal-content a {
@@ -465,17 +466,38 @@
         <p class="subtitle">A New Home for All Your Vices</p>
 
         <div class="menu-grid">
-            <a href="ricochet.html" class="menu-item">
-                <button class="menu-btn">Ricochet</button>
-            </a>
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="ricochet.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">❂</span>Ricochet</button>
+                </a>
+                <button class="btn-small" onclick="openRicochetRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
 
-            <a href="fortuna.html" class="menu-item">
-                <button class="menu-btn">Fortuna</button>
-            </a>
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="fortuna.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">⚅</span>Fortuna</button>
+                </a>
+                <button class="btn-small" onclick="openFortunaRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
 
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="frontier.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">🂠</span>Frontier</button>
+                </a>
+                <button class="btn-small" onclick="openFrontierRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
 
-
-            <div class="coming-soon">GAME IN DEVELOPMENT</div>
+            <div class="menu-item" style="position: relative; display: flex; opacity: 0.7; pointer-events: none;">
+                <button class="menu-btn"
+                    style="width: 100%; font-size: 1.2rem; color: #aaa; background: rgba(0,0,0,0.4); border: 2px dashed #666;">Game
+                    In Development</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -493,9 +515,9 @@
                 theater where destiny pivots on a heartbeat and the clock yields to the glow of a sleepless ensemble.
             </p>
             <p>Casino Camino introduces a distinct collection of original games within a sophisticated atmosphere. While
-                rooted in chance, these titles incorporate a layer of strategy absent in traditional offerings, allowing
-                players to exercise skill to influence outcomes. The digital platform at <a
-                    href="https://casinocamino.com">casinocamino.com</a> provides a space to explore these unique
+                rooted in chance, these titles incorporate a layer of strategy absent in traditional offerings. The
+                digital platform at <a href="https://casinocamino.com">casinocamino.com</a> provides a space to explore
+                these unique
                 mechanics.</p>
             <p>The virtual experience is strictly No-Stakes Entry. <a href="https://simonallmer.com">Simon Allmer
                     Entertainment</a> firmly distinguishes this project from online gambling; the platform accepts no
@@ -590,6 +612,18 @@
             });
             savePlayers();
             renderPlayers();
+        }
+
+        function openFrontierRules() {
+            window.location.href = "frontier.html?showRules=true";
+        }
+
+        function openRicochetRules() {
+            window.location.href = "ricochet.html?showRules=true";
+        }
+
+        function openFortunaRules() {
+            window.location.href = "fortuna.html?showRules=true";
         }
 
         function renamePlayer(id) {
