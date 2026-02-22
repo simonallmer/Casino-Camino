@@ -689,7 +689,7 @@
             </div>
             <div class="hud-item">
                 <span class="label">Deck</span>
-                <span class="value" style="font-size: 1rem; color: #888;" id="deck-display">45</span>
+                <span class="value" style="font-size: 1rem; color: #888;" id="deck-display">50</span>
             </div>
             <button class="btn-small" onclick="game.toggleRules()" style="align-self: center;">Rules</button>
         </div>
@@ -744,9 +744,9 @@
         <div id="rules-content">
             <h2 style="font-size: 2rem;">The Frontier Rulebook</h2>
 
-            <h3>1. The Deck (45 Cards)</h3>
-            <p>A radical 45-card deck based on historical territories. There are 5 categories, each containing strictly
-                9 cards numbered 1 through 9:</p>
+            <h3>1. The Deck (50 Cards)</h3>
+            <p>A radical 50-card deck based on historical territories. There are 5 categories, each containing strictly
+                10 cards numbered 1 through 10:</p>
             <ul>
                 <li><span style="color: var(--deep-south-border)">♥ Deep South</span> & <span
                         style="color: var(--upper-south-border)">♦ Upper South</span> (Confederacy)</li>
@@ -782,18 +782,20 @@
                 <li><strong style="color: #34d399;">Rare:</strong> Pure 4-Card, 4-Card Coalition, 3 of a Rank</li>
                 <li><strong style="color: #2dd4bf;">Uncommon:</strong> 4-Card Campaign, Pure 3-Card, 3-Card Coalition
                 </li>
-                <li><strong style="color: #d6d3d1;">Common:</strong> 3-Card Campaign, Pair</li>
-                <li><strong style="color: #a3e635;">Skirmishes:</strong> Unmatched cards. Pure (Exponential Math),
+                <li><strong style="font-size: 0.8rem; color: #d6d3d1;">Common:</strong> 3-Card Campaign, Pair</li>
+                <li><strong style="font-size: 0.8rem; color: #a3e635;">Skirmishes:</strong> Unmatched cards. Pure
+                    (Product of Ranks x 2),
                     Coalition (Multiplied), Divided (Added).</li>
             </ul>
             <p style="font-size: 0.8rem; border-top: 1px solid #333; padding-top: 5px;"><strong>Tiebreakers:</strong>
-                Exact Suit > Specific Alliance > Uses Wildcard Border > Mixed.</p>
+                Exact Suit > Specific Alliance > Uses Wildcard Border > Mixed. <strong>Note:</strong> Series can wrap
+                around from 10 to 1.</p>
         </div>
         <button class="primary-btn" style="margin-top:20px" onclick="game.toggleRules()">Close Rules</button>
     </div>
 
     <!-- JS Logic appended next -->
-    <script src="frontier.js"></script>
+    <script src="frontier.js?v=1.2"></script>
     <script>
         // Check URL parameters for direct rules opening
         window.addEventListener('DOMContentLoaded', (event) => {

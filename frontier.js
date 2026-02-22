@@ -14,7 +14,7 @@ function createDeck() {
     let newDeck = [];
     Object.keys(SUITS).forEach(suitKey => {
         const suit = SUITS[suitKey];
-        for (let val = 1; val <= 9; val++) {
+        for (let val = 1; val <= 10; val++) {
             newDeck.push({
                 id: `${suitKey}-${val}`,
                 suit: suit,
@@ -61,13 +61,61 @@ function evaluateHand(cards) {
         }
     }
 
-    let maxRun = 1, currentRun = 1;
-    for (let i = 0; i < sortedCards.length - 1; i++) {
-        if (sortedCards[i + 1].val === sortedCards[i].val + 1) currentRun++;
-        else if (sortedCards[i + 1].val !== sortedCards[i].val) currentRun = 1;
-        maxRun = Math.max(maxRun, currentRun);
+    let isRun = false;
+    if (cards.length > 1) {
+        // Linear Run
+        let maxRun = 1, currentRun = 1;
+        for (let i = 0; i < sortedCards.length - 1; i++) {
+            if (sortedCards[i + 1].val === sortedCards[i].val + 1) currentRun++;
+            else if (sortedCards[i + 1].val !== sortedCards[i].val) currentRun = 1;
+            maxRun = Math.max(maxRun, currentRun);
+        }
+        let linearRun = maxRun === cards.length;
+
+        // Circular Run (Wrap-around 10 to 1)
+        // Hand is already sorted by val.
+        // If it's a 10-1 wrap, it would look like [1, 2, ..., 10]
+        // Example for length 3: [1, 2, 10] or [1, 9, 10]
+        // But sorted: [1, 2, 10] -> 10, 1, 2. The gap is between 2 and 10.
+        // A better check for circular runs in a sorted array:
+        // A run exists if (sorted[i+1] - sorted[i] == 1) OR (sorted[0] == 1 AND sorted[last] == 10 AND some other logic)
+        // Actually, for any N cards to be a circular run, they must be distinct and 
+        // (max - min == N - 1) OR (if 1 and 10 are present, check the 'gap')
+
+        if (linearRun) {
+            isRun = true;
+        } else {
+            // Circular check: must have 1 and 10
+            const values = sortedCards.map(c => c.val);
+            if (values.includes(1) && values.includes(10)) {
+                // Find the rotation point where values[i+1] - values[i] > 1
+                // There should be exactly one such gap if it's a run
+                let gaps = 0;
+                for (let i = 0; i < values.length - 1; i++) {
+                    if (values[i + 1] - values[i] > 1) gaps++;
+                }
+                // Also check if the "outside" wrap is correct
+                // If gaps == 1, and the total span excluding that gap is correct
+                // The number of steps 'missing' in the linear sequence must match the wrap
+                // Example 3 cards: [1, 9, 10]. Gap at 1-9 is 8. Total elements: 10. 
+                // Wait, simpler: for N distinct cards, it's a circular run if
+                // after sorting, there is at most one index i where sorted[i+1] != sorted[i] + 1
+                // AND if that happens, the "remaining" values must be at the ends [1...x] and [y...10]
+                // and the total count x + (10 - y + 1) == N.
+                let breakPoint = -1;
+                let breaks = 0;
+                for (let i = 0; i < values.length - 1; i++) {
+                    if (values[i + 1] !== values[i] + 1) {
+                        breaks++;
+                        breakPoint = i;
+                    }
+                }
+                if (breaks === 1 && values[0] === 1 && values[values.length - 1] === 10) {
+                    isRun = true;
+                }
+            }
+        }
     }
-    const isRun = maxRun === cards.length && cards.length > 1;
 
     const valCounts = {};
     cards.forEach(c => valCounts[c.val] = (valCounts[c.val] || 0) + 1);
@@ -78,28 +126,28 @@ function evaluateHand(cards) {
 
     // Scoring Hierarchy
     if (cards.length === 5) {
-        if (maxValCount === 5) return { name: `Five of Rank ${dominantVal}`, score: 530000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", displayValue: 'Tier: Mythic' };
-        if (isPureFlush) return { name: "Pure 5-Card Alliance", score: 520000000 + (highCardVal * 100) + purityBonus, style: "color: #fbbf24; font-weight: 900;", displayValue: 'Tier: Mythic' };
-        if (hasAllegiance && isRun) return { name: `5-Card Coalition Series${purityTag}`, score: 510000000 + (highCardVal * 100) + purityBonus, style: "color: #fb923c; font-weight: bold;", displayValue: 'Tier: Legendary' };
-        if (isRun) return { name: `5-Card Campaign Series${purityTag}`, score: 500000000 + (highCardVal * 100) + purityBonus, style: "color: #60a5fa; font-weight: bold;", displayValue: 'Tier: Epic' };
+        if (maxValCount === 5) return { name: `Five of Rank ${dominantVal}`, score: 5300000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", displayValue: 'Tier: Mythic' };
+        if (isPureFlush) return { name: "Pure 5-Card Alliance", score: 5200000000 + (highCardVal * 100) + purityBonus, style: "color: #fbbf24; font-weight: 900;", displayValue: 'Tier: Mythic' };
+        if (hasAllegiance && isRun) return { name: `5-Card Coalition Series${purityTag}`, score: 5100000000 + (highCardVal * 100) + purityBonus, style: "color: #fb923c; font-weight: bold;", displayValue: 'Tier: Legendary' };
+        if (isRun) return { name: `5-Card Campaign Series${purityTag}`, score: 5000000000 + (highCardVal * 100) + purityBonus, style: "color: #60a5fa; font-weight: bold;", displayValue: 'Tier: Epic' };
     }
 
     if (cards.length === 4) {
-        if (maxValCount === 4) return { name: `Four of Rank ${dominantVal}${purityTag}`, score: 430000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", displayValue: 'Tier: Epic' };
-        if (isPureFlush) return { name: "Pure 4-Card Alliance", score: 420000000 + (highCardVal * 100) + purityBonus, style: "color: #34d399;", displayValue: 'Tier: Rare' };
-        if (hasAllegiance && isRun) return { name: `4-Card Coalition Series${purityTag}`, score: 410000000 + (highCardVal * 100) + purityBonus, style: "color: #a3e635;", displayValue: 'Tier: Rare' };
-        if (isRun) return { name: `4-Card Campaign Series${purityTag}`, score: 400000000 + (highCardVal * 100) + purityBonus, style: "color: #22d3ee;", displayValue: 'Tier: Uncommon' };
+        if (maxValCount === 4) return { name: `Four of Rank ${dominantVal}${purityTag}`, score: 4300000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", displayValue: 'Tier: Epic' };
+        if (isPureFlush) return { name: "Pure 4-Card Alliance", score: 4200000000 + (highCardVal * 100) + purityBonus, style: "color: #34d399;", displayValue: 'Tier: Rare' };
+        if (hasAllegiance && isRun) return { name: `4-Card Coalition Series${purityTag}`, score: 4100000000 + (highCardVal * 100) + purityBonus, style: "color: #a3e635;", displayValue: 'Tier: Rare' };
+        if (isRun) return { name: `4-Card Campaign Series${purityTag}`, score: 4000000000 + (highCardVal * 100) + purityBonus, style: "color: #22d3ee;", displayValue: 'Tier: Uncommon' };
     }
 
     if (cards.length === 3) {
-        if (maxValCount === 3) return { name: `Three of Rank ${dominantVal}${purityTag}`, score: 330000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", displayValue: 'Tier: Rare' };
-        if (isPureFlush) return { name: "Pure 3-Card Alliance", score: 320000000 + (highCardVal * 100) + purityBonus, style: "color: #6ee7b7;", displayValue: 'Tier: Uncommon' };
-        if (hasAllegiance && isRun) return { name: `3-Card Coalition Series${purityTag}`, score: 310000000 + (highCardVal * 100) + purityBonus, style: "color: #bef264;", displayValue: 'Tier: Uncommon' };
-        if (isRun) return { name: `3-Card Campaign Series${purityTag}`, score: 300000000 + (highCardVal * 100) + purityBonus, style: "color: #67e8f9;", displayValue: 'Tier: Common' };
+        if (maxValCount === 3) return { name: `Three of Rank ${dominantVal}${purityTag}`, score: 3300000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", displayValue: 'Tier: Rare' };
+        if (isPureFlush) return { name: "Pure 3-Card Alliance", score: 3200000000 + (highCardVal * 100) + purityBonus, style: "color: #6ee7b7;", displayValue: 'Tier: Uncommon' };
+        if (hasAllegiance && isRun) return { name: `3-Card Coalition Series${purityTag}`, score: 3100000000 + (highCardVal * 100) + purityBonus, style: "color: #bef264;", displayValue: 'Tier: Uncommon' };
+        if (isRun) return { name: `3-Card Campaign Series${purityTag}`, score: 3000000000 + (highCardVal * 100) + purityBonus, style: "color: #67e8f9;", displayValue: 'Tier: Common' };
     }
 
     if (cards.length === 2) {
-        if (maxValCount === 2) return { name: `Pair of Rank ${dominantVal}${purityTag}`, score: 100000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", displayValue: 'Tier: Common' };
+        if (maxValCount === 2) return { name: `Pair of Rank ${dominantVal}${purityTag}`, score: 2000000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", displayValue: 'Tier: Common' };
     }
 
     // --- Raw Skirmish Power ---
@@ -111,8 +159,7 @@ function evaluateHand(cards) {
         skirmishScore = cards[0].val;
         skirmishName = `Solo Force: Rank ${cards[0].val}`;
     } else if (isPureFlush) {
-        const valsDesc = sortedCards.map(c => c.val).sort((a, b) => b - a);
-        skirmishScore = valsDesc.reduce((acc, val) => Math.pow(acc, val));
+        skirmishScore = cards.reduce((acc, c) => acc * c.val, 1) * 2;
         skirmishName = `Pure Skirmish (${cards.length})`;
         style = "color: #10b981; font-weight: bold;";
     } else if (hasAllegiance) {
@@ -208,7 +255,7 @@ class FrontierGame {
             color: p.color,
             hand: [],
             canMulligan: true,
-            status: 'ACTIVE'
+            status: p.cash > 0 ? 'ACTIVE' : 'BANKRUPT'
         }));
 
         if (this.players.length < 2) {
@@ -227,10 +274,15 @@ class FrontierGame {
             p.hand = this.deck.splice(0, 1);
         });
 
-        this.roundActivePlayers = this.players.map((_, i) => i);
+        this.roundActivePlayers = this.players
+            .map((p, i) => (p.status === 'ACTIVE' ? i : -1))
+            .filter(idx => idx !== -1);
         this.roundPlays = [];
         this.roundBet = 0;
-        this.activePlayerId = 0;
+
+        // Ensure starting player is not bankrupt
+        this.activePlayerId = this.players.findIndex(p => p.status === 'ACTIVE');
+        if (this.activePlayerId === -1) this.activePlayerId = 0;
 
         this.els.mainHud.style.display = 'flex';
         this.phase = 'TRANSITION';
@@ -240,6 +292,10 @@ class FrontierGame {
     }
 
     renderTransition() {
+        if (this.players[this.activePlayerId].status === 'BANKRUPT') {
+            this.advanceRound();
+            return;
+        }
         const player = this.players[this.activePlayerId];
         this.updateHUD();
         this.updatePlayerPods();
@@ -318,7 +374,7 @@ class FrontierGame {
 
         const isFirstPlayer = this.roundPlays.length === 0;
         const isLastPlayer = this.roundPlays.length === this.roundActivePlayers.length - 1;
-        const maxBetAllowed = currentHandSize * BASE_BET_UNIT;
+        const maxBetAllowed = 5 * BASE_BET_UNIT;
 
         let controlsHTML = '';
 
@@ -350,23 +406,21 @@ class FrontierGame {
         const player = this.players[this.activePlayerId];
         if (!player.canMulligan) return;
 
-        let need = player.hand.length;
-        let drawn = [];
+        const oldHand = [...player.hand];
+        // Combine current deck, discard pile, and the player's old hand
+        const combinedDeck = [...this.deck, ...this.discardPile, ...oldHand];
 
-        this.discardPile.push(...player.hand);
-
-        while (need > 0) {
-            if (this.deck.length > 0) {
-                drawn.push(this.deck.shift());
-                need--;
-            } else {
-                this.deck = [...this.discardPile].sort(() => Math.random() - 0.5);
-                this.discardPile = [];
-                if (this.deck.length === 0) break;
-            }
+        // Shuffle everything
+        for (let i = combinedDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [combinedDeck[i], combinedDeck[j]] = [combinedDeck[j], combinedDeck[i]];
         }
 
-        player.hand = drawn;
+        // Draw new hand of same size
+        player.hand = combinedDeck.splice(0, oldHand.length);
+        this.deck = combinedDeck;
+        this.discardPile = [];
+
         player.canMulligan = false;
         this.selectedCardIndices = [];
         this.renderPlaying();
@@ -419,7 +473,7 @@ class FrontierGame {
             let nextIndexObj = -1;
             for (let i = 1; i <= this.players.length; i++) {
                 const checkId = (this.activePlayerId + i) % this.players.length;
-                if (this.roundActivePlayers.includes(checkId)) {
+                if (this.roundActivePlayers.includes(checkId) && this.players[checkId].status === 'ACTIVE') {
                     nextIndexObj = checkId;
                     break;
                 }
@@ -506,29 +560,52 @@ class FrontierGame {
         const nextRound = this.currentRoundNum + 1;
         const targetHandSize = nextRound;
 
-        let allAvailableCards = [...this.deck, ...this.discardPile].sort(() => Math.random() - 0.5);
+        let allAvailableCards = [...this.deck, ...this.discardPile];
+        for (let i = allAvailableCards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allAvailableCards[i], allAvailableCards[j]] = [allAvailableCards[j], allAvailableCards[i]];
+        }
 
         this.players.forEach(p => {
-            let need = targetHandSize - p.hand.length;
-            let drawn = [];
-            while (need > 0 && allAvailableCards.length > 0) {
-                drawn.push(allAvailableCards.shift());
-                need--;
+            if (p.cash <= 0) p.status = 'BANKRUPT';
+
+            if (p.status === 'ACTIVE') {
+                let need = targetHandSize - p.hand.length;
+                let drawn = [];
+                while (need > 0 && allAvailableCards.length > 0) {
+                    drawn.push(allAvailableCards.shift());
+                    need--;
+                }
+                p.hand = [...p.hand, ...drawn];
+            } else {
+                // Return cards to deck if they go bankrupt
+                allAvailableCards.push(...p.hand);
+                p.hand = [];
             }
-            p.hand = [...p.hand, ...drawn];
-            p.status = 'ACTIVE';
         });
 
         this.currentRoundNum = nextRound;
-        this.roundActivePlayers = this.players.map((_, i) => i);
+        this.roundActivePlayers = this.players
+            .map((p, i) => (p.status === 'ACTIVE' ? i : -1))
+            .filter(idx => idx !== -1);
+
+        // Ensure starting player is not bankrupt
+        this.activePlayerId = this.players.findIndex(p => p.status === 'ACTIVE');
+        if (this.activePlayerId === -1) this.activePlayerId = 0;
+
         this.roundPlays = [];
         this.roundBet = 0;
         this.pot = 0;
         this.deck = allAvailableCards;
         this.discardPile = [];
 
-        // Rotate dealer
-        this.activePlayerId = (this.currentRoundNum - 1) % this.players.length;
+        // Rotate dealer, but skip bankrupt players
+        let dealerCandidate = (this.currentRoundNum - 1) % this.players.length;
+        while (this.players[dealerCandidate].status === 'BANKRUPT') {
+            dealerCandidate = (dealerCandidate + 1) % this.players.length;
+        }
+        this.activePlayerId = dealerCandidate;
+
         this.phase = 'TRANSITION';
         this.renderTransition();
     }
@@ -559,19 +636,24 @@ class FrontierGame {
         `;
 
         sortedPlayers.forEach((p, idx) => {
-            const isWinner = p.cash === topCash;
+            const isWinner = p.cash === topCash && p.cash > 0;
+            const isBankrupt = p.status === 'BANKRUPT';
             html += `
-                <div style="display: flex; flex-direction: column; align-items: center; ${isWinner ? 'transform: scale(1.1); color: var(--gold-bright);' : 'opacity: 0.6;'}">
+                <div style="display: flex; flex-direction: column; align-items: center; ${isWinner ? 'transform: scale(1.1); color: var(--gold-bright);' : (isBankrupt ? 'opacity: 0.2; filter: grayscale(1);' : 'opacity: 0.6;')}">
                     <span style="font-size: 0.8rem; font-family: 'Playfair Display', serif;">#${idx + 1}</span>
                     <strong style="font-size: 1.5rem;">${p.name}</strong>
                     <span style="font-size: 2rem; font-family: 'Cinzel', serif;">€${p.cash}</span>
+                    ${isBankrupt ? '<span style="font-size: 0.6rem; color: #f87171;">BANKRUPT</span>' : ''}
                 </div>
             `;
         });
 
         html += `
                 </div>
-                <button class="primary-btn" style="margin-top: 20px;" onclick="window.location.reload()">RETURN TO BASE</button>
+                <div style="display: flex; gap: 20px; margin-top: 20px;">
+                    <button class="primary-btn" onclick="window.location.reload()">PLAY AGAIN</button>
+                    <a href="index.html" style="text-decoration: none;"><button class="secondary-btn" style="background: rgba(40, 40, 40, 0.8); border: 1px solid var(--gold-dim); color: var(--gold); padding: 15px 30px; font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 2px; cursor: pointer; border-radius: 4px; transition: all 0.3s;">BACK TO MENU</button></a>
+                </div>
             </div>
         `;
         this.els.cardsContainer.innerHTML = html;
@@ -588,11 +670,14 @@ class FrontierGame {
     updatePlayerPods() {
         this.els.playerStatusGrid.innerHTML = '';
         this.players.forEach((p, idx) => {
-            const isActiveTurn = this.phase === 'PLAYING' && idx === this.activePlayerId;
-            const isFolded = this.phase === 'PLAYING' && !this.roundActivePlayers.includes(idx);
+            const isBankrupt = p.status === 'BANKRUPT';
+            const isActiveTurn = this.phase === 'PLAYING' && idx === this.activePlayerId && !isBankrupt;
+            const isFolded = this.phase === 'PLAYING' && !this.roundActivePlayers.includes(idx) && !isBankrupt;
 
             let actionStr = '';
-            if (this.phase === 'PLAYING') {
+            if (isBankrupt) {
+                actionStr = 'Bankrupt';
+            } else if (this.phase === 'PLAYING') {
                 const play = this.roundPlays.find(play => play.playerId === idx);
                 if (play) {
                     actionStr = `Played €${play.amount}`;
@@ -604,7 +689,8 @@ class FrontierGame {
             }
 
             const div = document.createElement('div');
-            div.className = `player-status-pod ${isActiveTurn ? 'active-turn' : ''} ${isFolded ? 'folded' : ''}`;
+            div.className = `player-status-pod ${isActiveTurn ? 'active-turn' : ''} ${isFolded || isBankrupt ? 'folded' : ''}`;
+            if (isBankrupt) div.style.opacity = "0.3";
 
             div.innerHTML = `
                 <div class="pod-name" style="color: ${p.color.hex}">${p.name}</div>
