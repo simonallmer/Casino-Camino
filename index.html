@@ -560,13 +560,24 @@
             "Original Games for Original Gamblers",
             "The Way to Go",
             "Totally Legal",
-            "We don’t need Kings on our Cards",
+            "No Kings on our Cards",
             "More Vegas than Vegas"
         ];
 
         function updateSubtitle() {
             const el = document.getElementById('subtitle');
-            el.innerText = SUBTITLES[Math.floor(Math.random() * SUBTITLES.length)];
+            let pool = JSON.parse(localStorage.getItem('casino_camino_subtitles') || "[]");
+
+            // Refill pool if empty or list has changed
+            if (pool.length === 0) {
+                pool = [...SUBTITLES];
+            }
+
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const selected = pool.splice(randomIndex, 1)[0];
+
+            localStorage.setItem('casino_camino_subtitles', JSON.stringify(pool));
+            el.innerText = selected;
         }
 
         const MAX_PLAYERS = 8;
