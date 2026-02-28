@@ -126,28 +126,28 @@ function evaluateHand(cards) {
 
     // Scoring Hierarchy
     if (cards.length === 5) {
-        if (maxValCount === 5) return { name: `Five of Rank ${dominantVal}`, score: 5300000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", displayValue: 'Tier: Mythic' };
-        if (isPureFlush) return { name: "Pure 5-Card Alliance", score: 5200000000 + (highCardVal * 100) + purityBonus, style: "color: #fbbf24; font-weight: 900;", displayValue: 'Tier: Mythic' };
-        if (hasAllegiance && isRun) return { name: `5-Card Coalition Series${purityTag}`, score: 5100000000 + (highCardVal * 100) + purityBonus, style: "color: #fb923c; font-weight: bold;", displayValue: 'Tier: Legendary' };
-        if (isRun) return { name: `5-Card Campaign Series${purityTag}`, score: 5000000000 + (highCardVal * 100) + purityBonus, style: "color: #60a5fa; font-weight: bold;", displayValue: 'Tier: Epic' };
+        if (maxValCount === 5) return { name: `Five of Rank ${dominantVal}`, score: 5300000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", tier: 'Tier 1' };
+        if (isPureFlush) return { name: "Pure 5-Card Alliance", score: 5200000000 + (highCardVal * 100) + purityBonus, style: "color: #fbbf24; font-weight: 900;", tier: 'Tier 1' };
+        if (hasAllegiance && isRun) return { name: `5-Card Coalition Series${purityTag}`, score: 5100000000 + (highCardVal * 100) + purityBonus, style: "color: #fb923c; font-weight: bold;", tier: 'Tier 1' };
+        if (isRun) return { name: `5-Card Campaign Series${purityTag}`, score: 5000000000 + (highCardVal * 100) + purityBonus, style: "color: #60a5fa; font-weight: bold;", tier: 'Tier 1' };
     }
 
     if (cards.length === 4) {
-        if (maxValCount === 4) return { name: `Four of Rank ${dominantVal}${purityTag}`, score: 4300000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", displayValue: 'Tier: Epic' };
-        if (isPureFlush) return { name: "Pure 4-Card Alliance", score: 4200000000 + (highCardVal * 100) + purityBonus, style: "color: #34d399;", displayValue: 'Tier: Rare' };
-        if (hasAllegiance && isRun) return { name: `4-Card Coalition Series${purityTag}`, score: 4100000000 + (highCardVal * 100) + purityBonus, style: "color: #a3e635;", displayValue: 'Tier: Rare' };
-        if (isRun) return { name: `4-Card Campaign Series${purityTag}`, score: 4000000000 + (highCardVal * 100) + purityBonus, style: "color: #22d3ee;", displayValue: 'Tier: Uncommon' };
+        if (maxValCount === 4) return { name: `Four of Rank ${dominantVal}${purityTag}`, score: 4300000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", tier: 'Tier 2' };
+        if (isPureFlush) return { name: "Pure 4-Card Alliance", score: 4200000000 + (highCardVal * 100) + purityBonus, style: "color: #34d399;", tier: 'Tier 2' };
+        if (hasAllegiance && isRun) return { name: `4-Card Coalition Series${purityTag}`, score: 4100000000 + (highCardVal * 100) + purityBonus, style: "color: #a3e635;", tier: 'Tier 2' };
+        if (isRun) return { name: `4-Card Campaign Series${purityTag}`, score: 4000000000 + (highCardVal * 100) + purityBonus, style: "color: #22d3ee;", tier: 'Tier 2' };
     }
 
     if (cards.length === 3) {
-        if (maxValCount === 3) return { name: `Three of Rank ${dominantVal}${purityTag}`, score: 3300000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", displayValue: 'Tier: Rare' };
-        if (isPureFlush) return { name: "Pure 3-Card Alliance", score: 3200000000 + (highCardVal * 100) + purityBonus, style: "color: #6ee7b7;", displayValue: 'Tier: Uncommon' };
-        if (hasAllegiance && isRun) return { name: `3-Card Coalition Series${purityTag}`, score: 3100000000 + (highCardVal * 100) + purityBonus, style: "color: #bef264;", displayValue: 'Tier: Uncommon' };
-        if (isRun) return { name: `3-Card Campaign Series${purityTag}`, score: 3000000000 + (highCardVal * 100) + purityBonus, style: "color: #67e8f9;", displayValue: 'Tier: Common' };
+        if (maxValCount === 3) return { name: `Three of Rank ${dominantVal}${purityTag}`, score: 3300000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", tier: 'Tier 3' };
+        if (isPureFlush) return { name: "Pure 3-Card Alliance", score: 3200000000 + (highCardVal * 100) + purityBonus, style: "color: #6ee7b7;", tier: 'Tier 3' };
+        if (hasAllegiance && isRun) return { name: `3-Card Coalition Series${purityTag}`, score: 3100000000 + (highCardVal * 100) + purityBonus, style: "color: #bef264;", tier: 'Tier 3' };
+        if (isRun) return { name: `3-Card Campaign Series${purityTag}`, score: 3000000000 + (highCardVal * 100) + purityBonus, style: "color: #67e8f9;", tier: 'Tier 3' };
     }
 
     if (cards.length === 2) {
-        if (maxValCount === 2) return { name: `Pair of Rank ${dominantVal}${purityTag}`, score: 2000000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", displayValue: 'Tier: Common' };
+        if (maxValCount === 2) return { name: `Pair of Rank ${dominantVal}${purityTag}`, score: 2000000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", tier: 'Tier 4' };
     }
 
     // --- Raw Skirmish Power ---
@@ -176,7 +176,8 @@ function evaluateHand(cards) {
         name: skirmishName,
         score: (skirmishScore * 100) + purityBonus,
         style: style,
-        displayValue: `Power: ${skirmishScore.toLocaleString()}`
+        tier: 'Tier 5',
+        power: skirmishScore.toLocaleString()
     };
 }
 
@@ -376,17 +377,34 @@ class FrontierGame {
         const isLastPlayer = this.roundPlays.length === this.roundActivePlayers.length - 1;
         const maxBetAllowed = 5 * BASE_BET_UNIT;
 
+        // Evaluate Selection
+        const selectedCards = this.selectedCardIndices.map(i => player.hand[i]);
+        let handEval = null;
+        if (selectedCards.length > 0) {
+            handEval = evaluateHand(selectedCards);
+        }
+
         let controlsHTML = '';
 
         if (isFirstPlayer) {
-            this.setMessage(`Select cards to play and set the bet.`);
+            if (handEval) {
+                const details = handEval.tier === 'Tier 5' ? `Power: ${handEval.power}` : handEval.name;
+                this.setMessage(`<div style="font-size: 1.8rem; font-weight: bold; color: var(--gold-bright);">${handEval.tier}</div><div style="font-size: 1rem; opacity: 0.8;">${details}</div>`);
+            } else {
+                this.setMessage(`Select cards to play and set the bet.`);
+            }
             for (let b = BASE_BET_UNIT; b <= maxBetAllowed; b += BASE_BET_UNIT) {
                 const disabledStr = (this.selectedCardIndices.length === 0 || player.cash < b) ? 'disabled' : '';
                 controlsHTML += `<button class="action-btn" ${disabledStr} onclick="game.executePlay(${b})">BET €${b}</button>`;
             }
             controlsHTML += `<button class="danger-btn" onclick="game.executeFold()">FOLD</button>`;
         } else {
-            this.setMessage(`Match the bet, raise, or retreat.`);
+            if (handEval) {
+                const details = handEval.tier === 'Tier 5' ? `Power: ${handEval.power}` : handEval.name;
+                this.setMessage(`<div style="font-size: 1.8rem; font-weight: bold; color: var(--gold-bright);">${handEval.tier}</div><div style="font-size: 1rem; opacity: 0.8;">${details}</div>`);
+            } else {
+                this.setMessage(`Match the bet, raise, or retreat.`);
+            }
             const callDisabled = (this.selectedCardIndices.length === 0 || player.cash < this.roundBet) ? 'disabled' : '';
             controlsHTML += `<button class="action-btn call-btn" ${callDisabled} onclick="game.executePlay(${this.roundBet})">CALL €${this.roundBet}</button>`;
 
@@ -528,13 +546,15 @@ class FrontierGame {
 
                 let cardsHtml = p.cards.map(c => `<div class="card-mini suit-${c.suit.id}"><span class="card-val" style="color:${c.suit.color}">${c.val}</span></div>`).join('');
 
+                const details = res.tier === 'Tier 5' ? `Power: ${res.power}` : res.name;
+
                 let html = `
                     <div class="history-item" style="${isWinner ? 'background: rgba(212,175,55,0.1); border-left: 3px solid var(--gold); border-radius: 5px;' : ''}">
                         <div class="history-player" style="color: ${pObj.color.hex}">${pObj.name}</div>
                         <div class="history-play">
-                            <div style="text-align: right; line-height: 1;">
-                                <div style="${res.style}; font-size: 0.9rem;">${res.name}</div>
-                                <div style="font-size: 0.6rem; color: #888;">${res.displayValue}</div>
+                            <div style="text-align: right; line-height: 1.2;">
+                                <div style="${res.style}; font-size: 0.95rem; font-weight: bold;">${res.tier}</div>
+                                <div style="font-size: 0.7rem; color: #888;">${details}</div>
                             </div>
                             <div class="history-cards">${cardsHtml}</div>
                         </div>

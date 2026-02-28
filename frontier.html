@@ -104,8 +104,8 @@
         }
 
         #message-area {
-            height: 60px;
-            margin-bottom: 10px;
+            height: 80px;
+            margin-bottom: 5px;
             font-family: 'Playfair Display', serif;
             font-style: italic;
             color: var(--gold-bright);
@@ -113,8 +113,10 @@
             text-shadow: 0 2px 4px #000;
             font-size: 1.3rem;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            line-height: 1.2;
         }
 
         .btn-small {
@@ -776,22 +778,21 @@
                 and so on.</p>
             <ul
                 style="font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; list-style-type: none;">
-                <li><strong style="color: #e879f9;">Mythic:</strong> 5 of a Rank, Pure 5-Card</li>
-                <li><strong style="color: #fb923c;">Legendary:</strong> 5-Card Coalition Series</li>
-                <li><strong style="color: #c084fc;">Epic:</strong> 5-Card Campaign, 4 of a Rank</li>
-                <li><strong style="color: #34d399;">Rare:</strong> Pure 4-Card, 4-Card Coalition, 3 of a Rank</li>
-                <li><strong style="color: #2dd4bf;">Uncommon:</strong> 4-Card Campaign, Pure 3-Card, 3-Card Coalition
+                <li><strong style="color: #e879f9;">Tier 1 (5-Card):</strong> 5 of a Rank, Pure, Coalition, or Campaign
                 </li>
-                <li><strong style="font-size: 0.8rem; color: #d6d3d1;">Common:</strong> 3-Card Campaign, Pair</li>
-                <li><strong style="font-size: 0.8rem; color: #a3e635;">Skirmishes:</strong> Unmatched cards. Pure
-                    (Product of Ranks x 2),
-                    Coalition (Multiplied), Divided (Added).</li>
+                <li><strong style="color: #fb923c;">Tier 2 (4-Card):</strong> 4 of a Rank, Pure, Coalition, or Campaign
+                </li>
+                <li><strong style="color: #c084fc;">Tier 3 (3-Card):</strong> 3 of a Rank, Pure, Coalition, or Campaign
+                </li>
+                <li><strong style="color: #34d399;">Tier 4 (2-Card):</strong> Pairs</li>
+                <li><strong style="font-size: 0.8rem; color: #a3e635;">Tier 5 (Skirmishes):</strong> Unmatched cards.
+                    Pure (Product x 2), Coalition (Product), Divided (Sum).</li>
             </ul>
             <p style="font-size: 0.8rem; border-top: 1px solid #333; padding-top: 5px;"><strong>Tiebreakers:</strong>
                 Exact Suit > Specific Alliance > Uses Wildcard Border > Mixed. <strong>Note:</strong> Series can wrap
                 around from 10 to 1.</p>
         </div>
-        <button class="primary-btn" style="margin-top:20px" onclick="game.toggleRules()">Close Rules</button>
+        <button class="primary-btn" style="margin-top:20px" onclick="game.toggleRules()">Close</button>
     </div>
 
     <!-- JS Logic appended next -->
