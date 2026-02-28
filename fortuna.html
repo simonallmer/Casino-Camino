@@ -878,7 +878,7 @@
 
         <div id="controls-bar">
             <button class="btn-rules" onclick="game.toggleRules()">?</button>
-            <button id="pass-btn" class="btn-main btn-danger">Withdraw / Pass</button>
+            <button id="pass-btn" class="btn-main btn-danger">Fold</button>
             <button id="roll-btn" class="btn-main"
                 style="display:none; background: linear-gradient(to bottom, #d4af37, #8a6e15); color: #000;">Roll
                 Dice</button>
@@ -1156,7 +1156,7 @@
                     this.addLog(p.name + " failed to engage -> ELIMINATED!", "danger");
                     p.active = false;
                 } else {
-                    this.addLog(p.name + " stands down.", "neutral");
+                    this.addLog(p.name + " folds.", "neutral");
                 }
 
                 this.passedPlayers.push(p.id);

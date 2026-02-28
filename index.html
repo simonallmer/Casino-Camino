@@ -256,6 +256,7 @@
             font-size: 1.2rem;
             margin-bottom: 50px;
             letter-spacing: 2px;
+            user-select: none;
         }
 
         .menu-grid {
@@ -463,7 +464,7 @@
         <div class="corner bottom-right"></div>
 
         <h1>Casino Camino</h1>
-        <p class="subtitle">A New Home for All Your Vices</p>
+        <p class="subtitle" id="subtitle">Home of American Playing Cards</p>
 
         <div class="menu-grid">
             <div class="menu-item" style="position: relative; display: flex;">
@@ -501,10 +502,12 @@
         </div>
 
         <div class="footer">
-            <span style="font-size: 0.6rem; opacity: 1; font-family: sans-serif;">© 2026 Simon Allmer
-                Entertainment</span><br>
             <a href="https://casinocamino.com"
-                style="color: var(--gold); text-decoration: none; font-size: 0.8rem; letter-spacing: 2px; display: inline-block; margin-top: 5px;">CASINOCAMINO.COM</a>
+                style="color: var(--gold); text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; display: block; margin-bottom: 5px; font-family: 'Cinzel', serif;">CasinoCamino.com</a>
+            <a href="https://www.instagram.com/casinocamino" target="_blank"
+                style="color: #777; text-decoration: none; font-size: 0.8rem; display: block; margin-bottom: 10px; font-family: sans-serif;">@CasinoCamino</a>
+            <span style="font-size: 0.7rem; opacity: 0.8; font-family: sans-serif;">© 2026 Simon Allmer
+                Entertainment</span>
         </div>
     </div>
 
@@ -549,6 +552,22 @@
             { name: 'Indigo', hex: '#6366f1', glow: 'rgba(99, 102, 241, 0.5)' },
             { name: 'Brown', hex: '#92400e', glow: 'rgba(146, 64, 14, 0.5)' },
         ];
+
+        const SUBTITLES = [
+            "Home of American Playing Cards",
+            "Time is an Illusion",
+            "Follow your Vices",
+            "Original Games for Original Gamblers",
+            "The Way to Go",
+            "Totally Legal",
+            "We don’t need Kings on our Cards",
+            "More Vegas than Vegas"
+        ];
+
+        function updateSubtitle() {
+            const el = document.getElementById('subtitle');
+            el.innerText = SUBTITLES[Math.floor(Math.random() * SUBTITLES.length)];
+        }
 
         const MAX_PLAYERS = 8;
         const STARTING_CASH = 10;
@@ -687,6 +706,7 @@
         }
 
         // Run
+        updateSubtitle(); // Set initial random subtitle
         init();
 
     </script>

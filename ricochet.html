@@ -69,43 +69,13 @@
             align-items: center;
         }
 
-        /* Central Player Display */
-        .player-turn-display {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid;
-            padding: 10px 30px;
-            border-radius: 30px;
-            text-align: center;
-            z-index: 100;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            transition: all 0.5s ease;
-            min-width: 250px;
-        }
-
-        .p-turn-label {
-            font-size: 0.7rem;
-            color: #aaa;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+        .label {
             font-family: 'Playfair Display', serif;
-        }
-
-        .p-turn-name {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            color: #aaa;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px currentColor;
-        }
-
-        .p-turn-cash {
-            font-size: 0.9rem;
-            color: var(--gold);
-            margin-top: 2px;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
         }
 
         .label {
@@ -413,11 +383,7 @@
 
     <div id="game-container">
 
-        <div id="turn-display" class="player-turn-display" style="display:none; border-color: #D4AF37;">
-            <div class="p-turn-label">Current Turn</div>
-            <div class="p-turn-name" id="p-name">Player 1</div>
-            <div class="p-turn-cash" id="p-cash">€5</div>
-        </div>
+
 
         <div class="hud">
             <div class="hud-item">
@@ -545,9 +511,6 @@
                     overlayTitle: document.getElementById('overlay-title'),
                     overlayDesc: document.getElementById('overlay-desc'),
                     rules: document.getElementById('rules-modal'),
-                    turnDisplay: document.getElementById('turn-display'),
-                    pName: document.getElementById('p-name'),
-                    pCash: document.getElementById('p-cash'),
                     panic: document.getElementById('panic-btn')
                 };
 
@@ -575,9 +538,6 @@
             }
 
             savePlayers() {
-                // Update specific players back to the master list?
-                // Actually, this.players are references to objects inside this.allPlayers if we are careful,
-                // but let's be explicit. Update the master list based on ID.
                 this.players.forEach(p => {
                     const masterIdx = this.allPlayers.findIndex(mp => mp.id === p.id);
                     if (masterIdx > -1) {
@@ -585,6 +545,10 @@
                     }
                 });
                 localStorage.setItem('casino_camino_players', JSON.stringify(this.allPlayers));
+            }
+
+            formatPlayerName(player) {
+                return `<span style="color:${player.color.hex}">${player.name}</span>`;
             }
 
             // Removed drawInitialWheel - using generateZones(true) instead
@@ -615,13 +579,6 @@
                 const displayPlayer = this.actingPlayerDuringResult || this.currentPlayer;
 
                 if (displayPlayer) {
-                    this.els.turnDisplay.style.display = 'block';
-                    this.els.turnDisplay.style.borderColor = displayPlayer.color.hex || '#D4AF37';
-                    this.els.turnDisplay.style.boxShadow = `0 0 20px ${displayPlayer.color.glow || 'rgba(212,175,55,0.5)'}`;
-                    this.els.pName.innerText = displayPlayer.name;
-                    this.els.pName.style.color = displayPlayer.color.hex || '#D4AF37';
-                    this.els.pCash.innerText = `€${displayPlayer.cash}`;
-
                     if (this.isGameActive && !this.isResultPending) {
                         this.els.panic.style.display = 'block';
                         this.els.panic.innerText = `LEAVE (${Math.floor(this.pot * 0.25)}€)`;
@@ -629,16 +586,11 @@
                         this.els.panic.style.display = 'none';
                     }
 
-                    // Update Inventory Icons for DISPLAYED Player
                     const inv = displayPlayer.inventory || [];
                     this.els.heart.classList.toggle('active', inv.includes('heart'));
                     this.els.hourglass.classList.toggle('active', inv.includes('hourglass'));
                     this.els.icecube.classList.toggle('active', inv.includes('icecube'));
                     this.els.magGlass.classList.toggle('active', inv.includes('glass'));
-
-                    // Show Count? The icons store just presence, but let's stick to true/false for now as per array includes
-                    // Actually, if they can stack, we should count.
-                    // Simplified: just active if present.
                 }
             }
 
@@ -688,12 +640,12 @@
                 this.rotation = 0;
 
                 this.updateUI();
+                const pName = this.formatPlayerName(this.currentPlayer);
                 const welcomeMsg = this.isSinglePlayer ?
-                    `${this.currentPlayer.name}'s Journey (10 Rounds). Spin!` :
-                    `${this.currentPlayer.name}'s Turn (R${this.round}). Spin!`;
+                    `${pName}'s Journey (10 Rounds). Spin!` :
+                    `${pName}'s Turn (R${this.round}). Spin!`;
                 this.setMessage(welcomeMsg);
 
-                // Visual Update
                 this.generateZones(true);
                 this.draw();
             }
@@ -809,7 +761,8 @@
                 this.pot -= share;
                 this.savePlayers();
 
-                this.setMessage(`${leaver.name} ${this.isSoloMode ? 'claimed the pot' : 'escaped'} with €${share}!`);
+                const pName = this.formatPlayerName(leaver);
+                this.setMessage(`${pName} ${this.isSoloMode ? 'claimed the pot' : 'escaped'} with €${share}!`);
                 this.triggerVisualEffect('#8a0e0e');
                 this.isSpinning = false;
 
@@ -962,7 +915,7 @@
 
                 // Visuals
                 this.triggerVisualEffect('#ff0000');
-                this.setMessage(`${deadPlayer.name} Eliminated!`);
+                this.setMessage(`${this.formatPlayerName(deadPlayer)} Eliminated!`);
 
                 // Check Win Condition immediatley
                 if (this.players.length - 1 === 1 && !this.isSoloMode) {
@@ -998,7 +951,7 @@
                 this.playersActedThisRound = 0;
                 this.updateUI();
                 this.isRevealing = false; // Flip back for choice
-                this.setMessage(`${this.currentPlayer.name} is alone! Claim Pot or Play Casino?`);
+                this.setMessage(`${this.formatPlayerName(this.currentPlayer)} is alone! Claim Pot or Play Casino?`);
                 this.els.btn.innerText = "CHALLENGE CASINO";
                 // Show a temporary "Leave" option? 
                 // We'll reuse the action button logic for solo start, 
@@ -1070,9 +1023,10 @@
                 const panicLabel = this.isSoloMode ? `CLAIM POT (€${this.pot})` : `LEAVE (${Math.floor(this.pot * 0.25)}€)`;
                 this.els.panic.innerText = panicLabel;
                 this.els.btn.innerText = "START SPIN (SPACE)";
+                const pName = this.formatPlayerName(this.currentPlayer);
                 const turnMsg = this.isSinglePlayer ?
-                    `${this.currentPlayer.name}'s Journey (Round ${this.round}/10). Start!` :
-                    `${this.currentPlayer.name}'s Turn (R${this.round}). Start!`;
+                    `${pName}'s Journey (Round ${this.round}/10). Start!` :
+                    `${pName}'s Turn (R${this.round}). Start!`;
                 this.setMessage(turnMsg);
                 this.isSpinning = false;
                 this.isResultPending = false;
@@ -1090,14 +1044,14 @@
                 this.savePlayers();
 
                 this.updateUI(); // Show winner cash update
-                this.showGameOver(isPanic ? "ESCAPED!" : "WINNER!", `${winner.name} takes the pot: €${this.pot}`);
+                this.showGameOver(isPanic ? "ESCAPED!" : "WINNER!", `${this.formatPlayerName(winner)} takes the pot: €${this.pot}`);
                 this.pot = 0;
                 this.els.panic.style.display = 'none';
             }
 
             showGameOver(title, desc) {
                 this.els.overlayTitle.innerText = title;
-                this.els.overlayDesc.innerText = desc;
+                this.els.overlayDesc.innerHTML = desc;
 
                 // Reset buttons to default (Play Again / Menu)
                 const overlayBtns = this.els.overlay.querySelector('div');
@@ -1112,7 +1066,7 @@
             setMessage(text) {
                 this.els.msg.style.opacity = 0;
                 setTimeout(() => {
-                    this.els.msg.innerText = text;
+                    this.els.msg.innerHTML = text;
                     this.els.msg.style.opacity = 1;
                 }, 300);
             }
