@@ -570,16 +570,17 @@
 
 <body>
 
-    <a href="index.html" style="position: absolute; top: 20px; left: 20px; z-index: 2001;">
+    <a href="http://simonallmer.com/arcade" target="_top"
+        style="position: absolute; top: 20px; left: 20px; z-index: 2001;">
+        <button
+            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
+            onclick="game.saveAndExit()">Back to Arcade</button>
+    </a>
+
+    <a href="index.html" style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
         <button
             style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
             onclick="game.exit()">Back To Menu</button>
-    </a>
-
-    <a href="https://simonallmer.com" target="_top" style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
-        <button
-            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
-            onclick="game.saveAndExit()">Back to SA</button>
     </a>
 
     <div id="global-bank">
