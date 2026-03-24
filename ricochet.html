@@ -429,8 +429,8 @@
 
 <body>
 
-    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="left: 20px;">Back to
-            Arcade</button></a>
+    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="left: 20px;">Back to Arcade</button></a>
+    <button class="nav-btn" onclick="resetMoney()" style="left: 50%; transform: translateX(-50%);">RESET</button>
     <a href="index.html"><button class="nav-btn" style="right: 20px;">Back to Menu</button></a>
 
     <div id="game-container">
@@ -1533,6 +1533,17 @@
         });
 
         window.game = new CasinoGame();
+
+        function resetMoney() {
+            if (!confirm("Reset all players to €10?")) return;
+            const saved = localStorage.getItem('casino_camino_players');
+            if (saved) {
+                let players = JSON.parse(saved);
+                players.forEach(p => { p.cash = 10; });
+                localStorage.setItem('casino_camino_players', JSON.stringify(players));
+                location.reload(); 
+            }
+        }
 
         // Mobile Scaling Logic
         function setMobileScale() {
