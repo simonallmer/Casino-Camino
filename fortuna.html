@@ -26,14 +26,16 @@
                 radial-gradient(rgba(212, 175, 55, 0.05) 1px, transparent 1px);
             background-size: 100% 100%, 30px 30px;
             margin: 0;
-            overflow: hidden;
+            overflow: auto;
             color: #f0f0f0;
             font-family: 'Playfair Display', serif;
             user-select: none;
-            height: 100vh;
+            height: auto;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding-bottom: 80px;
         }
 
         .nav-btn {
@@ -224,6 +226,55 @@
             justify-content: center;
             align-items: center;
             /* Board is now totally centered in viewport */
+            margin-top: 100px;
+            margin-bottom: 50px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 900px) {
+            #player-bar {
+                position: fixed;
+                left: 50% !important;
+                bottom: 20px !important;
+                top: auto !important;
+                transform: translateX(-50%) !important;
+                flex-direction: row !important;
+                width: calc(100% - 40px) !important;
+                overflow-x: auto;
+                padding: 10px !important;
+                border-radius: 20px !important;
+                background: rgba(5, 10, 5, 0.95) !important;
+                gap: 10px !important;
+                justify-content: center;
+            }
+
+            .player-chip {
+                min-width: 120px;
+                padding: 8px 12px !important;
+                margin-bottom: 0 !important;
+            }
+
+            .player-chip.active {
+                transform: translateY(-5px) !important;
+            }
+
+            #controls-bar {
+                right: 10px !important;
+                bottom: 110px !important;
+                width: calc(100% - 20px) !important;
+            }
+
+            #log-panel {
+                right: 10px !important;
+                bottom: 120px !important;
+                width: calc(100% - 20px) !important;
+                height: 150px;
+            }
+            
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.7rem;
+            }
         }
 
         .arm {
@@ -1491,6 +1542,21 @@
                 window.game = new FortunaGame();
             }
         };
+
+        // Scaling Logic
+        function setMobileScale() {
+            const board = document.getElementById('star-board');
+            if (board && window.innerWidth < 900) {
+                const scale = (window.innerWidth - 20) / 900;
+                board.style.transform = `scale(${scale})`;
+                board.style.transformOrigin = 'top center';
+            } else if (board) {
+                board.style.transform = 'none';
+            }
+        }
+
+        window.addEventListener('resize', setMobileScale);
+        setMobileScale();
     </script>
 </body>
 

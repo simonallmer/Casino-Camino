@@ -29,7 +29,9 @@
             align-items: center;
             height: 100vh;
             background: radial-gradient(circle at center, #1a0f08 0%, #000 100%);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
         }
 
         /* Player Bar - Replaces Global Bank */
@@ -52,7 +54,24 @@
             /* Hide scrollbar */
             scrollbar-width: none;
             -ms-overflow-style: none;
+            transition: all 0.3s ease;
         }
+
+        .utility-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--gold-dim);
+            z-index: 1500;
+            box-sizing: border-box;
+        }
+
+        .utility-bar a { text-decoration: none; }
 
         #player-bar::-webkit-scrollbar {
             display: none;
@@ -179,6 +198,59 @@
             border-color: var(--gold-bright);
             background: rgba(212, 175, 55, 0.1);
             transform: scale(1.05);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            body {
+                justify-content: flex-start;
+                padding-top: 100px;
+                padding-bottom: 120px;
+            }
+
+            #player-bar {
+                top: auto;
+                bottom: 20px;
+                padding: 12px 20px;
+                background: rgba(5, 10, 5, 0.95);
+                border-radius: 20px;
+                width: calc(100% - 40px);
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .utility-bar {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+                margin-top: 20px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 30px;
+            }
+
+            .menu-container {
+                padding: 25px 15px;
+                width: 85%;
+            }
+
+            .menu-btn {
+                padding: 15px 15px 15px 60px;
+                font-size: 1.1rem;
+            }
+
+            .btn-small {
+                padding: 0 10px;
+                font-size: 0.7rem;
+            }
+
+            .footer {
+                margin-top: 40px;
+            }
         }
 
         .menu-container {
@@ -413,11 +485,9 @@
             display: flex;
         }
 
-        /* Reset button override */
-        .reset-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+        /* Button overrides */
+        .reset-btn, .about-btn {
+            position: relative;
             width: auto;
             padding: 10px 20px;
             font-size: 0.8rem;
@@ -427,26 +497,25 @@
             font-family: 'Cinzel', serif;
             cursor: pointer;
             text-transform: uppercase;
+            transition: all 0.2s ease;
         }
 
-        .about-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: auto;
-            padding: 10px 20px;
-            font-size: 0.8rem;
-            background: rgba(10, 20, 15, 0.8);
-            border: 1px solid var(--gold-dim);
-            color: var(--gold);
-            font-family: 'Cinzel', serif;
-            cursor: pointer;
-            text-transform: uppercase;
+        .reset-btn:hover, .about-btn:hover {
+            border-color: var(--gold-bright);
+            color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
         }
     </style>
 </head>
 
 <body>
+
+    <div class="utility-bar">
+        <a href="http://simonallmer.com/arcade" target="_top">
+            <button class="reset-btn">Arcade</button>
+        </a>
+        <button class="about-btn" onclick="openAbout()">ABOUT</button>
+    </div>
 
     <div id="player-bar">
         <!-- Players injected here -->
@@ -530,11 +599,6 @@
         </div>
     </div>
 
-    <button class="about-btn" onclick="openAbout()">ABOUT</button>
-
-    <a href="http://simonallmer.com/arcade" target="_top">
-        <button class="reset-btn">Back to Arcade</button>
-    </a>
 
     <script>
         // --- Shared Config ---

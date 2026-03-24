@@ -34,6 +34,56 @@
             transition: background 1s ease;
         }
 
+        @media (max-width: 650px) {
+            body {
+                align-items: flex-start;
+                padding-top: 50px;
+                padding-bottom: 60px;
+                overflow-y: auto;
+            }
+
+            #game-container {
+                padding: 10px 5px !important;
+                border-radius: 10px !important;
+                width: calc(100% - 10px) !important;
+                margin-top: 50px;
+                margin-bottom: 50px;
+            }
+
+            .hud-item {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .label {
+                font-size: 0.6rem;
+            }
+
+            .value {
+                font-size: 1.1rem;
+            }
+
+            #wheel {
+                width: 260px !important;
+                height: 260px !important;
+            }
+
+            .inventory {
+                gap: 5px;
+            }
+
+            button {
+                padding: 12px 20px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .nav-btn {
+                top: 10px !important;
+                padding: 8px 15px !important;
+                font-size: 0.7rem !important;
+            }
+        }
+
         #game-container {
             position: relative;
             width: 100%;
@@ -48,7 +98,8 @@
             box-shadow:
                 inset 0 0 150px #000,
                 0 0 50px rgba(0, 0, 0, 0.8);
-            transition: border-color 0.5s ease;
+            transition: border-color 0.5s ease, transform 0.3s ease;
+            margin: 0 auto;
         }
 
         /* UI Elements */
@@ -1481,6 +1532,22 @@
             }
         });
 
+        window.game = new CasinoGame();
+
+        // Mobile Scaling Logic
+        function setMobileScale() {
+            const container = document.getElementById('game-container');
+            if (container && window.innerWidth < 650) {
+                const scale = (window.innerWidth - 10) / 650;
+                container.style.transform = `scale(${scale})`;
+                container.style.transformOrigin = 'top center';
+            } else if (container) {
+                container.style.transform = 'none';
+            }
+        }
+
+        window.addEventListener('resize', setMobileScale);
+        setMobileScale();
     </script>
 </body>
 
