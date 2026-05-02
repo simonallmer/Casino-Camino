@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Wave Diamond: Vertical Symmetry with stylized curves -->
+  <path 
+    d="M 50 5 
+       C 65 25, 85 35, 85 50 
+       C 85 65, 65 75, 50 95 
+       C 35 75, 15 65, 15 50 
+       C 15 35, 35 25, 50 5 
+       Z
+       M 50 25
+       C 55 35, 65 40, 65 50 
+       C 65 60, 55 65, 50 75 
+       C 45 65, 35 60, 35 50 
+       C 35 40, 45 35, 50 25 
+       Z" 
+    fill="currentColor" 
+    fill-rule="evenodd"/>
+</svg>

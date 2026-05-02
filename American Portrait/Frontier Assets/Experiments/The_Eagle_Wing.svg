@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Eagle Wing: Mirrored Stylized Feather -->
+  <path 
+    d="M 50 5 
+       C 50 5, 85 25, 85 50 
+       C 85 75, 50 95, 50 95 
+       C 50 95, 15 75, 15 50 
+       C 15 25, 50 5, 50 5 
+       Z" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="2"/>
+  <path 
+    d="M 50 5 L 50 95 
+       M 50 20 L 75 35 
+       M 50 35 L 80 45 
+       M 50 50 L 82 50 
+       M 50 65 L 80 55 
+       M 50 80 L 75 65 
+       M 50 20 L 25 35 
+       M 50 35 L 20 45 
+       M 50 50 L 18 50 
+       M 50 65 L 20 55 
+       M 50 80 L 25 65" 
+    stroke="currentColor" 
+    stroke-width="6" 
+    stroke-linecap="round" 
+    fill="none"/>
+</svg>

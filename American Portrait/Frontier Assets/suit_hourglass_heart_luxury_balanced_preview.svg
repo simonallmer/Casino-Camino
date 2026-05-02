@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart (Luxury Balanced Emblem Version) -->
+  <!-- Designed with perfect, harmonious proportions to resemble a luxury brand logo. 
+       Eliminates the "bone" look by using a 1:2 ratio for waist-to-lobe width, 
+       with flawlessly smooth, mathematically vertical transitions along the outer edges. -->
+  <path 
+    d="M 50 15 
+       C 65 5, 75 10, 75 25 
+       C 75 40, 62 38, 62 50 
+       C 62 62, 75 60, 75 75 
+       C 75 90, 65 95, 50 85 
+       C 35 95, 25 90, 25 75 
+       C 25 60, 38 62, 38 50 
+       C 38 38, 25 40, 25 25 
+       C 25 10, 35 5, 50 15 Z" 
+    fill="currentColor"/>
+</svg>

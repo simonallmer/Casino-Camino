@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Sleek concave stiletto diamond, utilizing R=120 swooping inward arcs for a softer, more robust edge -->
+  <path d="M 50 5 A 120 120 0 0 0 95 50 A 120 120 0 0 0 50 95 A 120 120 0 0 0 5 50 A 120 120 0 0 0 50 5 Z" fill="currentColor"/>
+</svg>

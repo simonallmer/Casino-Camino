@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Perfect Top-Bottom Symmetrical Heart -->
+  <!-- Designed by mirroring the top humps perfectly to the bottom, joined by a flush vertical waist -->
+  <path 
+    d="M 50 15 
+       A 25 25 0 0 1 95 30 
+       L 95 70 
+       A 25 25 0 0 1 50 85 
+       A 25 25 0 0 1 5 70 
+       L 5 30 
+       A 25 25 0 0 1 50 15 Z" 
+    fill="currentColor"/>
+</svg>

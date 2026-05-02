@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Symmetrical Spade: 4 Pointed Leaves Meeting at Center -->
+  <path 
+    d="M 50 50 
+       C 42 40, 40 15, 50 8 
+       C 60 15, 58 40, 50 50 
+       C 60 42, 85 40, 92 50 
+       C 85 60, 60 58, 50 50 
+       C 58 60, 60 85, 50 92 
+       C 40 85, 42 60, 50 50 
+       C 40 58, 15 60, 8 50 
+       C 15 40, 40 42, 50 50 
+       Z" 
+    fill="currentColor"/>
+</svg>

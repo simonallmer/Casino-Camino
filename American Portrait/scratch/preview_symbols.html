@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background: #111; color: white; display: flex; gap: 20px; padding: 20px; flex-wrap: wrap; }
+        .box { border: 1px solid #333; padding: 10px; text-align: center; }
+        svg { width: 100px; height: 100px; }
+        .suit-icon { color: #fbbf24; fill: currentColor; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3>UPPER_SOUTH (Current)</h3>
+        <p>R=65 (Very Thin)</p>
+        <svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 8 A 65 65 0 0 0 78 50 A 65 65 0 0 0 50 92 A 65 65 0 0 0 22 50 A 65 65 0 0 0 50 8 Z" fill="currentColor"/></svg>
+    </div>
+    <div class="box">
+        <h3>Option A: Softer Curve</h3>
+        <p>R=120 (Less Concave)</p>
+        <svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 8 A 120 120 0 0 0 78 50 A 120 120 0 0 0 50 92 A 120 120 0 0 0 22 50 A 120 120 0 0 0 50 8 Z" fill="currentColor"/></svg>
+    </div>
+    <div class="box">
+        <h3>Option B: Sturdier Tips</h3>
+        <p>Cubic Bezier (Controlled)</p>
+        <svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 8 C 55 25, 70 40, 78 50 C 70 60, 55 75, 50 92 C 45 75, 30 60, 22 50 C 30 40, 45 25, 50 8 Z" fill="currentColor"/></svg>
+    </div>
+    <div class="box">
+        <h3>Option C: Rounded Diamond</h3>
+        <p>Luxury/Robust</p>
+        <svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 12 Q 52 10, 54 12 L 76 48 Q 78 50, 76 52 L 54 88 Q 52 90, 50 88 L 28 52 Q 26 50, 28 48 Z" fill="currentColor"/></svg>
+    </div>
+    <div class="box">
+        <h3>Concave Asset</h3>
+        <svg viewBox="0 0 100 100"><path d="M 50 5 A 60 60 0 0 0 95 50 A 60 60 0 0 0 50 95 A 60 60 0 0 0 5 50 A 60 60 0 0 0 50 5 Z" fill="currentColor"/></svg>
+    </div>
+    <div class="box">
+        <h3>Hourglass Heart Luxury Refined</h3>
+        <svg viewBox="0 0 100 100"><path d="M 50 10 C 65 10, 85 25, 85 40 C 85 55, 60 50, 50 50 C 40 50, 15 55, 15 40 C 15 25, 35 10, 50 10 M 50 90 C 35 90, 15 75, 15 60 C 15 45, 40 50, 50 50 C 60 50, 85 45, 85 60 C 85 75, 65 90, 50 90 Z" fill="currentColor"/></svg>
+    </div>
+</body>
+</html>

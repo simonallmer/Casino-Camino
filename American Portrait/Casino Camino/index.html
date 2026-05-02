@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Camino</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --gold: #D4AF37;
+            --gold-bright: #FFD700;
+            --gold-dim: #aa8c2c;
+            --black: #050505;
+            --velvet: #051a12;
+            --red: #8a0e0e;
+            --text-light: #f0f0f0;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a0f08 0%, #000 100%);
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        /* Player Bar - Replaces Global Bank */
+        #player-bar {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(20, 10, 0, 0.8));
+            border: 1px solid var(--gold-dim);
+            padding: 10px 20px;
+            border-radius: 30px;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            max-width: 90vw;
+            overflow-x: auto;
+            /* Hide scrollbar */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            transition: all 0.3s ease;
+        }
+
+        .utility-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.85);
+            border-bottom: 1px solid var(--gold-dim);
+            z-index: 3000;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
+        }
+
+        .utility-bar a { text-decoration: none; }
+
+        #player-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .player-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .player-chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .player-chip.compact {
+            flex-direction: row;
+            gap: 5px;
+            padding: 5px 8px;
+            min-width: auto;
+        }
+
+        .player-chip.compact .p-name {
+            font-size: 0.7rem;
+            margin-bottom: 0;
+        }
+
+        .player-chip.compact .p-cash {
+            font-size: 0.9rem;
+        }
+
+        .p-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .p-cash {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .add-player-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            padding: 0;
+            /* Reset padding override */
+        }
+
+        .add-player-btn:hover,
+        .remove-player-btn:hover {
+            color: var(--gold-bright);
+            border-color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.1);
+            box-shadow: none;
+            /* Reset button shadow override */
+        }
+
+        .remove-player-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            padding: 0;
+            padding-bottom: 4px;
+            /* Align the minus better */
+        }
+
+        .reset-money-btn {
+            background: none;
+            border: 1px dashed var(--gold-dim);
+            color: var(--gold-dim);
+            padding: 0 12px;
+            height: 40px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .reset-money-btn:hover {
+            color: var(--gold-bright);
+            border-color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            body {
+                justify-content: flex-start;
+                padding-top: 100px;
+                padding-bottom: 120px;
+            }
+
+            #player-bar {
+                top: auto;
+                bottom: 20px;
+                padding: 12px 20px;
+                background: rgba(5, 10, 5, 0.95);
+                border-radius: 20px;
+                width: calc(100% - 40px);
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .utility-bar {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+                margin-top: 20px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 30px;
+            }
+
+            .menu-container {
+                padding: 25px 15px;
+                width: 85%;
+            }
+
+            .menu-btn {
+                padding: 15px 15px 15px 60px;
+                font-size: 1.1rem;
+            }
+
+            .btn-small {
+                padding: 0 10px;
+                font-size: 0.7rem;
+            }
+
+            .footer {
+                margin-top: 40px;
+            }
+        }
+
+        .menu-container {
+            z-index: 2;
+            text-align: center;
+            padding: 40px;
+            background: rgba(10, 5, 2, 0.85);
+            /* Darker, more solid background */
+            border: 2px solid var(--gold-dim);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        /* Decorative Corners */
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gold);
+            transition: all 0.5s ease;
+        }
+
+        .top-left {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .top-right {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .bottom-left {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .bottom-right {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .menu-container:hover .corner {
+            width: 50px;
+            height: 50px;
+            border-color: var(--gold-bright);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            letter-spacing: 5px;
+        }
+
+        p.subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #aaa;
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .menu-item {
+            text-decoration: none;
+            position: relative;
+        }
+
+        button.menu-btn {
+            width: 100%;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button.menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        button.menu-btn:hover::before {
+            left: 100%;
+        }
+
+        button.menu-btn:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+            color: var(--gold-bright);
+        }
+
+        .coming-soon {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #333;
+            color: #555;
+            background: rgba(10, 20, 15, 0.8);
+            width: 100%;
+            padding: 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid #333;
+        }
+
+        .coming-soon:hover {
+            background: none;
+            box-shadow: none;
+            transform: none;
+            color: #555;
+            border-color: #333;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-family: 'Playfair Display', serif;
+            color: #777;
+            font-size: 0.8rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: rgba(15, 10, 5, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            font-family: 'Playfair Display', serif;
+            color: #ccc;
+            line-height: 1.8;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+        }
+
+        .modal-content p.golden-intro {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .modal-content a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .modal-content a:hover {
+            color: var(--gold-bright);
+            text-decoration: underline;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: var(--gold);
+            font-size: 2rem;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--gold-bright);
+        }
+
+        .modal-open {
+            display: flex;
+        }
+
+        /* Button overrides */
+        .reset-btn, .about-btn {
+            position: relative;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            background: rgba(10, 20, 15, 0.8);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn:hover, .about-btn:hover {
+            border-color: var(--gold-bright);
+            color: var(--gold-bright);
+            background: rgba(212, 175, 55, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="utility-bar">
+        <a href="http://simonallmer.com/arcade" target="_top">
+            <button class="reset-btn">Arcade</button>
+        </a>
+        <button class="about-btn" onclick="resetMoney()" style="margin: 0 10px;">RESET</button>
+        <button class="about-btn" onclick="openAbout()">ABOUT</button>
+    </div>
+
+    <div id="player-bar">
+        <!-- Players injected here -->
+        <button id="remove-btn" class="remove-player-btn" onclick="removePlayer()" title="Remove Player"
+            style="display:none;">-</button>
+        <button id="add-btn" class="add-player-btn" onclick="addPlayer()" title="Add Player">+</button>
+    </div>
+
+    <div class="menu-container">
+        <!-- Decoration -->
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+
+        <h1>Casino Camino</h1>
+        <p class="subtitle" id="subtitle">Home of American Playing Cards</p>
+
+        <div class="menu-grid">
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="ricochet.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">❂</span>Ricochet</button>
+                </a>
+                <button class="btn-small" onclick="openRicochetRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
+
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="fortuna.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">⚅</span>Fortuna</button>
+                </a>
+                <button class="btn-small" onclick="openFortunaRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
+
+            <div class="menu-item" style="position: relative; display: flex;">
+                <a href="frontier.html" style="flex-grow: 1; text-decoration: none;">
+                    <button class="menu-btn" style="width: 100%; position: relative;"><span
+                            style="position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--gold-bright); font-size: 1.3em;">🂠</span>Frontier</button>
+                </a>
+                <button class="btn-small" onclick="openFrontierRules()"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); height: calc(100% - 20px); z-index: 10; font-family: 'Cinzel', serif; font-size: 0.8rem; background: rgba(0,0,0,0.5); color: var(--gold-dim); border: 1px solid var(--gold-dim); cursor: pointer; border-radius: 4px; padding: 0 15px; transition: all 0.2s;">RULES</button>
+            </div>
+
+            <div class="menu-item" style="position: relative; display: flex; opacity: 0.7; pointer-events: none;">
+                <button class="menu-btn"
+                    style="width: 100%; font-size: 1.2rem; color: #aaa; background: rgba(0,0,0,0.4); border: 2px dashed #666;">Game
+                    In Development</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="https://casinocamino.com"
+                style="color: var(--gold); text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; display: block; margin-bottom: 5px; font-family: 'Cinzel', serif;">CasinoCamino.com</a>
+            <a href="https://www.instagram.com/casinocamino" target="_blank"
+                style="color: #777; text-decoration: none; font-size: 0.8rem; display: block; margin-bottom: 10px; font-family: sans-serif;">@CasinoCamino</a>
+            <span style="font-size: 0.7rem; opacity: 0.8; font-family: sans-serif;">© 2026 Simon Allmer
+                Entertainment</span>
+        </div>
+    </div>
+
+    <div id="about-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAbout()">&times;</span>
+            <p class="golden-intro">As wonder faded into functional monotony, the Casino remains a sanctuary of magic. A
+                theater where destiny pivots on a heartbeat and the clock yields to the glow of a sleepless ensemble.
+            </p>
+            <p>Casino Camino introduces a distinct collection of original games within a sophisticated atmosphere. While
+                rooted in chance, these titles incorporate a layer of strategy absent in traditional offerings. The
+                digital platform at <a href="https://casinocamino.com">casinocamino.com</a> provides a space to explore
+                these unique
+                mechanics.</p>
+            <p>The virtual experience is strictly No-Stakes Entry. <a href="https://simonallmer.com">Simon Allmer
+                    Entertainment</a> firmly distinguishes this project from online gambling; the platform accepts no
+                payments and operates without financial risk.</p>
+            <p>True to its name, the Camino is the path forward. This journey will eventually lead into the physical
+                realm, where premium game sets and an Integrated Resort are currently being crafted.</p>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Shared Config ---
+        const PLAYER_COLORS = [
+            { name: 'Red', hex: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)' },
+            { name: 'Blue', hex: '#3b82f6', glow: 'rgba(59, 130, 246, 0.5)' },
+            { name: 'Green', hex: '#10b981', glow: 'rgba(16, 185, 129, 0.5)' },
+            { name: 'Yellow', hex: '#facc15', glow: 'rgba(250, 204, 21, 0.5)' },
+            { name: 'Purple', hex: '#a855f7', glow: 'rgba(168, 85, 247, 0.5)' },
+            { name: 'Orange', hex: '#f97316', glow: 'rgba(249, 115, 22, 0.5)' },
+            { name: 'Cyan', hex: '#22d3ee', glow: 'rgba(34, 211, 238, 0.5)' },
+            { name: 'Pink', hex: '#ec4899', glow: 'rgba(236, 72, 153, 0.5)' },
+            { name: 'Lime', hex: '#a3e635', glow: 'rgba(163, 230, 53, 0.5)' },
+            { name: 'Teal', hex: '#14b8a6', glow: 'rgba(20, 184, 166, 0.5)' },
+            { name: 'Indigo', hex: '#6366f1', glow: 'rgba(99, 102, 241, 0.5)' },
+            { name: 'Brown', hex: '#92400e', glow: 'rgba(146, 64, 14, 0.5)' },
+        ];
+
+        const SUBTITLES = [
+            "Home of American Playing Cards",
+            "Time is an Illusion",
+            "Follow your Vices",
+            "Original Games for Original Gamblers",
+            "The Way to Go",
+            "Totally Legal",
+            "No Kings on our Cards",
+            "More Vegas than Vegas"
+        ];
+
+        function updateSubtitle() {
+            const el = document.getElementById('subtitle');
+            let pool = JSON.parse(localStorage.getItem('casino_camino_subtitles') || "[]");
+
+            // Refill pool if empty or list has changed
+            if (pool.length === 0) {
+                pool = [...SUBTITLES];
+            }
+
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const selected = pool.splice(randomIndex, 1)[0];
+
+            localStorage.setItem('casino_camino_subtitles', JSON.stringify(pool));
+            el.innerText = selected;
+        }
+
+        const MAX_PLAYERS = 8;
+        const STARTING_CASH = 10;
+
+        // --- State Management ---
+        let players = [];
+
+        function init() {
+            // Load players or init default
+            const saved = localStorage.getItem('casino_camino_players');
+            if (saved) {
+                players = JSON.parse(saved);
+                // Ensure legacy fix if needed (e.g., ensure color objects are fully populated)
+            } else {
+                // Initialize Player 1
+                players = [{
+                    id: 0,
+                    name: 'Player 1',
+                    cash: STARTING_CASH,
+                    color: PLAYER_COLORS[0],
+                    inventory: [],
+                    active: true
+                }];
+                savePlayers();
+            }
+            renderPlayers();
+        }
+
+        function savePlayers() {
+            localStorage.setItem('casino_camino_players', JSON.stringify(players));
+        }
+
+        function addPlayer() {
+            if (players.length >= MAX_PLAYERS) return;
+
+            const newId = players.length;
+            const newPlayer = {
+                id: newId,
+                name: `Player ${newId + 1}`,
+                cash: STARTING_CASH,
+                color: PLAYER_COLORS[newId % PLAYER_COLORS.length],
+                inventory: [],
+                active: true
+            };
+            players.push(newPlayer);
+            savePlayers();
+            renderPlayers();
+        }
+
+        function removePlayer() {
+            if (players.length <= 1) return;
+            players.pop();
+            savePlayers();
+            renderPlayers();
+        }
+
+        function resetMoney() {
+            if (!confirm("Reset all players to €10?")) return;
+            players.forEach(p => {
+                p.cash = STARTING_CASH;
+            });
+            savePlayers();
+            renderPlayers();
+        }
+
+        function openFrontierRules() {
+            window.location.href = "frontier.html?showRules=true";
+        }
+
+        function openRicochetRules() {
+            window.location.href = "ricochet.html?showRules=true";
+        }
+
+        function openFortunaRules() {
+            window.location.href = "fortuna.html?showRules=true";
+        }
+
+        function renamePlayer(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            const newName = prompt(`Enter name for ${player.name}:`, player.name);
+            if (newName && newName.trim() !== "") {
+                player.name = newName.trim().substring(0, 15); // limit length
+                savePlayers();
+                renderPlayers();
+            }
+        }
+
+        function renderPlayers() {
+            const container = document.getElementById('player-bar');
+            const addBtn = document.getElementById('add-btn');
+            const removeBtn = document.getElementById('remove-btn');
+
+            // Clear existing chips only
+            const existingChips = container.querySelectorAll('.player-chip');
+            existingChips.forEach(chip => chip.remove());
+
+            // Determine display mode based on count
+            const isCompact = players.length > 6;
+
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `player-chip ${isCompact ? 'compact' : ''}`;
+                div.style.borderColor = p.color.hex;
+                div.style.boxShadow = `0 0 10px ${p.color.glow}`;
+                div.onclick = () => renamePlayer(p.id);
+
+                div.innerHTML = `
+                    <span class="p-name" style="color:${p.color.hex}">${isCompact ? (p.id + 1) : p.name}</span>
+                    <span class="p-cash">€${p.cash}</span>
+                `;
+
+                container.insertBefore(div, addBtn);
+            });
+
+            // Update buttons visibility
+            addBtn.style.display = players.length >= MAX_PLAYERS ? 'none' : 'flex';
+            removeBtn.style.display = players.length <= 1 ? 'none' : 'flex';
+        }
+
+        // --- Modals ---
+        function openAbout() {
+            document.getElementById('about-modal').classList.add('modal-open');
+        }
+
+        function closeAbout() {
+            document.getElementById('about-modal').classList.remove('modal-open');
+        }
+
+        window.onclick = function (event) {
+            let modal = document.getElementById('about-modal');
+            if (event.target == modal) {
+                closeAbout();
+            }
+        }
+
+        // Run
+        updateSubtitle(); // Set initial random subtitle
+        init();
+
+    </script>
+
+</body>
+
+</html>

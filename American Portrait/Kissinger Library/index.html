@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>American Portrait Sage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="zoom-controls">
+        <button id="zoom-out">-</button>
+        <button id="zoom-in">+</button>
+    </div>
+    <div class="arrow-controls">
+        <button id="arrow-up">↑</button>
+        <div class="arrow-row">
+            <button id="arrow-left">←</button>
+            <button id="arrow-down">↓</button>
+            <button id="arrow-right">→</button>
+        </div>
+    </div>
+    <div class="grid-wrapper" id="grid-wrapper">
+        <div id="grid-container"></div>
+    </div>
+
+    <div class="controls-bottom">
+        <div class="person-switch">
+            <button id="btn-kissinger" class="active">Henry Kissinger</button>
+            <button id="btn-carter">Jimmy Carter</button>
+        </div>
+    </div>
+
+    <div id="frame-display" class="hidden">
+        <button id="close-display">×</button>
+        <img id="display-image" src="" alt="">
+        <p id="display-caption"></p>
+        <a id="review-link" class="hidden" href="" target="_blank">
+            <button class="review-button">Read the Society Review Article</button>
+        </a>
+    </div>
+    </div>
+    <div id="footer-text">The Frame of Reference</div>
+    <script src="script.js"></script>
+</body>
+
+</html>

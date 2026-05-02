@@ -1,10 +1,10 @@
 // --- Constants & Data ---
 const SUITS = {
-    DEEP_SOUTH: { id: 'DEEP_SOUTH', name: 'Deep South', symbol: '♥', color: 'var(--deep-south-text)', bg: 'var(--deep-south-bg)', border: 'var(--deep-south-border)', align: 'Confederacy' },
-    UPPER_SOUTH: { id: 'UPPER_SOUTH', name: 'Upper/Western South', symbol: '♦', color: 'var(--upper-south-text)', bg: 'var(--upper-south-bg)', border: 'var(--upper-south-border)', align: 'Confederacy' },
-    INDUST_EAST: { id: 'INDUST_EAST', name: 'Indust. East', symbol: '♠', color: 'var(--indust-east-text)', bg: 'var(--indust-east-bg)', border: 'var(--indust-east-border)', align: 'Union' },
-    WEST_FRONTIER: { id: 'WEST_FRONTIER', name: 'Western Frontier', symbol: '♣', color: 'var(--west-frontier-text)', bg: 'var(--west-frontier-bg)', border: 'var(--west-frontier-border)', align: 'Union' },
-    BORDER: { id: 'BORDER', name: 'Border States', symbol: '★', color: 'var(--border-text)', bg: 'var(--border-bg)', border: 'var(--border-border)', align: 'Neutral' }
+    DEEP_SOUTH: { id: 'DEEP_SOUTH', name: 'Deep South', symbol: '<svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 18 C 60 8, 78 10, 78 25 C 78 40, 54 35, 54 50 C 54 65, 78 60, 78 75 C 78 90, 60 92, 50 82 C 40 92, 22 90, 22 75 C 22 60, 46 65, 46 50 C 46 35, 22 40, 22 25 C 22 10, 40 8, 50 18 Z" fill="currentColor"/></svg>', color: 'var(--deep-south-text)', bg: 'var(--deep-south-bg)', border: 'var(--deep-south-border)', align: 'Confederacy' },
+    UPPER_SOUTH: { id: 'UPPER_SOUTH', name: 'Upper/Western South', symbol: '<svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 8 A 120 120 0 0 0 78 50 A 120 120 0 0 0 50 92 A 120 120 0 0 0 22 50 A 120 120 0 0 0 50 8 Z" fill="currentColor"/></svg>', color: 'var(--upper-south-text)', bg: 'var(--upper-south-bg)', border: 'var(--upper-south-border)', align: 'Confederacy' },
+    INDUST_EAST: { id: 'INDUST_EAST', name: 'Indust. East', symbol: '<svg class="suit-icon" viewBox="0 0 100 100"><path d="M 45 22 L 45 35 Q 45 45 35 45 L 22 45 L 22 55 L 35 55 Q 45 55 45 65 L 45 78 L 55 78 L 55 65 Q 55 55 65 55 L 78 55 L 78 45 L 65 45 Q 55 45 55 35 L 55 22 Z" fill="currentColor"/><circle cx="50" cy="14" r="12" fill="currentColor"/><circle cx="39" cy="23" r="9" fill="currentColor"/><circle cx="61" cy="23" r="9" fill="currentColor"/><circle cx="50" cy="86" r="12" fill="currentColor"/><circle cx="39" cy="77" r="9" fill="currentColor"/><circle cx="61" cy="77" r="9" fill="currentColor"/><circle cx="14" cy="50" r="12" fill="currentColor"/><circle cx="23" cy="39" r="9" fill="currentColor"/><circle cx="23" cy="61" r="9" fill="currentColor"/><circle cx="86" cy="50" r="12" fill="currentColor"/><circle cx="77" cy="39" r="9" fill="currentColor"/><circle cx="77" cy="61" r="9" fill="currentColor"/></svg>', color: 'var(--indust-east-text)', bg: 'var(--indust-east-bg)', border: 'var(--indust-east-border)', align: 'Union' },
+    WEST_FRONTIER: { id: 'WEST_FRONTIER', name: 'Western Frontier', symbol: '<svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 50 C 48 48, 35 40, 35 28 C 35 15, 45 10, 50 5 C 55 10, 65 15, 65 28 C 65 40, 52 48, 50 50 C 52 48, 60 35, 72 35 C 85 35, 90 45, 95 50 C 90 55, 85 65, 72 65 C 60 65, 52 52, 50 50 C 52 52, 65 60, 65 72 C 65 85, 55 90, 50 95 C 45 90, 35 85, 35 72 C 35 60, 48 52, 50 50 C 48 52, 40 65, 28 65 C 15 65, 10 55, 5 50 C 10 45, 15 35, 28 35 C 40 35, 48 48, 50 50 Z" fill="currentColor"/></svg>', color: 'var(--west-frontier-text)', bg: 'var(--west-frontier-bg)', border: 'var(--west-frontier-border)', align: 'Union' },
+    BORDER: { id: 'BORDER', name: 'Border States', symbol: '<svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z" fill="currentColor"/><circle cx="50" cy="12" r="6" fill="currentColor"/><circle cx="83" cy="31" r="6" fill="currentColor"/><circle cx="83" cy="69" r="6" fill="currentColor"/><circle cx="50" cy="88" r="6" fill="currentColor"/><circle cx="17" cy="69" r="6" fill="currentColor"/><circle cx="17" cy="31" r="6" fill="currentColor"/></svg>', color: 'var(--border-text)', bg: 'var(--border-bg)', border: 'var(--border-border)', align: 'Neutral' }
 };
 
 const BASE_BET_UNIT = 1;
@@ -243,6 +243,151 @@ class FrontierGame {
         this.els.rulesModal.classList.toggle('visible');
     }
 
+    toggleDeckView() {
+        const modal = document.getElementById('deck-view-modal');
+        const isVisible = modal.classList.contains('visible');
+        
+        if (!isVisible) {
+            this.renderDeckView();
+            modal.classList.add('visible');
+        } else {
+            modal.classList.remove('visible');
+        }
+    }
+
+    renderDeckView() {
+        const grid = document.getElementById('deck-grid');
+        grid.innerHTML = '';
+        grid.style.gap = '12px';
+        grid.style.padding = '20px';
+        
+        // Custom order to match requested aesthetic
+        const suitOrder = ['WEST_FRONTIER', 'INDUST_EAST', 'DEEP_SOUTH', 'UPPER_SOUTH', 'BORDER'];
+        
+        suitOrder.forEach(suitKey => {
+            const suit = SUITS[suitKey];
+            for (let val = 1; val <= 10; val++) {
+                const cardEl = document.createElement('div');
+                cardEl.className = `card suit-${suit.id}`;
+                // Simplified, smaller card for grid view
+                cardEl.style.width = '100%';
+                cardEl.style.maxWidth = '65px';
+                cardEl.style.margin = '0 auto';
+                cardEl.style.height = 'auto';
+                cardEl.style.aspectRatio = '2/3';
+                cardEl.style.padding = '5px';
+                cardEl.style.cursor = 'default';
+                cardEl.style.transform = 'none';
+                cardEl.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+                cardEl.style.borderRadius = '4px';
+                cardEl.style.borderWidth = '1px';
+                
+                cardEl.innerHTML = `
+                    <div class="card-corner" style="font-size: 0.6rem; padding: 0;">${val}</div>
+                    <div class="card-center">
+                        <div class="card-val" style="font-size: 1rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                            ${suit.symbol}
+                        </div>
+                    </div>
+                    <div class="card-corner bottom" style="font-size: 0.6rem; padding: 0;">${val}</div>
+                `;
+                grid.appendChild(cardEl);
+            }
+        });
+    }
+
+    // --- Autonomous Computer Logic ---
+    startComputerTurn() {
+        const player = this.players[this.activePlayerId];
+        this.updateHUD();
+        this.updatePlayerPods();
+
+        // Prepare UI for secret computer turn
+        this.els.cardsContainer.innerHTML = '';
+        this.els.controlsArea.innerHTML = '';
+        this.els.controlsArea.style.display = 'none';
+        this.els.mulliganBtn.style.display = 'none';
+
+        this.setMessage(`<div style="font-size: 1.8rem; color: var(--gold-bright); letter-spacing: 2px;">${player.name.toUpperCase()} IS THINKING...</div>`);
+        
+        // Display face-down cards to maintain secrecy
+        const handCount = player.hand.length;
+        for (let i = 0; i < handCount; i++) {
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card card-back';
+            cardBack.style.cursor = 'default';
+            this.els.cardsContainer.appendChild(cardBack);
+        }
+
+        setTimeout(() => {
+            const decision = this.calculateComputerMove(player);
+            
+            if (decision.type === 'FOLD') {
+                this.setMessage(`<div style="font-size: 1.5rem; color: #f87171;">${player.name} retreats and FOLDS.</div>`);
+                setTimeout(() => this.executeFold(), 2000);
+            } else {
+                this.selectedCardIndices = decision.indices;
+                const isFirst = this.roundPlays.length === 0;
+                const betType = decision.amount > this.roundBet ? 'raises to' : (isFirst ? 'bets' : 'calls');
+                
+                this.setMessage(`
+                    <div style="font-size: 1.6rem; color: var(--gold-bright);">${player.name} ${betType} €${decision.amount}</div>
+                    <div style="font-size: 1rem; opacity: 0.8; margin-top: 10px;">Committing ${decision.indices.length} cards to the Frontier.</div>
+                `);
+                
+                setTimeout(() => {
+                    this.executePlay(decision.amount);
+                }, 2500);
+            }
+        }, 2000);
+    }
+
+    calculateComputerMove(player) {
+        const hand = player.hand;
+        let bestEval = { score: -1 };
+        let bestIndices = [];
+
+        // Check all subsets to find the most powerful play
+        const n = hand.length;
+        for (let i = 1; i < (1 << n); i++) {
+            const currentIndices = [];
+            for (let j = 0; j < n; j++) {
+                if ((i >> j) & 1) currentIndices.push(j);
+            }
+            const subset = currentIndices.map(idx => hand[idx]);
+            const evalResult = evaluateHand(subset);
+            if (evalResult.score > bestEval.score) {
+                bestEval = evalResult;
+                bestIndices = currentIndices;
+            }
+        }
+
+        // Betting Strategy based on Tier and current pot
+        const isFirst = this.roundPlays.length === 0;
+        let amount = this.roundBet;
+        const tierNum = bestEval.tier ? parseInt(bestEval.tier.replace('Tier ', '')) : 5;
+        
+        if (isFirst) {
+            if (tierNum <= 2) amount = 5;
+            else if (tierNum === 3) amount = 3;
+            else if (tierNum === 4) amount = 2;
+            else amount = 1;
+        } else {
+            // Aggressive play for strong hands
+            if (tierNum <= 2 && this.roundBet < 5) amount = Math.min(5, this.roundBet + 2);
+            else if (tierNum === 3 && this.roundBet < 5) amount = Math.min(5, this.roundBet + 1);
+            
+            // Risk management
+            if (tierNum === 5 && this.roundBet >= 3) return { type: 'FOLD' };
+            if (tierNum === 4 && this.roundBet >= 5) return { type: 'FOLD' };
+            if (player.cash < amount) return { type: 'FOLD' };
+        }
+
+        // Final cash check
+        amount = Math.min(amount, player.cash);
+        return { type: 'PLAY', indices: bestIndices, amount: amount };
+    }
+
     setMessage(msg) {
         this.els.msgArea.innerHTML = msg;
     }
@@ -297,9 +442,23 @@ class FrontierGame {
             this.advanceRound();
             return;
         }
+
+        // Auto-skip the very first transition screen for Player 1 in Round 1
+        const firstActiveIdx = this.players.findIndex(p => p.status === 'ACTIVE');
+        if (this.currentRoundNum === 1 && this.activePlayerId === firstActiveIdx) {
+            this.startTurn();
+            return;
+        }
+
         const player = this.players[this.activePlayerId];
         this.updateHUD();
         this.updatePlayerPods();
+
+        // Autonomous Computer Turn check
+        if (player.name.toLowerCase().includes('computer')) {
+            this.startComputerTurn();
+            return;
+        }
 
         this.els.cardsContainer.innerHTML = '';
         this.els.controlsArea.innerHTML = '';
@@ -336,13 +495,15 @@ class FrontierGame {
             if (this.selectedCardIndices.includes(idx)) div.classList.add('selected');
 
             div.innerHTML = `
-                <div class="card-corner">${card.suit.symbol}</div>
-                <div class="card-center">
-                    <div class="card-suit-name">${card.suit.name}</div>
-                    <div class="card-val">${card.val}</div>
-                    <div class="card-align">${card.suit.align}</div>
+                <div class="card-corner">
+                    <div class="corner-val">${card.val}</div>
                 </div>
-                <div class="card-corner bottom">${card.suit.symbol}</div>
+                <div class="card-center">
+                    <div class="card-val">${card.suit.symbol}</div>
+                </div>
+                <div class="card-corner bottom">
+                    <div class="corner-val">${card.val}</div>
+                </div>
             `;
 
             if (isClickable) {
@@ -724,3 +885,20 @@ class FrontierGame {
 
 // Init
 const game = new FrontierGame();
+
+// Escape Key Handlers
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const rulesModal = document.getElementById('rules-modal');
+        const deckModal = document.getElementById('deck-view-modal');
+        
+        if (rulesModal && rulesModal.classList.contains('visible')) {
+            game.toggleRules();
+        } else if (deckModal && deckModal.classList.contains('visible')) {
+            game.toggleDeckView();
+        } else {
+            // Navigate back to Casino Camino menu
+            window.location.href = 'index.html';
+        }
+    }
+});

@@ -877,12 +877,22 @@
         .collapsed .log-toggle-icon {
             transform: rotate(180deg);
         }
+        .ai-tag {
+            font-size: 0.5rem;
+            background: var(--gold);
+            color: #000;
+            padding: 1px 3px;
+            border-radius: 2px;
+            margin-left: 5px;
+            vertical-align: middle;
+            font-weight: 800;
+        }
     </style>
 </head>
 
 <body>
-    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="left: 20px;">Back to Arcade</button></a>
-    <a href="index.html"><button class="nav-btn" style="right: 20px;">Back to Menu</button></a>
+    <a href="index.html"><button class="nav-btn" style="left: 20px;">Back to Menu</button></a>
+    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="right: 20px;">Back to Arcade</button></a>
 
     <div id="game-stage">
         <div class="hud-container">
@@ -1242,6 +1252,41 @@
                     this.updateHub(p.name, p.color.hex, `Bet <strong>${betAmount}€</strong> or DIE`);
                 }
                 this.renderPlayerBar();
+
+                if (p && p.isAI && this.phase === 'betting') {
+                    this.executeAITurn();
+                }
+            }
+
+            executeAITurn() {
+                const p = this.players.find(pl => pl.id === this.activePlayerIndex);
+                if (!p || !p.active || this.phase !== 'betting') return;
+
+                setTimeout(() => {
+                    const ring = this.getCurrentRing();
+                    const betAmount = Math.pow(2, this.round - 1);
+                    
+                    // Strategic priority based on probability
+                    const priority = [7, 6, 8, 5, 9, 4, 10, 3, 11, 2, 12];
+                    let bestNum = -1;
+
+                    for (const num of priority) {
+                        if (this.eliminatedNumbers.includes(num)) continue;
+                        if (this.board[num] && this.board[num][ring] !== null) continue;
+                        
+                        bestNum = num;
+                        break;
+                    }
+
+                    // Decision: MUST bet if 0 bets, otherwise bet good numbers with 50% chance
+                    const shouldBet = (p.betsThisRound === 0) || (bestNum !== -1 && [7, 6, 8, 5, 9].includes(bestNum) && Math.random() > 0.5);
+
+                    if (shouldBet && bestNum !== -1 && p.cash >= betAmount) {
+                        this.handleNodeClick(bestNum);
+                    } else {
+                        this.handlePass();
+                    }
+                }, 1500);
             }
 
             updateHub(name, color, hint = "") {
@@ -1285,6 +1330,12 @@
 
                 document.getElementById('roll-btn').style.display = 'block';
                 document.getElementById('pass-btn').style.display = 'none';
+
+                // Auto-roll if only AI left
+                const humansLeft = this.players.filter(p => p.active && !p.isAI && !this.passedPlayers.includes(p.id));
+                if (humansLeft.length === 0) {
+                    setTimeout(() => this.startRolling(), 2000);
+                }
             }
 
             async startRolling() {
@@ -1459,7 +1510,7 @@
                     chip.className = 'player-chip' + (p.id === this.activePlayerIndex ? ' active' : '');
                     if (!p.active) chip.style.opacity = '0.3';
                     chip.style.color = p.color.hex;
-                    chip.innerHTML = `<div class="color-dot" style="background:${p.color.hex}"></div> <span>${p.name}</span> <b style="color:var(--gold)">€${p.cash}</b>`;
+                    chip.innerHTML = `<div class="color-dot" style="background:${p.color.hex}"></div> <span>${p.name}${p.isAI ? '<span class="ai-tag">AI</span>' : ''}</span> <b style="color:var(--gold)">€${p.cash}</b>`;
                     bar.appendChild(chip);
                 });
                 document.getElementById('pot-amount').innerText = '€' + this.pot;
@@ -1557,6 +1608,18 @@
 
         window.addEventListener('resize', setMobileScale);
         setMobileScale();
+
+        // Escape key to go back one layer
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const rulesModal = document.getElementById('rules-modal');
+                if (rulesModal && rulesModal.classList.contains('visible')) {
+                    rulesModal.classList.remove('visible');
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
     </script>
 </body>
 

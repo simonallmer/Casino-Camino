@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Thin central cross structure with deep, smooth, curved armpits -->
+  <path d="M 45 22 L 45 35 Q 45 45 35 45 L 22 45 L 22 55 L 35 55 Q 45 55 45 65 L 45 78 L 55 78 L 55 65 Q 55 55 65 55 L 78 55 L 78 45 L 65 45 Q 55 45 55 35 L 55 22 Z" />
+  
+  <!-- Trefoil leaves growing precisely off the thin structural stems -->
+  <!-- Top Arm Lobes -->
+  <circle cx="50" cy="14" r="12" />
+  <circle cx="39" cy="23" r="9" />
+  <circle cx="61" cy="23" r="9" />
+  
+  <!-- Bottom Arm Lobes -->
+  <circle cx="50" cy="86" r="12" />
+  <circle cx="39" cy="77" r="9" />
+  <circle cx="61" cy="77" r="9" />
+  
+  <!-- Left Arm Lobes -->
+  <circle cx="14" cy="50" r="12" />
+  <circle cx="23" cy="39" r="9" />
+  <circle cx="23" cy="61" r="9" />
+  
+  <!-- Right Arm Lobes -->
+  <circle cx="86" cy="50" r="12" />
+  <circle cx="77" cy="39" r="9" />
+  <circle cx="77" cy="61" r="9" />
+</svg>

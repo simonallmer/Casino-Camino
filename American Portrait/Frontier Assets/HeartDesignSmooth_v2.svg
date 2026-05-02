@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Heart Design Smooth (V2) -->
+  <!-- Base: The perfectly smooth single-path version. 
+       Adjustment: Tucked the innermost control points at the top and bottom indents 
+       closer to the center axis (from 60/40 to 55/45). This restrains the curve 
+       from "growing out" horizontally too fast, ensuring it sweeps up and down 
+       more elegantly before rounding out into the lobes. -->
+  <path 
+    d="M 50 18 
+       C 55 8, 78 10, 78 25 
+       C 78 40, 58 35, 58 50 
+       C 58 65, 78 60, 78 75 
+       C 78 90, 55 92, 50 82 
+       C 45 92, 22 90, 22 75 
+       C 22 60, 42 65, 42 50 
+       C 42 35, 22 40, 22 25 
+       C 22 10, 45 8, 50 18 Z" 
+    fill="currentColor"/>
+</svg>

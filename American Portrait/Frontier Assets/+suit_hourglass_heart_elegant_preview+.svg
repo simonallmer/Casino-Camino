@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart (Elegant / Haute Couture Version) -->
+  <!-- Designed with a high-fashion, "Tom Ford" aesthetic: ultra-sleek, elongated proportions, highly tailored dramatic cinched waist, and perfectly smooth unbroken outer lines. -->
+  <path 
+    d="M 50 12 
+       C 65 5, 78 12, 78 28 
+       C 78 40, 58 35, 58 50 
+       C 58 65, 78 60, 78 72 
+       C 78 88, 65 95, 50 88 
+       C 35 95, 22 88, 22 72 
+       C 22 60, 42 65, 42 50 
+       C 42 35, 22 40, 22 28 
+       C 22 12, 35 5, 50 12 Z" 
+    fill="currentColor"/>
+</svg>

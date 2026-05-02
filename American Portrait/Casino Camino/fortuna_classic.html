@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camino Fortuna</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --gold: #D4AF37;
+            --gold-bright: #FFD700;
+            --gold-dim: #aa8c2c;
+            --black: #050505;
+            --velvet: #051a12;
+            --red: #8a0e0e;
+            --text-light: #f0f0f0;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            background: radial-gradient(circle at center, #1b0a1f 0%, #000 100%);
+        }
+
+        #game-wrapper {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Global Top Bank Style (Fixed width) */
+        #global-bank {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(20, 10, 0, 0.8));
+            border: 1px solid var(--gold);
+            padding: 10px 0;
+            width: 200px;
+            text-align: center;
+            border-radius: 30px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #global-bank .label {
+            font-size: 0.7rem;
+            color: #aaa;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Playfair Display', serif;
+        }
+
+        #global-bank .value {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* HUD (Now just for Pool, since Bank is global) */
+        .hud {
+            width: 90%;
+            display: flex;
+            justify-content: center;
+            /* Centered now */
+            padding: 15px 25px;
+            margin-top: 60px;
+            /* Space for global bank */
+            border-bottom: 2px solid var(--gold-dim);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .label {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.75rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .value {
+            font-size: 1.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+        }
+
+        /* 3D Dice Arena */
+        .dice-arena {
+            width: 100%;
+            height: 200px;
+            perspective: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+        }
+
+        .die {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(0deg) rotateY(0deg);
+            transition: transform 1s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        .face {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at center, #eee, #ccc);
+            border: 2px solid #999;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: #111;
+            font-weight: bold;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Face Transformations */
+        .front {
+            transform: rotateY(0deg) translateZ(40px);
+        }
+
+        .back {
+            transform: rotateY(180deg) translateZ(40px);
+        }
+
+        .right {
+            transform: rotateY(90deg) translateZ(40px);
+        }
+
+        .left {
+            transform: rotateY(-90deg) translateZ(40px);
+        }
+
+        .top {
+            transform: rotateX(90deg) translateZ(40px);
+        }
+
+        .bottom {
+            transform: rotateX(-90deg) translateZ(40px);
+        }
+
+        .pip {
+            width: 14px;
+            height: 14px;
+            background: #111;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Pip Layouts */
+        .face-1 .pip {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #8a0e0e;
+            width: 18px;
+            height: 18px;
+        }
+
+        .face-2 .pip:nth-child(1) {
+            top: 20%;
+            left: 20%;
+        }
+
+        .face-2 .pip:nth-child(2) {
+            bottom: 20%;
+            right: 20%;
+        }
+
+        .face-3 .pip:nth-child(1) {
+            top: 20%;
+            left: 20%;
+        }
+
+        .face-3 .pip:nth-child(2) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .face-3 .pip:nth-child(3) {
+            bottom: 20%;
+            right: 20%;
+        }
+
+        .face-4 .pip:nth-child(1) {
+            top: 20%;
+            left: 20%;
+        }
+
+        .face-4 .pip:nth-child(2) {
+            top: 20%;
+            right: 20%;
+        }
+
+        .face-4 .pip:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+        }
+
+        .face-4 .pip:nth-child(4) {
+            bottom: 20%;
+            right: 20%;
+        }
+
+        .face-5 .pip:nth-child(1) {
+            top: 20%;
+            left: 20%;
+        }
+
+        .face-5 .pip:nth-child(2) {
+            top: 20%;
+            right: 20%;
+        }
+
+        .face-5 .pip:nth-child(3) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .face-5 .pip:nth-child(4) {
+            bottom: 20%;
+            left: 20%;
+        }
+
+        .face-5 .pip:nth-child(5) {
+            bottom: 20%;
+            right: 20%;
+        }
+
+        .face-6 .pip:nth-child(1) {
+            top: 20%;
+            left: 20%;
+        }
+
+        .face-6 .pip:nth-child(2) {
+            top: 20%;
+            right: 20%;
+        }
+
+        .face-6 .pip:nth-child(3) {
+            top: 50%;
+            left: 20%;
+            transform: translate(0, -50%);
+        }
+
+        .face-6 .pip:nth-child(4) {
+            top: 50%;
+            right: 20%;
+            transform: translate(0, -50%);
+        }
+
+        .face-6 .pip:nth-child(5) {
+            bottom: 20%;
+            left: 20%;
+        }
+
+        .face-6 .pip:nth-child(6) {
+            bottom: 20%;
+            right: 20%;
+        }
+
+        /* Betting Board */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid var(--gold-dim);
+            margin-top: 20px;
+        }
+
+        .bet-btn {
+            width: 80px;
+            height: 80px;
+            /* Rectangular Rounded */
+            aspect-ratio: 1;
+            /* Keep square */
+            border-radius: 12px;
+            /* Rounded Rect like Wheel */
+            background: linear-gradient(135deg, #222, #111);
+            border: 2px solid #555;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .bet-btn:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .bet-btn.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        .bet-btn.removed {
+            opacity: 0.4;
+            background: #300;
+            /* Dark red background for eliminated */
+            border-color: #500;
+            cursor: not-allowed;
+            /* Keep pointer events? User said "For suspence I would keep in even the rolls that dont count" */
+            /* If they want suspense, maybe they just want to SEE them rolled. But can you bet on them?
+                "Then 4 is out". Out implies you can't bet on it anymore. */
+            pointer-events: none;
+        }
+
+        .bet-btn.removed .bet-num {
+            text-decoration: line-through;
+            color: #800;
+        }
+
+        /* Combo Safety Colors */
+        /* 1 Combo: Dangerous (Red) */
+        .bet-btn.safe-1 {
+            border-color: #8a0e0e;
+            box-shadow: 0 0 10px rgba(138, 14, 14, 0.2);
+        }
+
+        .bet-btn.safe-1 .safety-dot {
+            background: #8a0e0e;
+        }
+
+        /* 2 Combos: Medium (Gold/Orange) */
+        .bet-btn.safe-2 {
+            border-color: #d49037;
+            box-shadow: 0 0 10px rgba(212, 144, 55, 0.2);
+        }
+
+        .bet-btn.safe-2 .safety-dot {
+            background: #d49037;
+        }
+
+        /* 3 Combos: Exact/Safe (Green/Teal) */
+        .bet-btn.safe-3 {
+            border-color: #1e6648;
+            box-shadow: 0 0 10px rgba(30, 102, 72, 0.3);
+        }
+
+        .bet-btn.safe-3 .safety-dot {
+            background: #1e6648;
+        }
+
+        /* Doubles: Special (Purple) */
+        .bet-btn.safe-doubles {
+            border-color: #9b59b6;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.3);
+        }
+
+        .bet-btn.safe-doubles .safety-dot {
+            background: #9b59b6;
+        }
+
+        .safety-indicator {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.6rem;
+            opacity: 0.7;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .safety-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .bet-btn.active {
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px var(--gold);
+            background: radial-gradient(circle, #3a2a0d, #1a0f08);
+        }
+
+        .bet-num {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ddd;
+        }
+
+        .bet-btn.active .bet-num {
+            color: var(--gold-bright);
+        }
+
+        .bet-badge {
+            font-size: 0.7rem;
+            color: white;
+            background: var(--red);
+            padding: 2px 6px;
+            border-radius: 4px;
+            position: absolute;
+            bottom: -5px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .bet-btn.active .bet-badge {
+            opacity: 1;
+            bottom: 5px;
+        }
+
+        .btn-roll {
+            background: linear-gradient(to bottom, var(--gold), #8a6e15);
+            color: #050505;
+            font-weight: 800;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            /* Pill shape */
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            transition: 0.2s;
+        }
+
+        .btn-roll:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-roll:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal */
+        #bet-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #bet-modal.visible {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #111;
+            border: 2px solid var(--gold);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+
+        .option {
+            background: #222;
+            margin: 10px 0;
+            padding: 15px;
+            cursor: pointer;
+            border: 1px solid #444;
+            transition: 0.2s;
+        }
+
+        .option:hover {
+            border-color: var(--gold);
+            background: #333;
+        }
+
+        /* Win Overlay */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 2000;
+        }
+
+        #overlay.visible {
+            display: flex;
+        }
+
+        #overlay h1 {
+            font-size: 3rem;
+            color: var(--gold);
+        }
+
+        /* Rules Modal Visible State */
+        #rules-modal.visible {
+            display: flex !important;
+        }
+
+        /* Adjust container to match Wheel */
+        #game-wrapper {
+            background: rgba(10, 5, 2, 0.85);
+            border: 2px solid var(--gold-dim);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            /* For footer positioning relative to this? No, footer is absolute to body */
+        }
+
+        /* Make board transparent to show container bg */
+        .board {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="http://simonallmer.com/arcade" target="_top"
+        style="position: absolute; top: 20px; left: 20px; z-index: 2001;">
+        <button
+            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
+            onclick="game.saveAndExit()">Back to Arcade</button>
+    </a>
+
+    <a href="index.html" style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
+        <button
+            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
+            onclick="game.exit()">Back To Menu</button>
+    </a>
+
+    <div id="global-bank">
+        <span class="label">Total Bank</span>
+        <span class="value" id="bank">€500</span>
+    </div>
+
+    <div id="game-wrapper">
+        <div class="hud">
+            <!-- Bank moved to top -->
+            <div class="hud-item"><span class="label">Pool Remaining</span><span class="value" id="pool">12/12</span>
+            </div>
+        </div>
+
+        <div class="dice-arena">
+            <!-- Die 1 -->
+            <div class="die" id="die1">
+                <div class="face front">
+                    <div class="face-1">
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face back">
+                    <div class="face-6">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face right">
+                    <div class="face-3">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face left">
+                    <div class="face-4">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face top">
+                    <div class="face-2">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face bottom">
+                    <div class="face-5">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Die 2 -->
+            <div class="die" id="die2">
+                <div class="face front">
+                    <div class="face-1">
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face back">
+                    <div class="face-6">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face right">
+                    <div class="face-3">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face left">
+                    <div class="face-4">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face top">
+                    <div class="face-2">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+                <div class="face bottom">
+                    <div class="face-5">
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                        <div class="pip"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="msg" style="height: 20px; color: #888; font-style: italic;">Place a bet...</div>
+
+        <div class="board" id="board">
+            <!-- Generated JS -->
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top: 20px; width: 100%; justify-content: center; height: 60px;">
+            <button class="btn-roll"
+                style="width:60px; padding:0; height:60px; border:1px solid var(--gold); background:rgba(0,0,0,0.5); border-radius:8px; color:var(--gold); font-size:1.2rem; margin:0;"
+                onclick="document.getElementById('rules-modal').classList.add('visible')">?</button>
+            <button
+                style="background:transparent; border:1px solid #666; color:#aaa; padding:0; border-radius:8px; width:150px; height:60px; font-family: 'Cinzel'; font-size: 0.9rem; text-transform: uppercase; margin:0;"
+                onclick="game.reset()">Reset Round</button>
+            <button class="btn-roll"
+                style="flex:1; max-width:250px; border-radius:8px; height:60px; margin:0; display:flex; justify-content:center; align-items:center;"
+                onclick="game.roll()">START ROUND</button>
+        </div>
+
+        <div
+            style="width: 100%; text-align: center; color: var(--gold); font-size: 0.6rem; opacity: 0.5; font-family: sans-serif; pointer-events: none; margin-top: 15px;">
+            Game Design: Simon Allmer | © 2026 Simon Allmer Entertainment
+        </div>
+    </div>
+
+    <!-- Footer removed from body, moved inside container -->
+
+    <!-- Rules Modal -->
+    <div id="rules-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
+        <div
+            style="background:#111; border:2px solid var(--gold); padding:40px; max-width:500px; color:#ddd; font-family:'Playfair Display'; line-height:1.6;">
+            <h2 style="font-family:'Cinzel'; color:var(--gold); text-align:center; margin-top:0;">Fortuna House Rules
+            </h2>
+            <ul style="padding-left:20px;">
+                <li><strong>Objective:</strong> Bet on the sum of two dice.</li>
+                <li><strong>Elimination:</strong> Once a sum is rolled, it is REMOVED from the game.</li>
+                <li><strong>Doubles (=):</strong> Bet on any pair (1-1, 2-2, etc.).</li>
+                <li><strong>Safety Colors:</strong>
+                    <br><span style="color:#1e6648">Green</span> = Safe (3 Combinations)
+                    <br><span style="color:#d49037">Orange</span> = Medium (2 Combinations)
+                    <br><span style="color:#8a0e0e">Red</span> = Risky (1 Combination)
+                    <br><span style="color:#9b59b6">Purple</span> = Special (Doubles)
+                </li>
+            </ul>
+
+            <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+
+            <h3 style="color:var(--gold-dim); font-size: 1rem; text-align: center;">Behind The Odds</h3>
+            <p style="font-size: 0.8rem; color: #aaa;">
+                Payouts are calculated dynamically based on the <strong>Real Probability</strong> of your dice
+                combination and the number of turns you purchase.
+            </p>
+            <ul style="padding-left:20px; font-size: 0.8rem; color: #aaa;">
+                <li><strong>Dynamic Pricing:</strong> Rare outcomes (like 2, 12, or Doubles) pay significantly more than
+                    common sums (6, 7, 8).</li>
+                <li><strong>Turn Cost:</strong> Buying more turns increases your chance to win, but lowers the final
+                    payout.</li>
+                <li><strong>House Edge:</strong> A fixed 8% House Edge is applied to all payouts to ensure the Casino
+                    always wins in the long run.</li>
+                <li><strong>Fair Play:</strong> Bets that would payout less than the entry fee (€100) are automatically
+                    disabled.</li>
+            </ul>
+
+            <button class="btn-roll" style="width:100%; border-radius:5px; margin-top:20px;"
+                onclick="document.getElementById('rules-modal').classList.remove('visible')">Close</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="bet-modal">
+        <div class="modal-card">
+            <h3>Bet on <span id="modal-num">X</span></h3>
+            <style>
+                .turn-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px;
+                    margin-bottom: 15px;
+                }
+
+                .turn-btn {
+                    background: #222;
+                    border: 1px solid #444;
+                    padding: 10px;
+                    cursor: pointer;
+                    transition: 0.2s;
+                }
+
+                .turn-btn:hover {
+                    background: #333;
+                    border-color: var(--gold);
+                }
+
+                .turn-btn span {
+                    display: block;
+                    font-size: 0.8rem;
+                    color: #888;
+                }
+            </style>
+            <div class="turn-grid">
+                <div class="turn-btn" onclick="game.placeBet(1)">1 Turn <span>100% Share</span></div>
+                <div class="turn-btn" onclick="game.placeBet(2)">2 Turns <span>50% Share</span></div>
+                <div class="turn-btn" onclick="game.placeBet(3)">3 Turns <span>33% Share</span></div>
+                <div class="turn-btn" onclick="game.placeBet(4)">4 Turns <span>25% Share</span></div>
+                <div class="turn-btn" onclick="game.placeBet(5)">5 Turns <span>20% Share</span></div>
+                <div class="turn-btn" onclick="game.placeBet(6)">6 Turns <span>16% Share</span></div>
+            </div>
+            <button class="btn-roll" style="padding: 10px 30px; font-size: 0.9rem;"
+                onclick="document.getElementById('bet-modal').classList.remove('visible')">Cancel</button>
+        </div>
+    </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay">
+        <h1 id="overlay-msg">WIN!</h1>
+        <button class="btn-roll"
+            onclick="document.getElementById('overlay').classList.remove('visible')">Continue</button>
+    </div>
+
+    <script>
+        class FortunaGame {
+            constructor() {
+                this.bank = localStorage.getItem('casino_camino_bank');
+                if (this.bank === null) {
+                    this.bank = 500;
+                    localStorage.setItem('casino_camino_bank', 500);
+                } else {
+                    this.bank = parseInt(this.bank);
+                }
+
+                this.bets = [];
+                this.removedSums = new Set();
+                this.entryFee = 100;
+                this.pendingNum = null;
+
+                this.initBoard();
+                this.updateUI();
+            }
+            initBoard() {
+                const board = document.getElementById('board');
+                board.innerHTML = '';
+                for (let i = 1; i <= 12; i++) {
+                    const btn = document.createElement('div');
+                    btn.className = 'bet-btn btn-' + i;
+
+                    let label = i;
+                    let comboCount = 0;
+                    let cssClass = "";
+                    let safetyText = "";
+
+                    if (i === 1) {
+                        label = "="; // Doubles
+                        comboCount = 6; // 6 doubles exist? Wait, user logic: "2 has 1 combo".
+                        // Doubles: {1,1}, {2,2}... {6,6}. 6 Outcomes.
+                        // Risk: 6/36 = 16%. Same as 7.
+                        cssClass = "safe-doubles";
+                        safetyText = "Doubles";
+                    } else {
+                        // Calculate unique pairs
+                        // 2: {1,1} -> 1
+                        // 3: {1,2} -> 1
+                        // 4: {1,3}, {2,2} -> 2
+                        // 5: {1,4}, {2,3} -> 2
+                        // 6: {1,5}, {2,4}, {3,3} -> 3
+                        // 7: {1,6}, {2,5}, {3,4} -> 3
+                        // 8: {2,6}, {3,5}, {4,4} -> 3
+                        // 9: {3,6}, {4,5} -> 2
+                        // 10: {4,6}, {5,5} -> 2
+                        // 11: {5,6} -> 1
+                        // 12: {6,6} -> 1
+
+                        const combos = {
+                            2: 1, 3: 1, 11: 1, 12: 1,
+                            4: 2, 5: 2, 9: 2, 10: 2,
+                            6: 3, 7: 3, 8: 3
+                        };
+                        comboCount = combos[i] || 0;
+
+                        if (comboCount === 1) cssClass = "safe-1";
+                        else if (comboCount === 2) cssClass = "safe-2";
+                        else if (comboCount === 3) cssClass = "safe-3";
+
+                        safetyText = comboCount + (comboCount > 1 ? " Combos" : " Combo");
+                    }
+
+                    btn.classList.add(cssClass);
+
+                    btn.innerHTML = `
+                    <div class="safety-indicator"><div class="safety-dot"></div></div>
+                    <span class="bet-num">${label}</span>
+                    <div class="bet-badge" id="badge-${i}"></div>
+                `;
+                    btn.onclick = () => this.openBet(i);
+                    board.appendChild(btn);
+                }
+            }
+
+            updateUI() {
+                document.getElementById('bank').innerText = '€' + this.bank;
+                const remainingSums = 11 - this.removedSums.size;
+                document.getElementById('pool').innerText = remainingSums + '/11';
+
+                for (let i = 1; i <= 12; i++) {
+                    const btn = document.querySelector('.btn-' + i);
+                    const badge = document.getElementById('badge-' + i);
+
+                    // Reset basic state
+                    btn.classList.remove('disabled', 'active', 'removed', 'safe-1', 'safe-2', 'safe-3', 'safe-doubles');
+                    badge.innerText = '';
+
+                    let cssClass = "";
+
+                    // Check if removed (Only applies to sums 2-12)
+                    if (i > 1 && this.removedSums.has(i)) {
+                        btn.classList.add('removed');
+                    } else {
+                        // Colors
+                        if (i === 1) cssClass = "safe-doubles"; // Doubles
+                        else {
+                            const combos = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
+                            // Note: User's old logic had 2 combo for 4, 3 combo for 6. 
+                            // Real Dice Math:
+                            // 2: {1,1} (1)
+                            // 3: {1,2},{2,1} (2)
+                            // 4: {1,3},{3,1},{2,2} (3)
+                            // ...
+                            // User logic was "Unique Pairs" I think. 
+                            // Let's stick to PURE PROBABILITY. 
+                            // 7 has 6/36. 2 has 1/36.
+                            // I will determine "Safety" by probability.
+                            const c = combos[i];
+                            if (c <= 2) cssClass = "safe-1"; // 1-2 combos (Active Red)
+                            else if (c <= 4) cssClass = "safe-2"; // 3-4 combos (Active Orange)
+                            else cssClass = "safe-3"; // 5-6 combos (Active Green)
+                        }
+                        btn.classList.add(cssClass);
+                    }
+
+                    // My Bets
+                    const bet = this.bets.find(b => b.num === i);
+                    if (bet) {
+                        btn.classList.add('active');
+                        badge.innerText = `Win: €${bet.potentialWin}`;
+                    }
+                }
+
+                localStorage.setItem('casino_camino_bank', this.bank);
+            }
+
+            openBet(num) {
+                // If it's a sum (2-12) and it's removed, can't bet.
+                if (num > 1 && this.removedSums.has(num)) return;
+                // Check existing
+                if (this.bets.find(b => b.num === num)) return;
+
+                if (this.bank < this.entryFee) {
+                    document.getElementById('msg').innerText = "Insufficient Funds";
+                    return;
+                }
+
+                this.pendingNum = num;
+                let displayNum = num === 1 ? "Doubles" : num;
+                document.getElementById('modal-num').innerText = displayNum;
+
+                // Render Payouts in Modal dynamically
+                const grid = document.querySelector('.turn-grid');
+                grid.innerHTML = '';
+
+                for (let t = 1; t <= 6; t++) {
+                    const payout = this.calculatePayout(num, t);
+                    const isProfitable = payout > this.entryFee;
+
+                    const btn = document.createElement('div');
+                    btn.className = 'turn-btn';
+                    btn.onclick = () => this.placeBet(t, payout);
+
+                    // Dim unprofitables? Or just show them.
+                    // User said "It shouldnt be possible to win less than the cost".
+                    // So if payout < 100, we simply DISALLOW that option?
+                    // Or we cap minimum payout at 110? No that breaks house edge.
+                    // We just DON'T OFFER bets where payout < 100.
+                    if (payout < this.entryFee) {
+                        btn.style.opacity = '0.3';
+                        btn.style.pointerEvents = 'none';
+                        btn.innerHTML = `${t} Turns <span>Too Safe</span>`;
+                    } else {
+                        btn.innerHTML = `${t} Turns <span>Win €${payout}</span>`;
+                    }
+
+                    grid.appendChild(btn);
+                }
+
+                document.getElementById('bet-modal').classList.add('visible');
+            }
+
+            calculatePayout(num, turns) {
+                // 1. Calculate Single Roll Probability (P)
+                let combinations = 0;
+                if (num === 1) { // Doubles
+                    combinations = 6;
+                } else {
+                    // Sums 2-12
+                    // 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:5, 9:4, 10:3, 11:2, 12:1
+                    combinations = 6 - Math.abs(7 - num);
+                }
+
+                const p_single = combinations / 36;
+
+                // 2. Win Probability in N turns = 1 - (1 - P)^N
+                const p_win = 1 - Math.pow((1 - p_single), turns);
+
+                // 3. Fair Payout = EntryFee / p_win
+                // 4. House Edge adjustments
+                // House wants 51% win rate ON AVERAGE? 
+                // Or House Edge of 5-10%? "House wins 51% of time" -> Ev < 0.
+                // If we use Fair Payout * 0.9, House Edge is 10%.
+
+                // Dynamic Price: "The less fields, the less the price".
+                // Actually, if many fields are gone, the "Death Limit" is closer...
+                // User Logic: "Price for guessing right should be dynamic... taking remaining fields into consideration (less fields, less price)"
+                // WHY? If fewer fields remain, you are forced to pick from fewer options.
+                // But the DICE PROBABILITY provides the real difficulty.
+
+                // Let's implement a "Pool Saturation Penalty".
+                // If only 3 numbers are left, user has huge advantage? No, probabilities are static.
+                // Unless the Removed Sums are 'rerolled'? 
+                // My current logic: Removed Sums are "Dead Rolls".
+                // So probability of hitting YOUR number is ALWAYS (Combos/36).
+                // It doesn't change when other numbers are removed. 
+                // The only thing that changes is the "Game End condition" (if all are removed).
+
+                // Maybe User THINKS probability changes.
+                // Let's just use Standard Probability Payout.
+                // Payout = floor((100 / p_win) * 0.90)
+
+                // Filter: If Payout < 105, return 0 (or simply don't offer).
+
+                let rawPayout = (this.entryFee / p_win) * 0.92; // 8% House Edge
+
+                // Round to nearest 10
+                return Math.ceil(rawPayout / 10) * 10;
+            }
+
+            placeBet(turns, payout) {
+                if (this.bank < this.entryFee) return;
+
+                this.bank -= this.entryFee;
+                this.bets.push({
+                    num: this.pendingNum,
+                    turns: turns,
+                    potentialWin: payout
+                });
+
+                document.getElementById('bet-modal').classList.remove('visible');
+                this.updateUI();
+            }
+
+            roll() {
+                if (this.bets.length === 0) {
+                    document.getElementById('msg').innerText = "Place a bet first";
+                    return;
+                }
+
+                // Allow rolling even if all sums are gone? maybe not.
+                if (this.removedSums.size >= 11) {
+                    document.getElementById('msg').innerText = "All sums depleted. Reset Round.";
+                    return;
+                }
+
+                // Standard Dice 1-6
+                const r1 = Math.floor(Math.random() * 6) + 1;
+                const r2 = Math.floor(Math.random() * 6) + 1;
+
+                // Animate
+                this.animateDie(1, r1);
+                this.animateDie(2, r2);
+
+                setTimeout(() => {
+                    this.resolve(r1, r2);
+                }, 1200);
+            }
+
+            animateDie(dieId, result) {
+                const die = document.getElementById('die' + dieId);
+
+                // Map face number to Rotation [X, Y]
+                const map = {
+                    1: [0, 0], // Front
+                    6: [0, 180], // Back
+                    3: [0, -90], // Right
+                    4: [0, 90], // Left
+                    2: [-90, 0], // Top
+                    5: [90, 0] // Bottom
+                };
+
+                // Add extra spins for realism
+                const extraX = 360 * (2 + Math.floor(Math.random() * 2));
+                const extraY = 360 * (2 + Math.floor(Math.random() * 2));
+
+                const target = map[result];
+
+                die.style.transform = `rotateX(${target[0] + extraX}deg) rotateY(${target[1] + extraY}deg)`;
+            }
+
+            resolve(r1, r2) {
+                const sum = r1 + r2;
+                const isDouble = (r1 === r2);
+                const sumAlreadyOut = this.removedSums.has(sum);
+
+                let msg = `Rolled ${sum} (${r1}+${r2})`;
+                if (sumAlreadyOut) msg += " - ALREADY GONE!";
+
+                let totalWon = 0;
+
+                // Resolve Bets
+                for (let i = this.bets.length - 1; i >= 0; i--) {
+                    let bet = this.bets[i];
+                    let hit = false;
+
+                    if (bet.num === 1) {
+                        // Doubles Bet
+                        if (isDouble) hit = true;
+                    } else {
+                        // Sum Bet
+                        if (bet.num === sum && !sumAlreadyOut) hit = true;
+                    }
+
+                    if (hit) {
+                        this.bank += bet.potentialWin;
+                        totalWon += bet.potentialWin;
+                        this.bets.splice(i, 1); // Remove winning bet
+                    } else {
+                        // Decrement turns
+                        bet.turns--;
+                        if (bet.turns <= 0) this.bets.splice(i, 1);
+                    }
+                }
+
+                // Game State Update: Remove Sum
+                if (!sumAlreadyOut) {
+                    this.removedSums.add(sum);
+                }
+
+                this.updateUI();
+
+                if (totalWon > 0) {
+                    document.getElementById('overlay-msg').innerText = `WIN +€${totalWon}`;
+                    document.getElementById('overlay').classList.add('visible');
+                } else {
+                    document.getElementById('msg').innerText = msg;
+                }
+            }
+
+            reset() {
+                this.removedSums.clear();
+                this.bets = [];
+                this.updateUI();
+                document.getElementById('msg').innerText = "New Round";
+
+                // Reset rotation
+                document.getElementById('die1').style.transform = 'rotateX(0deg) rotateY(0deg)';
+                document.getElementById('die2').style.transform = 'rotateX(0deg) rotateY(0deg)';
+            }
+
+            exit() {
+                this.updateUI(); // Save
+                window.location.href = 'index.html';
+            }
+        }
+
+        const game = new FortunaGame();
+    </script>
+</body>
+
+</html>

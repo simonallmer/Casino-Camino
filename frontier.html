@@ -87,6 +87,26 @@
             transition: transform 0.3s ease;
         }
 
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--gold-dim), #3e1e12);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold);
+        }
+
         @media (max-width: 600px) {
             #game-container {
                 padding: 10px;
@@ -329,7 +349,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 10px;
+            padding: 15px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             user-select: none;
@@ -340,7 +360,7 @@
         .card.selected {
             transform: translateY(-20px);
             border-color: var(--gold-bright);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
         }
 
         .card:hover:not(.selected) {
@@ -354,13 +374,17 @@
         }
 
         .card-corner {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             line-height: 1;
+            text-align: left;
+            width: 100%;
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            padding: 2px 4px;
         }
 
         .card-corner.bottom {
             transform: rotate(180deg);
-            text-align: right;
         }
 
         .card-center {
@@ -373,14 +397,14 @@
 
         .card-val {
             font-size: 3rem;
-            font-weight: 800;
-            font-family: 'Playfair Display', serif;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             width: 100%;
             text-align: center;
-            padding: 10px 0;
-            margin: 5px 0;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.95;
         }
 
         .card-suit-name {
@@ -397,6 +421,33 @@
             letter-spacing: 3px;
             opacity: 0.6;
             margin-top: 5px;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a) !important;
+            border-color: #333 !important;
+            color: transparent !important;
+            position: relative;
+        }
+
+        .card-back::after {
+            content: 'C';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #222;
+            font-size: 3rem;
+            font-family: 'Cinzel', serif;
+            opacity: 0.5;
+        }
+
+        .suit-icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+            vertical-align: -0.1em;
         }
 
         /* Card Suit Theming Classes */
@@ -575,7 +626,28 @@
             box-sizing: border-box;
         }
 
-        #rules-modal.visible {
+        #deck-view-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95%;
+            max-width: 1000px;
+            background: rgba(5, 10, 8, 0.98);
+            border: 2px solid var(--gold-dim);
+            border-radius: 20px;
+            padding: 40px;
+            z-index: 10001;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 100px rgba(0, 0, 0, 0.9);
+            box-sizing: border-box;
+        }
+
+        #rules-modal.visible,
+        #deck-view-modal.visible {
             display: flex;
         }
 
@@ -730,8 +802,8 @@
 
 <body>
 
-    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="left: 20px;">Back to Arcade</button></a>
-    <a href="index.html"><button class="nav-btn" style="right: 20px;">Back to Menu</button></a>
+    <a href="index.html"><button class="nav-btn" style="left: 20px;">Back to Menu</button></a>
+    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="right: 20px;">Back to Arcade</button></a>
 
     <div id="game-container">
 
@@ -753,7 +825,10 @@
                 <span class="label">Deck</span>
                 <span class="value" style="font-size: 1rem; color: #888;" id="deck-display">50</span>
             </div>
-            <button class="btn-small" onclick="game.toggleRules()" style="align-self: center;">Rules</button>
+            <div class="hud-item" style="flex-direction: row; gap: 8px; align-items: center; margin-left: 20px;">
+                <button class="btn-small" onclick="game.toggleRules()">Rules</button>
+                <button class="btn-small" onclick="game.toggleDeckView()">All Cards</button>
+            </div>
         </div>
 
         <div id="player-status-grid">
@@ -807,52 +882,49 @@
             <h2 style="font-size: 2rem;">The Frontier Rulebook</h2>
 
             <h3>1. The Deck (50 Cards)</h3>
-            <p>A radical 50-card deck based on historical territories. There are 5 categories, each containing strictly
-                10 cards numbered 1 through 10:</p>
-            <ul>
-                <li><span style="color: var(--deep-south-border)">♥ Deep South</span> & <span
-                        style="color: var(--upper-south-border)">♦ Upper South</span> (Confederacy)</li>
-                <li><span style="color: var(--indust-east-border)">♠ Indust. East</span> & <span
-                        style="color: var(--west-frontier-border)">♣ Western Frontier</span> (Union)</li>
-                <li><span style="color: var(--border-border)">★ Border States</span> (Neutral/Wild)</li>
+            <p>There are 5 categories, each containing 10 cards numbered 1 through 10:</p>
+            <ul style="list-style: none; padding: 0;">
+                <li><span style="color: var(--deep-south-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 18 C 60 8, 78 10, 78 25 C 78 40, 54 35, 54 50 C 54 65, 78 60, 78 75 C 78 90, 60 92, 50 82 C 40 92, 22 90, 22 75 C 22 60, 46 65, 46 50 C 46 35, 22 40, 22 25 C 22 10, 40 8, 50 18 Z" fill="currentColor"/></svg></span> & <span style="color: var(--upper-south-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 8 A 120 120 0 0 0 78 50 A 120 120 0 0 0 50 92 A 120 120 0 0 0 22 50 A 120 120 0 0 0 50 8 Z" fill="currentColor"/></svg></span> (Red Alliance)</li>
+                <li><span style="color: var(--indust-east-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 45 22 L 45 35 Q 45 45 35 45 L 22 45 L 22 55 L 35 55 Q 45 55 45 65 L 45 78 L 55 78 L 55 65 Q 55 55 65 55 L 78 55 L 78 45 L 65 45 Q 55 45 55 35 L 55 22 Z" fill="currentColor"/><circle cx="50" cy="14" r="12" fill="currentColor"/><circle cx="39" cy="23" r="9" fill="currentColor"/><circle cx="61" cy="23" r="9" fill="currentColor"/><circle cx="50" cy="86" r="12" fill="currentColor"/><circle cx="39" cy="77" r="9" fill="currentColor"/><circle cx="61" cy="77" r="9" fill="currentColor"/><circle cx="14" cy="50" r="12" fill="currentColor"/><circle cx="23" cy="39" r="9" fill="currentColor"/><circle cx="23" cy="61" r="9" fill="currentColor"/><circle cx="86" cy="50" r="12" fill="currentColor"/><circle cx="77" cy="39" r="9" fill="currentColor"/><circle cx="77" cy="61" r="9" fill="currentColor"/></svg></span> & <span style="color: var(--west-frontier-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 50 C 48 48, 35 40, 35 28 C 35 15, 45 10, 50 5 C 55 10, 65 15, 65 28 C 65 40, 52 48, 50 50 C 52 48, 60 35, 72 35 C 85 35, 90 45, 95 50 C 90 55, 85 65, 72 65 C 60 65, 52 52, 50 50 C 52 52, 65 60, 65 72 C 65 85, 55 90, 50 95 C 45 90, 35 85, 35 72 C 35 60, 48 52, 50 50 C 48 52, 40 65, 28 65 C 15 65, 10 55, 5 50 C 10 45, 15 35, 28 35 C 40 35, 48 48, 50 50 Z" fill="currentColor"/></svg></span> (Blue Alliance)</li>
+                <li><span style="color: var(--border-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z" fill="currentColor"/><circle cx="50" cy="12" r="6" fill="currentColor"/><circle cx="83" cy="31" r="6" fill="currentColor"/><circle cx="83" cy="69" r="6" fill="currentColor"/><circle cx="50" cy="88" r="6" fill="currentColor"/><circle cx="17" cy="69" r="6" fill="currentColor"/><circle cx="17" cy="31" r="6" fill="currentColor"/></svg></span> (Stars)</li>
             </ul>
 
-            <h3>2. The Round Structure & Reshuffling</h3>
-            <p>The game lasts exactly <strong>5 Rounds</strong>. Hand capacity scales up as the game progresses (Round 1
-                = 1 card, adding +1 card each round until Round 5 = 5 cards).</p>
+            <h3 style="color: var(--gold-bright); margin-top: 2rem;">2. Round Structure</h3>
+            <p>The game lasts <strong>5 Rounds</strong>. Hand capacity scales up by 1 card each round.</p>
             <ol>
-                <li><strong>One Turn Per Player:</strong> In a round, you only get one chance to bet and play your
-                    cards. The first player sets the initial bet. Following players must match (CALL), increase (RAISE),
-                    or FOLD.</li>
-                <li><strong>Round Resolution:</strong> After the last player takes their turn, the round ends
-                    automatically. The winner is calculated immediately and claims the Pot!</li>
-                <li><strong>Reshuffling:</strong> After a round resolves, all played cards and discarded cards are
-                    reshuffled into the deck. You keep the unused cards in your hand, drawing new ones from the freshly
-                    shuffled deck.</li>
+                <li><strong>Turns:</strong> Players TAKE TURNS to bet. You must CALL (match), RAISE (increase), or FOLD.</li>
+                <li><strong>Resolution:</strong> After the last turn, the best hand takes the Pot.</li>
+                <li><strong>Discard & Draw:</strong> After each round, played cards are discarded. You keep your unplayed hand and draw cards to reach your capacity.</li>
             </ol>
 
-            <h3>3. Victory & Hierarchy Tiers</h3>
-            <p>The ultimate winner of the game is the player with the <strong>Most Cash</strong> at the end of Round 5!
-            </p>
-            <p><strong>Hierarchy Tiers (Length is Supreme):</strong> Any 5-card play completely beats any 4-card play,
-                and so on.</p>
-            <ul
-                style="font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; list-style-type: none;">
-                <li><strong style="color: #e879f9;">Tier 1 (5-Card):</strong> 5 of a Rank, Pure, Coalition, or Campaign
-                </li>
-                <li><strong style="color: #fb923c;">Tier 2 (4-Card):</strong> 4 of a Rank, Pure, Coalition, or Campaign
-                </li>
-                <li><strong style="color: #c084fc;">Tier 3 (3-Card):</strong> 3 of a Rank, Pure, Coalition, or Campaign
-                </li>
-                <li><strong style="color: #34d399;">Tier 4 (2-Card):</strong> Pairs</li>
-                <li><strong style="font-size: 0.8rem; color: #a3e635;">Tier 5 (Skirmishes):</strong> Unmatched cards.
-                    Pure (Product x 2), Coalition (Product), Divided (Sum).</li>
+            <h3 style="color: var(--gold-bright); margin-top: 2rem;">3. Victory & Tie-Breakers</h3>
+            <p>The winner is the player with the <strong>Most Cash</strong> at the end of Round 5!</p>
+            <p><strong>Split Pots:</strong> If two or more commanders deploy hands of identical strength, the Pot is divided equally. Any remaining coin (€1) is awarded to the first tied commander in the turn order.</p>
+            
+            <p><strong>Hierarchy (Superior Volume Prevails):</strong> A configuration deploying a greater number of cards universally overcomes one deploying fewer.</p>
+            <ul style="background: rgba(255,255,255,0.03); padding: 20px; border: 1px solid #333; list-style: none; font-size: 0.85rem; border-radius: 5px;">
+                <li><strong style="color: #e879f9;">Tier 1:</strong> 5 of a Rank, Pure Suit, Coalition (Alliance), or Campaign (Sequence)</li>
+                <li><strong style="color: #fb923c;">Tier 2:</strong> 4 of a Rank, Pure, Coalition, or Campaign</li>
+                <li><strong style="color: #c084fc;">Tier 3:</strong> 3 of a Rank, Pure, Coalition, or Campaign</li>
+                <li><strong style="color: #34d399;">Tier 4:</strong> Pairs</li>
+                <li><strong style="color: #a3e635;">Tier 5 (Skirmishes):</strong> Unmatched cards. Pure (Product x 2), Coalition (Product), Divided (Sum). <strong>Rank 1</strong> imitates the highest card in the hand.</li>
             </ul>
-            <p style="font-size: 0.8rem; border-top: 1px solid #333; padding-top: 5px;"><strong>Tiebreakers:</strong>
-                Exact Suit > Specific Alliance > Uses Wildcard Border > Mixed. <strong>Note:</strong> Series can wrap
-                around from 10 to 1.</p>
+            <p style="font-size: 0.8rem; border-top: 1px solid #333; padding-top: 5px;"><strong>Tiebreakers:</strong> Exact Suit > Specific Alliance > Uses Stars > Mixed. <strong>Note:</strong> Series can wrap around from 10 to 1.</p>
+            <p style="text-align: center; margin-top: 3rem; font-size: 0.7rem; opacity: 0.5; letter-spacing: 2px;">DESIGN: SIMON ALLMER</p>
         </div>
         <button class="primary-btn" style="margin-top:20px" onclick="game.toggleRules()">Close</button>
+    </div>
+
+    <!-- DECK VIEW MODAL -->
+    <div id="deck-view-modal">
+        <button onclick="game.toggleDeckView()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--gold); font-size: 2rem; cursor: pointer;">&times;</button>
+        <h2 style="font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 30px; font-size: 2rem; text-transform: uppercase; letter-spacing: 4px;">The Deck</h2>
+        <div id="deck-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; width: 100%; overflow-y: auto; max-height: 75vh; padding: 10px;">
+            <!-- Deck cards injected here -->
+        </div>
+        <div style="margin-top: 25px; font-family: 'Playfair Display', serif; font-size: 1rem; color: #888; text-align: center; border-top: 1px solid rgba(212, 175, 55, 0.2); padding-top: 20px; width: 80%;">
+            Frontier uses <a href="https://simonallmer.com/americanplayingcards" target="_blank" style="color: var(--gold); text-decoration: none; border-bottom: 1px solid var(--gold-dim); transition: all 0.3s;">American Playing Cards</a>
+        </div>
     </div>
 
     <!-- JS Logic appended next -->

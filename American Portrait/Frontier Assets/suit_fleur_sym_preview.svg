@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Top-Bottom Symmetrical 4-Armed Fleur-de-lis / Surfboard Emblem -->
+  <!-- Designed mathematically to feature a prominent central spire, with four elegantly hooked swept wings -->
+  <path d="M 50 5 
+           C 55 10, 60 20, 60 35 
+           C 75 25, 85 25, 95 30 
+           C 95 45, 85 50, 70 50 
+           C 85 50, 95 55, 95 70 
+           C 85 75, 75 75, 60 65 
+           C 60 80, 55 90, 50 95 
+           C 45 90, 40 80, 40 65 
+           C 25 75, 15 75, 5 70 
+           C 5 55, 15 50, 30 50 
+           C 15 50, 5 45, 5 30 
+           C 15 25, 25 25, 40 35 
+           C 40 20, 45 10, 50 5 Z" 
+        fill="currentColor"/>
+</svg>

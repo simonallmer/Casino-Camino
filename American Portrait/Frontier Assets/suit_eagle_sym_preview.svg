@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Highly sleek, abstract, non-directional symmetrical Eagle emblem -->
+  <!-- Combines sweeping organic curves with sharp, aggressive chiseled angles -->
+  <path 
+    d="M 50 5 
+       C 65 10, 85 20, 95 35 
+       L 60 50 
+       L 95 65 
+       C 85 80, 65 90, 50 95 
+       C 35 90, 15 80, 5 65 
+       L 40 50 
+       L 5 35 
+       C 15 20, 35 10, 50 5 Z" 
+    fill="currentColor"/>
+</svg>

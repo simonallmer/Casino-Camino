@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart (Corset Version) -->
+  <!-- Designed with a sharper, deeper pinch at the waist for a corset-like silhouette -->
+  <path 
+    d="M 50 15 
+       C 85 -5, 105 30, 55 50 
+       C 105 70, 85 105, 50 85 
+       C 15 105, -5 70, 45 50 
+       C -5 30, 15 -5, 50 15 Z" 
+    fill="currentColor"/>
+</svg>

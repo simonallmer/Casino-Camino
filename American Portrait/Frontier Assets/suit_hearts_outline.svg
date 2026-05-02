@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Outer metallic frame -->
+  <path d="M 50 95 Q 5 65 5 40 A 25 25 0 0 1 50 25 A 25 25 0 0 1 95 40 Q 95 65 50 95 Z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Inner solid ruby core -->
+  <path d="M 50 83 Q 15 62 15 44 A 20 20 0 0 1 50 35 A 20 20 0 0 1 85 44 Q 85 62 50 83 Z" fill="currentColor"/>
+</svg>

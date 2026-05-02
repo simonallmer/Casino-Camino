@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camino Ricochet</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
         :root {
             --gold: #D4AF37;
@@ -424,18 +424,63 @@
             color: var(--gold-bright);
             background: rgba(212, 175, 55, 0.1);
         }
+
+        .ai-tag {
+            font-size: 0.5rem;
+            background: var(--gold);
+            color: #000;
+            padding: 1px 3px;
+            border-radius: 2px;
+            margin-left: 5px;
+            vertical-align: middle;
+            font-weight: 800;
+        }
+
+        /* Stacked Logo Styles */
+        .stacked-logo-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-half {
+            background: linear-gradient(to bottom, #f3cf8e, #d4af37, #b8860b);
+            -webkit-mask-image: url('Casino%20Camino%20Title/CasinoCaminoTitleWhiteWeb.png');
+            mask-image: url('Casino%20Camino%20Title/CasinoCaminoTitleWhiteWeb.png');
+            -webkit-mask-size: 200% 100%;
+            mask-size: 200% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+            height: 40px;
+            width: 250px;
+        }
+
+        .logo-casino {
+            -webkit-mask-position: left center;
+            mask-position: left center;
+        }
+
+        .logo-camino {
+            -webkit-mask-position: right center;
+            mask-position: right center;
+            margin-top: -5px;
+        }
     </style>
 </head>
 
 <body>
 
-    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="left: 20px;">Back to Arcade</button></a>
-    <a href="index.html"><button class="nav-btn" style="right: 20px;">Back to Menu</button></a>
+    <a href="index.html"><button class="nav-btn" style="left: 20px;">Back to Menu</button></a>
+    <a href="http://simonallmer.com/arcade" target="_top"><button class="nav-btn" style="right: 20px;">Back to Arcade</button></a>
 
     <div id="game-container">
 
-
-
+        <div class="stacked-logo-wrapper">
+            <div class="logo-half logo-casino"></div>
+            <div class="logo-half logo-camino"></div>
+        </div>
         <div class="hud">
             <div class="hud-item">
                 <span class="label">Total Pot</span>
@@ -599,7 +644,7 @@
             }
 
             formatPlayerName(player) {
-                return `<span style="color:${player.color.hex}">${player.name}</span>`;
+                return `<span style="color:${player.color.hex}">${player.name}${player.isAI ? '<span class="ai-tag">AI</span>' : ''}</span>`;
             }
 
             // Removed drawInitialWheel - using generateZones(true) instead
@@ -609,11 +654,13 @@
                     if (e.code === 'Space') {
                         e.preventDefault();
                         if (this.els.overlay.classList.contains('visible') || this.els.rules.classList.contains('visible')) return;
+                        if (this.currentPlayer && this.currentPlayer.isAI && !this.isResultPending) return;
                         this.handleAction();
                     }
                 });
                 this.canvas.addEventListener('click', () => {
                     if (this.els.overlay.classList.contains('visible') || this.els.rules.classList.contains('visible')) return;
+                    if (this.currentPlayer && this.currentPlayer.isAI && !this.isResultPending) return;
                     this.handleAction();
                 });
             }
@@ -630,9 +677,12 @@
                 const displayPlayer = this.actingPlayerDuringResult || this.currentPlayer;
 
                 if (displayPlayer) {
-                    if (this.isGameActive && !this.isResultPending) {
+                    if (this.isGameActive && !this.isResultPending && !this.isSpinning) {
                         this.els.panic.style.display = 'block';
                         this.els.panic.innerText = `LEAVE (${Math.floor(this.pot * 0.25)}€)`;
+                    } else if (this.isGameActive && this.isSpinning) {
+                        // Keep panic button but maybe change text or hide it to focus on game
+                        this.els.panic.style.display = 'none';
                     } else {
                         this.els.panic.style.display = 'none';
                     }
@@ -699,21 +749,28 @@
 
                 this.generateZones(true);
                 this.draw();
+
+                if (this.currentPlayer.isAI) {
+                    this.executeAITurn();
+                }
             }
 
             handleAction() {
                 const now = performance.now();
+
+                // Check spin early exit BEFORE debouncing, so we don't trap the user in a debounce loop
+                if (this.isSpinning && (now - this.spinStartTime < 1000)) return;
+
                 // 1. Debounce all inputs to 500ms
                 if (this.lastActionTime && (now - this.lastActionTime < 500)) return;
                 this.lastActionTime = now;
 
                 if (this.isResultPending) {
-                    if (this.isRevealing) {
-                        // 2. Mandatory lockout for Result phase (800ms minimum view time)
-                        if (now - this.resultRevealedAt < 800) return;
-                    }
-                    if (this.isRevealing) return; // Wait for logic reveal if necessary (though usually instant now)
-
+                    // Lockout for Result phase (800ms minimum view time)
+                    if (this.isRevealing && (now - this.resultRevealedAt < 800)) return;
+                    
+                    // Clear revealing state as we are now proceeding
+                    this.isRevealing = false;
                     this.isResultPending = false;
                     const wasDeath = this.pendingDeath;
 
@@ -758,6 +815,59 @@
                     if (this.lastTransitionTime && (now - this.lastTransitionTime < 500)) return;
                     this.startRound();
                 }
+            }
+
+            executeAITurn() {
+                if (!this.isGameActive || this.isResultPending) return;
+
+                // AI decides whether to Panic/Leave if it's high stakes
+                if (this.isSoloMode && this.pot > 10 && Math.random() > 0.8) {
+                    setTimeout(() => this.handlePanic(), 1500);
+                    return;
+                }
+
+                this.setMessage(`${this.currentPlayer.name} is preparing...`);
+
+                // Start spin
+                setTimeout(() => {
+                    if (this.isSpinning || this.isResultPending) return;
+                    this.handleAction(); // AI starts spin
+
+                    // In early rounds, AI tries to be smart and NOT hit gaps
+                    // We wait 2 seconds to ensure wheel has reached full target speed
+                    let reactionTime;
+                    if (this.round <= 3 && Math.random() > 0.1) {
+                        // Aim for a tile after 2s of spinning (full speed)
+                        const targetZone = this.zones[Math.floor(Math.random() * this.zones.length)];
+                        const midAngle = (targetZone.start + targetZone.end) / 2;
+                        
+                        // Wait at least 2s before considering the stop
+                        const waitTime = 2000;
+                        const futureRotation = this.rotation + (this.targetSpeed * (waitTime / 1000 * 60));
+                        
+                        let targetRot = (Math.PI * 1.5 - midAngle);
+                        while (targetRot < futureRotation) targetRot += (Math.PI * 2);
+                        
+                        const framesNeeded = (targetRot - futureRotation) / this.targetSpeed;
+                        reactionTime = waitTime + (framesNeeded * 1000 / 60);
+                    } else {
+                        const baseDelay = Math.max(1200, 2500 - (this.round * 150));
+                        reactionTime = baseDelay + (Math.random() * 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        if (!this.isSpinning || this.isResultPending) return;
+                        this.handleAction(); // AI drops ball
+
+                        // Automate proceeding to next turn after result is revealed
+                        setTimeout(() => {
+                            if (this.isResultPending) {
+                                this.handleAction(); // AI clicks NEXT PLAYER or CONTINUE
+                            }
+                        }, 3000); // 3s gives time for the 2s reveal animation to finish
+
+                    }, reactionTime);
+                }, 1500);
             }
 
             startRound() {
@@ -870,11 +980,14 @@
                     this.handleHit(hit);
                 }
 
-                // After 2 seconds, flip back to wood and stop showing result
+                // After 3 seconds, flip back to wood and stop showing result
+                // Keep result visible longer so player can see what they hit
                 setTimeout(() => {
-                    this.isRevealing = false;
-                    this.draw();
-                }, 2000);
+                    if (!this.isResultPending) {
+                        this.isRevealing = false;
+                        this.draw();
+                    }
+                }, 3000);
             }
 
             handleHit(zone) {
@@ -948,8 +1061,6 @@
                     return;
                 }
 
-                // (Magnet save removed as it is now a jackpot tile)
-
                 // Actually Eliminated
                 const deadPlayer = this.players[this.activePlayerIndex];
 
@@ -962,11 +1073,14 @@
 
                 // Delay removal until NEXT ROUND is clicked
                 this.actingPlayerDuringResult = deadPlayer;
-                // this.savePlayers(); // Update that they might be out (logic split here, active list vs master list)
 
                 // Visuals
                 this.triggerVisualEffect('#ff0000');
-                this.setMessage(`${this.formatPlayerName(deadPlayer)} Eliminated!`);
+                if (type === "VOID") {
+                    this.setMessage(`${this.formatPlayerName(deadPlayer)} fell into the Gap!`);
+                } else {
+                    this.setMessage(`${this.formatPlayerName(deadPlayer)} hit a Death Tile!`);
+                }
 
                 // Check Win Condition immediatley
                 if (this.players.length - 1 === 1 && !this.isSoloMode) {
@@ -1004,6 +1118,19 @@
                 this.isRevealing = false; // Flip back for choice
                 this.setMessage(`${this.formatPlayerName(this.currentPlayer)} is alone! Claim Pot or Play Casino?`);
                 this.els.btn.innerText = "CHALLENGE CASINO";
+
+                if (this.currentPlayer.isAI) {
+                    // AI automatically makes the choice
+                    setTimeout(() => {
+                        if (Math.random() > 0.5 && this.pot > 10) {
+                            this.handleWin(this.currentPlayer); // AI leaves
+                        } else {
+                            this.startSoloGame(); // AI challenges
+                        }
+                    }, 2000);
+                    return; // Skip drawing buttons for AI
+                }
+
                 // Show a temporary "Leave" option? 
                 // We'll reuse the action button logic for solo start, 
                 // and maybe a new button for leaving?
@@ -1024,6 +1151,10 @@
                 this.els.btn.innerText = "START SPIN (SPACE)";
                 this.generateZones(false); // High Stakes, not neutral!
                 this.draw();
+
+                if (this.currentPlayer.isAI) {
+                    this.executeAITurn();
+                }
             }
 
             nextTurn() {
@@ -1083,10 +1214,14 @@
                 this.isResultPending = false;
                 this.isRevealing = false;
 
-                // Only generate neutral wheel if NOT in Solo/Single mode challenge
-                const skipNeutral = this.isSoloMode || this.isSinglePlayer;
+                // Neutral only for Round 1 to let people get used to the mechanics
+                const skipNeutral = this.round > 1;
                 this.generateZones(!skipNeutral);
                 this.draw();
+
+                if (this.currentPlayer.isAI) {
+                    this.executeAITurn();
+                }
             }
 
             handleWin(winner, isPanic = false) {
@@ -1148,8 +1283,13 @@
                 // Rounds in MP increase after FULL cycle? Yes.
 
                 let zoneCount = 6;
-                let deathCount = Math.floor(this.round / 3); // Slightly slower death scaling
-                if (deathCount > 3) deathCount = 3; // Keep some safe zones
+                // Skulls appear starting from Round 2
+                let deathCount = 0;
+                if (!isNeutral) {
+                    deathCount = Math.floor(this.round / 3);
+                    if (this.round >= 2 && deathCount === 0) deathCount = 1; // At least 1 skull from R2
+                }
+                if (deathCount > 3) deathCount = 3; 
 
                 let safeCount = zoneCount - deathCount;
 
@@ -1157,27 +1297,22 @@
                 let types = [];
                 for (let i = 0; i < deathCount; i++) types.push('death');
 
-                // Spacing Logic: 
-                // "The tiles in ricochet should be as wide as the distance between each in the beginning"
-                // Distance = Gap. So 50% Fill.
-                // "Then slowly get smaller" -> Fill Ratio drops as round increases.
-
                 // Effective round for sizing based on ice cubes in inventory
                 const inv = (this.currentPlayer && this.currentPlayer.inventory) || [];
                 const iceAdvantage = inv.filter(i => i === 'icecube').length;
                 const effectiveRound = Math.max(0, this.round - iceAdvantage);
 
-                let fillRatio = Math.max(0.2, 0.5 - (effectiveRound * 0.05)); // Starts at 0.5 (equal), drops to 0.2
+                let fillRatio = Math.max(0.2, 0.7 - (effectiveRound * 0.05)); // Starts at 0.7 (more tiles), drops to 0.2
 
                 // Shuffle Types
                 while (types.length < zoneCount) {
                     let rand = Math.random();
-                    if (rand < 0.1) types.push('heart');
-                    else if (rand < 0.2) types.push('hourglass');
-                    else if (rand < 0.35) types.push('glass');
-                    else if (rand < 0.45) types.push('icecube');
-                    else if (rand < 0.55) types.push('shoe');
-                    else if (rand < 0.7) types.push('death'); // Added actual death tiles
+                    if (rand < 0.08) types.push('heart');
+                    else if (rand < 0.16) types.push('hourglass');
+                    else if (rand < 0.28) types.push('glass');
+                    else if (rand < 0.38) types.push('icecube');
+                    else if (rand < 0.48) types.push('shoe');
+                    else if (!isNeutral && rand < 0.6) types.push('death'); 
                     else types.push('win');
                 }
 
@@ -1299,18 +1434,18 @@
                     ctx.fillStyle = innerGrad;
                     ctx.fill();
 
-                    // Text: CASINO CAMINO
+                    // Draw Official Logo via Text
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = '#3e2723';
-                    ctx.font = 'bold 14px "Cinzel", serif';
+                    ctx.font = '900 15px "Cinzel", serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
 
                     ctx.save();
-                    ctx.translate(0, -5);
+                    ctx.translate(0, -6);
                     ctx.fillText("CASINO", 0, 0);
-                    ctx.translate(0, 16);
-                    ctx.font = 'bold 12px "Cinzel", serif';
+                    ctx.translate(0, 15);
+                    ctx.font = '900 14px "Cinzel", serif';
                     ctx.fillText("CAMINO", 0, 0);
                     ctx.restore();
 
@@ -1470,6 +1605,21 @@
                 }
 
                 ctx.restore();
+
+                // If revealing, draw a "Hit Spark" where the ticker landed
+                if (this.isRevealing) {
+                    const tipAngle = (Math.PI * 1.5 - this.rotation);
+                    ctx.save();
+                    ctx.rotate(tipAngle);
+                    ctx.beginPath();
+                    ctx.arc(rOut, 0, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#fff';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
                 ctx.restore();
             }
 
@@ -1548,6 +1698,18 @@
 
         window.addEventListener('resize', setMobileScale);
         setMobileScale();
+
+        // Escape key to go back one layer
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const rulesModal = document.getElementById('rules-modal');
+                if (rulesModal && rulesModal.classList.contains('visible')) {
+                    rulesModal.classList.remove('visible');
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
     </script>
 </body>
 

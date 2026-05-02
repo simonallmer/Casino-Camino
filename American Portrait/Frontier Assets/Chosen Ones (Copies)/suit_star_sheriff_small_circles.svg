@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Solid 6-Point Sheriff Star with authentic stamped metal baubles -->
+  <path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z" fill="currentColor"/>
+  <circle cx="50" cy="12" r="5" fill="currentColor"/>
+  <circle cx="83" cy="31" r="5" fill="currentColor"/>
+  <circle cx="83" cy="69" r="5" fill="currentColor"/>
+  <circle cx="50" cy="88" r="5" fill="currentColor"/>
+  <circle cx="17" cy="69" r="5" fill="currentColor"/>
+  <circle cx="17" cy="31" r="5" fill="currentColor"/>
+</svg>

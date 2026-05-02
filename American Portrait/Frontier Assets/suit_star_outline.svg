@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill-rule="evenodd">
+  <!-- American Heritage / Ranger Sheriff Badge Outer Ring -->
+  <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="5"/>
+  <!-- Perfect 8-Point Compass Star with hollow rivet/pinhole core -->
+  <path d="M 50 10 L 57 33 L 78 22 L 67 43 L 90 50 L 67 57 L 78 78 L 57 67 L 50 90 L 43 67 L 22 78 L 33 57 L 10 50 L 33 43 L 22 22 L 43 33 Z M 50 42 A 8 8 0 1 0 50 58 A 8 8 0 1 0 50 42 Z" fill="currentColor"/>
+</svg>

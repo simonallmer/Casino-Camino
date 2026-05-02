@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Symmetrical Cross Pattée Design -->
+  <path 
+    d="M 91.60 32.96 
+       A 45 45 0 0 1 91.60 67.04 
+       A 30 30 0 0 0 67.04 91.60 
+       A 45 45 0 0 1 32.96 91.60 
+       A 30 30 0 0 0 8.40 67.04 
+       A 45 45 0 0 1 8.40 32.96 
+       A 30 30 0 0 0 32.96 8.40 
+       A 45 45 0 0 1 67.04 8.40 
+       A 30 30 0 0 0 91.60 32.96 Z" 
+    fill="currentColor" />
+</svg>

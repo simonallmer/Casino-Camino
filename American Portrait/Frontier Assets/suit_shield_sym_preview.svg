@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Hourglass Symmetrical Shield -->
+  <!-- Swells majestically at the top and bottom, pinches elegantly at the waist -->
+  <path 
+    d="M 50 5 
+       C 70 5, 85 10, 85 25 
+       C 75 40, 75 60, 85 75 
+       C 85 90, 70 95, 50 95 
+       C 30 95, 15 90, 15 75 
+       C 25 60, 25 40, 15 25 
+       C 15 10, 30 5, 50 5 Z" 
+    fill="currentColor"/>
+</svg>

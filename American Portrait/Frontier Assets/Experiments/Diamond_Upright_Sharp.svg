@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Upright Concave Diamond: Sharp points with circular cutout edges -->
+  <path 
+    d="M 50 8 
+       A 65 65 0 0 0 78 50 
+       A 65 65 0 0 0 50 92 
+       A 65 65 0 0 0 22 50 
+       A 65 65 0 0 0 50 8 
+       Z" 
+    fill="currentColor"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart (Version 1 Refined) -->
+  <!-- Base: The original Hourglass Heart preview. 
+       Adjustment: Pulled the outer control points in very slightly 
+       to perfectly match the width of the standard heart profile, 
+       without distorting the thickness or tapering at the waist. -->
+  <path 
+    d="M 50 15 
+       C 85 -10, 93 35, 65 50 
+       C 93 65, 85 110, 50 85 
+       C 15 110, 7 65, 35 50 
+       C 7 35, 15 -10, 50 15 Z" 
+    fill="currentColor"/>
+</svg>

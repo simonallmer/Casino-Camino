@@ -570,17 +570,17 @@
 
 <body>
 
-    <a href="http://simonallmer.com/arcade" target="_top"
-        style="position: absolute; top: 20px; left: 20px; z-index: 2001;">
-        <button
-            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
-            onclick="game.saveAndExit()">Back to Arcade</button>
-    </a>
-
-    <a href="index.html" style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
+    <a href="index.html" style="position: absolute; top: 20px; left: 20px; z-index: 2001;">
         <button
             style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
             onclick="game.exit()">Back To Menu</button>
+    </a>
+
+    <a href="http://simonallmer.com/arcade" target="_top"
+        style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
+        <button
+            style="border: 1px solid var(--gold); background: transparent; color: var(--gold); padding: 8px 15px; cursor: pointer; font-family: 'Cinzel'; border-radius: 4px;"
+            onclick="game.saveAndExit()">Back to Arcade</button>
     </a>
 
     <div id="global-bank">
@@ -1167,6 +1167,18 @@
         }
 
         const game = new FortunaGame();
+
+        // Escape key to go back one layer
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const rulesModal = document.getElementById('rules-modal');
+                if (rulesModal && rulesModal.classList.contains('visible')) {
+                    rulesModal.classList.remove('visible');
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
     </script>
 </body>
 

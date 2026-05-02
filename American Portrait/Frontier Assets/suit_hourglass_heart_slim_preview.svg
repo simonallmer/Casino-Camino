@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart (Slim & Smooth Version) -->
+  <!-- Designed with a slimmer profile and perfectly smooth vertical tangents at the waist to look like an upright hourglass -->
+  <path 
+    d="M 50 15 
+       C 65 5, 80 15, 80 30 
+       C 80 42, 65 38, 65 50 
+       C 65 62, 80 58, 80 70 
+       C 80 85, 65 95, 50 85 
+       C 35 95, 20 85, 20 70 
+       C 20 58, 35 62, 35 50 
+       C 35 38, 20 42, 20 30 
+       C 20 15, 35 5, 50 15 Z" 
+    fill="currentColor"/>
+</svg>

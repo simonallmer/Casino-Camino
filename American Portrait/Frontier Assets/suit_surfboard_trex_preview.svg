@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Classic Surfboard Symmetrical Emblem with 'T-Rex' Sickle Arms  -->
+  <!-- A massive, highly prominent central surfboard body is the visual anchor.
+       Tiny, highly curved sickle arms branch off and hook aggressively inward to create 
+       a tight scrollwork aesthetic while leaving the waist brilliantly clear. -->
+  <path d="M 50 5 
+           C 55 15, 63 25, 63 25 
+           C 75 20, 85 25, 88 35 
+           C 90 40, 85 45, 78 45 
+           C 75 40, 70 35, 68 35 
+           C 72 42, 75 45, 75 50 
+           C 75 55, 72 58, 68 65 
+           C 70 65, 75 60, 78 55 
+           C 85 55, 90 60, 88 65 
+           C 85 75, 75 80, 63 75 
+           C 55 85, 50 95, 50 95 
+           C 50 95, 45 85, 37 75 
+           C 25 80, 15 75, 12 65 
+           C 10 60, 15 55, 22 55 
+           C 25 60, 30 65, 32 65 
+           C 28 58, 25 55, 25 50 
+           C 25 45, 28 42, 32 35 
+           C 30 35, 25 40, 22 45 
+           C 15 45, 10 40, 12 35 
+           C 15 25, 25 20, 37 25 
+           C 37 25, 45 15, 50 5 Z" 
+        fill="currentColor"/>
+</svg>

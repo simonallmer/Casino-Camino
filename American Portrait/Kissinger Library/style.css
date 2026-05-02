@@ -1,0 +1,305 @@
+body {
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    /* Changed to hidden since we have custom controls and pan */
+    position: relative;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.grid-wrapper {
+    cursor: grab;
+    overflow: auto;
+    width: 100vw;
+    height: 95vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.grid-wrapper:active {
+    cursor: grabbing;
+}
+
+#footer-text {
+    position: fixed;
+    top: 40px;
+    left: 40px;
+    font-size: 32px;
+    font-family: 'Playfair Display', serif;
+    color: #1a1a1a;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 100;
+}
+
+.zoom-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.zoom-controls button {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.zoom-controls button:hover {
+    background-color: #333;
+    color: white;
+}
+
+.arrow-controls {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 1000;
+}
+
+.arrow-row {
+    display: flex;
+    gap: 5px;
+}
+
+.arrow-controls button {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.arrow-controls button:hover {
+    background-color: #333;
+    color: white;
+}
+
+#grid-container {
+    display: grid;
+    grid-template-columns: repeat(26, 1fr);
+    grid-template-rows: repeat(26, 1fr);
+    width: 80vmin;
+    height: 80vmin;
+    background-color: transparent;
+    gap: 1px;
+    transform-origin: center center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.grid-cell {
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+}
+
+.controls-bottom {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.person-switch {
+    display: flex;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 6px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.person-switch button {
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.person-switch button.active {
+    background: #333;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.person-switch button:not(.active):hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.year-square {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1vmin;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.year-square.kissinger.active-year {
+    background-color: #fff1f1;
+    border-color: #ffc1c1;
+    color: #d32f2f;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px #ffc1c1;
+}
+
+.year-square.carter.active-year {
+    background-color: #f1f1ff;
+    border-color: #c1c1ff;
+    color: #303f9f;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px #c1c1ff;
+}
+
+.year-square.inactive {
+    color: #bbb;
+    font-weight: 400;
+    cursor: default;
+}
+
+.year-square.active-year {
+    cursor: pointer;
+}
+
+.year-square.active-year:hover {
+    background-color: #fff;
+    transform: scale(1.5);
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+#frame-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 60vmin;
+    max-height: 60vmin;
+    z-index: 1500;
+    pointer-events: auto;
+}
+
+#frame-display.hidden {
+    display: none;
+}
+
+#close-display {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+    border: none;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    border-radius: 50%;
+    line-height: 1;
+    z-index: 10;
+}
+
+#close-display:hover {
+    background-color: #666;
+}
+
+#display-image {
+    max-width: 50vmin;
+    max-height: 45vmin;
+    display: block;
+    margin: 0 auto;
+    border-radius: 5px;
+}
+
+#display-caption {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+.year-square.book {
+    font-size: 1.4vmin;
+}
+
+.review-button {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 24px;
+    background-color: #1a237e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.review-button:hover {
+    background-color: #0d47a1;
+}
+
+#review-link {
+    text-decoration: none;
+}
+
+#review-link.hidden {
+    display: none;
+}

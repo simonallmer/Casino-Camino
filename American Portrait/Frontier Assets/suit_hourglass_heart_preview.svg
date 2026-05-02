@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- The Hourglass Heart -->
+  <!-- Designed with top and bottom rounded lobes, tapering at the center to function like an hourglass -->
+  <path 
+    d="M 50 15 
+       C 85 -10, 100 35, 65 50 
+       C 100 65, 85 110, 50 85 
+       C 15 110, 0 65, 35 50 
+       C 0 35, 15 -10, 50 15 Z" 
+    fill="currentColor"/>
+</svg>

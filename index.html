@@ -311,15 +311,24 @@
             border-color: var(--gold-bright);
         }
 
+        .logo-wrapper {
+            width: 100%;
+            max-width: 480px; /* Sized down slightly */
+            margin: 0 auto 15px;
+            position: relative;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-logo-svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+        }
+
         h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to bottom, var(--gold-bright), var(--gold-dim));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
-            letter-spacing: 5px;
+            display: none;
         }
 
         p.subtitle {
@@ -506,17 +515,107 @@
             color: var(--gold-bright);
             background: rgba(212, 175, 55, 0.1);
         }
+
+        /* Rename Modal Specifics */
+        .rename-container {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .rename-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            padding: 15px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            text-align: center;
+            border-radius: 4px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            outline: none;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .rename-input:focus {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.05);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to bottom, var(--gold), #8a6e15);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(to bottom, #ffe066, #bba040);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .toggle-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold-dim);
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .toggle-btn.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+
+        .ai-tag {
+            font-size: 0.5rem;
+            background: var(--gold);
+            color: #000;
+            padding: 1px 3px;
+            border-radius: 2px;
+            margin-left: 5px;
+            vertical-align: middle;
+            font-weight: 800;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="utility-bar">
+        <div>
+            <button class="about-btn" onclick="resetMoney()" style="margin-right: 10px;">RESET</button>
+            <button class="about-btn" onclick="openAbout()">ABOUT</button>
+        </div>
         <a href="http://simonallmer.com/arcade" target="_top">
             <button class="reset-btn">Arcade</button>
         </a>
-        <button class="about-btn" onclick="resetMoney()" style="margin: 0 10px;">RESET</button>
-        <button class="about-btn" onclick="openAbout()">ABOUT</button>
     </div>
 
     <div id="player-bar">
@@ -533,7 +632,21 @@
         <div class="corner bottom-left"></div>
         <div class="corner bottom-right"></div>
 
-        <h1>Casino Camino</h1>
+        <div class="logo-wrapper">
+            <svg class="main-logo-svg" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f3cf8e;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#d4af37;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
+                    </linearGradient>
+                    <mask id="logo-mask">
+                        <image xlink:href="Casino Camino Title/CasinoCaminoTitleWhiteWeb.png" href="Casino Camino Title/CasinoCaminoTitleWhiteWeb.png" x="0" y="0" width="1000" height="200" />
+                    </mask>
+                </defs>
+                <rect x="0" y="0" width="1000" height="200" fill="url(#goldGradient)" mask="url(#logo-mask)" />
+            </svg>
+        </div>
         <p class="subtitle" id="subtitle">Home of American Playing Cards</p>
 
         <div class="menu-grid">
@@ -601,6 +714,21 @@
     </div>
 
 
+    <div id="rename-modal" class="modal-overlay">
+        <div class="modal-content rename-container">
+            <span class="close-modal" onclick="closeRenameModal()">&times;</span>
+            <h2 style="font-family: 'Cinzel'; color: var(--gold); margin-top: 0; letter-spacing: 3px; font-size: 1.2rem;">PLAYER OPTIONS</h2>
+            
+            <div class="toggle-container">
+                <button id="toggle-human" class="toggle-btn" onclick="setPlayerType(false)">HUMAN</button>
+                <button id="toggle-computer" class="toggle-btn" onclick="setPlayerType(true)">COMPUTER</button>
+            </div>
+
+            <input type="text" id="player-name-input" class="rename-input" maxlength="15" spellcheck="false" autocomplete="off">
+            <button class="save-btn" onclick="confirmRename()">CONFIRM</button>
+        </div>
+    </div>
+
     <script>
         // --- Shared Config ---
         const PLAYER_COLORS = [
@@ -650,6 +778,8 @@
 
         // --- State Management ---
         let players = [];
+        let currentlyRenamingId = null;
+        let pendingIsAI = false;
 
         function init() {
             // Load players or init default
@@ -658,15 +788,36 @@
                 players = JSON.parse(saved);
                 // Ensure legacy fix if needed (e.g., ensure color objects are fully populated)
             } else {
-                // Initialize Player 1
-                players = [{
-                    id: 0,
-                    name: 'Player 1',
-                    cash: STARTING_CASH,
-                    color: PLAYER_COLORS[0],
-                    inventory: [],
-                    active: true
-                }];
+                // Initialize Default Game Setup: 1 Human, 2 Computers
+                players = [
+                    {
+                        id: 0,
+                        name: 'Player 1',
+                        cash: STARTING_CASH,
+                        color: PLAYER_COLORS[0],
+                        inventory: [],
+                        active: true,
+                        isAI: false
+                    },
+                    {
+                        id: 1,
+                        name: 'Computer 1',
+                        cash: STARTING_CASH,
+                        color: PLAYER_COLORS[1],
+                        inventory: [],
+                        active: true,
+                        isAI: true
+                    },
+                    {
+                        id: 2,
+                        name: 'Computer 2',
+                        cash: STARTING_CASH,
+                        color: PLAYER_COLORS[2],
+                        inventory: [],
+                        active: true,
+                        isAI: true
+                    }
+                ];
                 savePlayers();
             }
             renderPlayers();
@@ -678,15 +829,21 @@
 
         function addPlayer() {
             if (players.length >= MAX_PLAYERS) return;
-
+            
             const newId = players.length;
+            let humanCount = 0;
+            for (let i = 0; i < players.length; i++) {
+                if (!players[i].isAI) humanCount++;
+            }
+
             const newPlayer = {
                 id: newId,
-                name: `Player ${newId + 1}`,
+                name: `Player ${humanCount + 1}`,
                 cash: STARTING_CASH,
                 color: PLAYER_COLORS[newId % PLAYER_COLORS.length],
                 inventory: [],
-                active: true
+                active: true,
+                isAI: false
             };
             players.push(newPlayer);
             savePlayers();
@@ -701,7 +858,6 @@
         }
 
         function resetMoney() {
-            if (!confirm("Reset all players to €10?")) return;
             players.forEach(p => {
                 p.cash = STARTING_CASH;
             });
@@ -725,12 +881,88 @@
             const player = players.find(p => p.id === id);
             if (!player) return;
 
-            const newName = prompt(`Enter name for ${player.name}:`, player.name);
-            if (newName && newName.trim() !== "") {
-                player.name = newName.trim().substring(0, 15); // limit length
-                savePlayers();
-                renderPlayers();
+            currentlyRenamingId = id;
+            pendingIsAI = player.isAI || false;
+            
+            const modal = document.getElementById('rename-modal');
+            const input = document.getElementById('player-name-input');
+            
+            updateToggleUI();
+            modal.classList.add('modal-open');
+            
+            setTimeout(() => {
+                input.focus();
+                // If it's a default name, clear the value and use placeholder
+                if (/^Player \d+$/.test(player.name) || /^Computer \d+$/.test(player.name)) {
+                    input.value = "";
+                    input.placeholder = player.name;
+                } else {
+                    input.value = player.name;
+                    input.placeholder = "Enter Name";
+                }
+            }, 10);
+
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') confirmRename();
+                if (e.key === 'Escape') closeRenameModal();
+            };
+        }
+
+        function setPlayerType(isAI) {
+            pendingIsAI = isAI;
+            const input = document.getElementById('player-name-input');
+            const currentVal = input.value.trim();
+            const currentPlaceholder = input.placeholder.trim();
+            
+            // Auto-rename if using default names
+            const nameToCheck = currentVal === "" ? currentPlaceholder : currentVal;
+            
+            if (nameToCheck === "" || /^Player \d+$/.test(nameToCheck) || /^Computer \d+$/.test(nameToCheck)) {
+                let typeCount = 1;
+                for (let i = 0; i < players.length; i++) {
+                    if (players[i].id === currentlyRenamingId) break;
+                    if (players[i].isAI === isAI) {
+                        typeCount++;
+                    }
+                }
+                // Instead of writing to value, write to placeholder
+                input.value = "";
+                input.placeholder = isAI ? `Computer ${typeCount}` : `Player ${typeCount}`;
             }
+            
+            updateToggleUI();
+        }
+
+        function updateToggleUI() {
+            document.getElementById('toggle-human').classList.toggle('active', !pendingIsAI);
+            document.getElementById('toggle-computer').classList.toggle('active', pendingIsAI);
+        }
+
+        function confirmRename() {
+            if (currentlyRenamingId === null) return;
+            const input = document.getElementById('player-name-input');
+            let newName = input.value.trim();
+            
+            // If empty, fall back to the placeholder (which holds the default name)
+            if (newName === "") {
+                newName = input.placeholder.trim();
+            }
+            
+            if (newName !== "" && newName !== "Enter Name") {
+                const player = players.find(p => p.id === currentlyRenamingId);
+                if (player) {
+                    player.name = newName.substring(0, 15);
+                    player.isAI = pendingIsAI;
+                    savePlayers();
+                    renderPlayers();
+                }
+            }
+            closeRenameModal();
+        }
+
+        function closeRenameModal() {
+            document.getElementById('rename-modal').classList.remove('modal-open');
+            currentlyRenamingId = null;
         }
 
         function renderPlayers() {
@@ -753,7 +985,9 @@
                 div.onclick = () => renamePlayer(p.id);
 
                 div.innerHTML = `
-                    <span class="p-name" style="color:${p.color.hex}">${isCompact ? (p.id + 1) : p.name}</span>
+                    <span class="p-name" style="color:${p.color.hex}">
+                        ${isCompact ? (p.id + 1) : p.name}${p.isAI ? '<span class="ai-tag">AI</span>' : ''}
+                    </span>
                     <span class="p-cash">€${p.cash}</span>
                 `;
 
@@ -775,16 +1009,40 @@
         }
 
         window.onclick = function (event) {
-            let modal = document.getElementById('about-modal');
-            if (event.target == modal) {
-                closeAbout();
-            }
+            const aboutModal = document.getElementById('about-modal');
+            const renameModal = document.getElementById('rename-modal');
+            
+            if (event.target == aboutModal) closeAbout();
+            if (event.target == renameModal) closeRenameModal();
         }
 
         // Run
         updateSubtitle(); // Set initial random subtitle
         init();
 
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            // R to Reset Money
+            if (e.key.toLowerCase() === 'r') {
+                const renameModal = document.getElementById('rename-modal');
+                // Don't reset if typing in rename input
+                if (renameModal && renameModal.classList.contains('modal-open')) return;
+                resetMoney();
+            }
+
+            // Escape key to close modals
+            if (e.key === 'Escape') {
+                const aboutModal = document.getElementById('about-modal');
+                const renameModal = document.getElementById('rename-modal');
+
+                if (renameModal && renameModal.classList.contains('modal-open')) {
+                    closeRenameModal();
+                } else if (aboutModal && aboutModal.classList.contains('modal-open')) {
+                    closeAbout();
+                }
+                // Removed: else { window.top.location.href = '...'; }
+            }
+        });
     </script>
 
 </body>

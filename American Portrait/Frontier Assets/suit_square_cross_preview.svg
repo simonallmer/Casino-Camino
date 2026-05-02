@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Symmetrical sharp cross with diagonal diamond-like spikes and a hollow square center -->
+  <path 
+    d="M 35 25 
+       L 65 25 
+       L 85 15 
+       L 75 35 
+       L 75 65 
+       L 85 85 
+       L 65 75 
+       L 35 75 
+       L 15 85 
+       L 25 65 
+       L 25 35 
+       L 15 15 Z 
+       M 35 35 
+       L 35 65 
+       L 65 65 
+       L 65 35 Z" 
+    fill="currentColor" fill-rule="evenodd" />
+</svg>
