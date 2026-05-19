@@ -797,6 +797,23 @@
             background: transparent;
             text-decoration: line-through;
         }
+
+        .cypher-val {
+            display: inline-block;
+            width: 0.7em;
+            height: 1em;
+            vertical-align: -0.15em;
+            overflow: visible;
+        }
+        .cypher-val circle {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .cypher-val line {
+            stroke: currentColor;
+            stroke-width: 2;
+        }
     </style>
 </head>
 
@@ -888,6 +905,9 @@
                 <li><span style="color: var(--indust-east-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 45 22 L 45 35 Q 45 45 35 45 L 22 45 L 22 55 L 35 55 Q 45 55 45 65 L 45 78 L 55 78 L 55 65 Q 55 55 65 55 L 78 55 L 78 45 L 65 45 Q 55 45 55 35 L 55 22 Z" fill="currentColor"/><circle cx="50" cy="14" r="12" fill="currentColor"/><circle cx="39" cy="23" r="9" fill="currentColor"/><circle cx="61" cy="23" r="9" fill="currentColor"/><circle cx="50" cy="86" r="12" fill="currentColor"/><circle cx="39" cy="77" r="9" fill="currentColor"/><circle cx="61" cy="77" r="9" fill="currentColor"/><circle cx="14" cy="50" r="12" fill="currentColor"/><circle cx="23" cy="39" r="9" fill="currentColor"/><circle cx="23" cy="61" r="9" fill="currentColor"/><circle cx="86" cy="50" r="12" fill="currentColor"/><circle cx="77" cy="39" r="9" fill="currentColor"/><circle cx="77" cy="61" r="9" fill="currentColor"/></svg></span> & <span style="color: var(--west-frontier-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 50 C 48 48, 35 40, 35 28 C 35 15, 45 10, 50 5 C 55 10, 65 15, 65 28 C 65 40, 52 48, 50 50 C 52 48, 60 35, 72 35 C 85 35, 90 45, 95 50 C 90 55, 85 65, 72 65 C 60 65, 52 52, 50 50 C 52 52, 65 60, 65 72 C 65 85, 55 90, 50 95 C 45 90, 35 85, 35 72 C 35 60, 48 52, 50 50 C 48 52, 40 65, 28 65 C 15 65, 10 55, 5 50 C 10 45, 15 35, 28 35 C 40 35, 48 48, 50 50 Z" fill="currentColor"/></svg></span> (Blue Alliance)</li>
                 <li><span style="color: var(--border-border)"><svg class="suit-icon" viewBox="0 0 100 100"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z" fill="currentColor"/><circle cx="50" cy="12" r="6" fill="currentColor"/><circle cx="83" cy="31" r="6" fill="currentColor"/><circle cx="83" cy="69" r="6" fill="currentColor"/><circle cx="50" cy="88" r="6" fill="currentColor"/><circle cx="17" cy="69" r="6" fill="currentColor"/><circle cx="17" cy="31" r="6" fill="currentColor"/></svg></span> (Stars)</li>
             </ul>
+            <p style="margin-top: 1rem; padding: 10px 14px; background: rgba(255,255,255,0.04); border-left: 3px solid var(--gold-dim); border-radius: 0 4px 4px 0;">
+                <strong style="color: var(--gold-bright);">The Cypher (⊘):</strong> Worth 10 by default. It acts as a connector between high (9) and low (1) cards, allowing series like 8–9–⊘–1 or ⊘–1–2.
+            </p>
 
             <h3 style="color: var(--gold-bright); margin-top: 2rem;">2. Round Structure</h3>
             <p>The game lasts <strong>5 Rounds</strong>. Hand capacity scales up by 1 card each round.</p>

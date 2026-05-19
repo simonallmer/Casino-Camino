@@ -9,6 +9,14 @@ const SUITS = {
 
 const BASE_BET_UNIT = 1;
 
+function rankName(val) {
+    return val === 10 ? 'Cypher' : `Rank ${val}`;
+}
+
+function displayVal(card) {
+    return card.isCypher ? '<svg class="cypher-val" viewBox="0 0 20 28" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="14" r="7"/><line x1="10" y1="1" x2="10" y2="27"/></svg>' : card.val;
+}
+
 // --- Helper Functions ---
 function createDeck() {
     let newDeck = [];
@@ -18,8 +26,9 @@ function createDeck() {
             newDeck.push({
                 id: `${suitKey}-${val}`,
                 suit: suit,
-                name: `Rank ${val}`,
-                val: val
+                name: rankName(val),
+                val: val,
+                isCypher: val === 10
             });
         }
     });
@@ -126,28 +135,28 @@ function evaluateHand(cards) {
 
     // Scoring Hierarchy
     if (cards.length === 5) {
-        if (maxValCount === 5) return { name: `Five of Rank ${dominantVal}`, score: 5300000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", tier: 'Tier 1' };
+        if (maxValCount === 5) return { name: `Five of ${rankName(dominantVal)}`, score: 5300000000 + (dominantVal * 100) + purityBonus, style: "color: #e879f9; font-weight: 900;", tier: 'Tier 1' };
         if (isPureFlush) return { name: "Pure 5-Card Alliance", score: 5200000000 + (highCardVal * 100) + purityBonus, style: "color: #fbbf24; font-weight: 900;", tier: 'Tier 1' };
         if (hasAllegiance && isRun) return { name: `5-Card Coalition Series${purityTag}`, score: 5100000000 + (highCardVal * 100) + purityBonus, style: "color: #fb923c; font-weight: bold;", tier: 'Tier 1' };
         if (isRun) return { name: `5-Card Campaign Series${purityTag}`, score: 5000000000 + (highCardVal * 100) + purityBonus, style: "color: #60a5fa; font-weight: bold;", tier: 'Tier 1' };
     }
 
     if (cards.length === 4) {
-        if (maxValCount === 4) return { name: `Four of Rank ${dominantVal}${purityTag}`, score: 4300000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", tier: 'Tier 2' };
+        if (maxValCount === 4) return { name: `Four of ${rankName(dominantVal)}${purityTag}`, score: 4300000000 + (dominantVal * 100) + purityBonus, style: "color: #c084fc; font-weight: bold;", tier: 'Tier 2' };
         if (isPureFlush) return { name: "Pure 4-Card Alliance", score: 4200000000 + (highCardVal * 100) + purityBonus, style: "color: #34d399;", tier: 'Tier 2' };
         if (hasAllegiance && isRun) return { name: `4-Card Coalition Series${purityTag}`, score: 4100000000 + (highCardVal * 100) + purityBonus, style: "color: #a3e635;", tier: 'Tier 2' };
         if (isRun) return { name: `4-Card Campaign Series${purityTag}`, score: 4000000000 + (highCardVal * 100) + purityBonus, style: "color: #22d3ee;", tier: 'Tier 2' };
     }
 
     if (cards.length === 3) {
-        if (maxValCount === 3) return { name: `Three of Rank ${dominantVal}${purityTag}`, score: 3300000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", tier: 'Tier 3' };
+        if (maxValCount === 3) return { name: `Three of ${rankName(dominantVal)}${purityTag}`, score: 3300000000 + (dominantVal * 100) + purityBonus, style: "color: #fb7185;", tier: 'Tier 3' };
         if (isPureFlush) return { name: "Pure 3-Card Alliance", score: 3200000000 + (highCardVal * 100) + purityBonus, style: "color: #6ee7b7;", tier: 'Tier 3' };
         if (hasAllegiance && isRun) return { name: `3-Card Coalition Series${purityTag}`, score: 3100000000 + (highCardVal * 100) + purityBonus, style: "color: #bef264;", tier: 'Tier 3' };
         if (isRun) return { name: `3-Card Campaign Series${purityTag}`, score: 3000000000 + (highCardVal * 100) + purityBonus, style: "color: #67e8f9;", tier: 'Tier 3' };
     }
 
     if (cards.length === 2) {
-        if (maxValCount === 2) return { name: `Pair of Rank ${dominantVal}${purityTag}`, score: 2000000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", tier: 'Tier 4' };
+        if (maxValCount === 2) return { name: `Pair of ${rankName(dominantVal)}${purityTag}`, score: 2000000000 + (dominantVal * 100) + purityBonus, style: "color: #d6d3d1;", tier: 'Tier 4' };
     }
 
     // --- Raw Skirmish Power ---
@@ -155,20 +164,25 @@ function evaluateHand(cards) {
     let skirmishName = "";
     let style = "color: #a8a29e;";
 
+    // Rank 1 Imitation: 1 imitates the highest card in the skirmish
+    const maxVal = Math.max(...cards.map(c => c.val));
+    const effectiveValues = cards.map(c => c.val === 1 ? maxVal : c.val);
+    const hasOne = cards.some(c => c.val === 1 && maxVal > 1);
+
     if (cards.length === 1) {
         skirmishScore = cards[0].val;
-        skirmishName = `Solo Force: Rank ${cards[0].val}`;
+        skirmishName = `Solo Force: ${rankName(cards[0].val)}`;
     } else if (isPureFlush) {
-        skirmishScore = cards.reduce((acc, c) => acc * c.val, 1) * 2;
-        skirmishName = `Pure Skirmish (${cards.length})`;
+        skirmishScore = effectiveValues.reduce((acc, val) => acc * val, 1) * 2;
+        skirmishName = `Pure Skirmish (${cards.length})${hasOne ? ' [Imitation]' : ''}`;
         style = "color: #10b981; font-weight: bold;";
     } else if (hasAllegiance) {
-        skirmishScore = cards.reduce((acc, c) => acc * c.val, 1);
-        skirmishName = `Coalition Skirmish (${cards.length})${purityTag}`;
+        skirmishScore = effectiveValues.reduce((acc, val) => acc * val, 1);
+        skirmishName = `Coalition Skirmish (${cards.length})${purityTag}${hasOne ? ' [Imitation]' : ''}`;
         style = "color: #84cc16; font-weight: bold;";
     } else {
-        skirmishScore = cards.reduce((acc, c) => acc + c.val, 0);
-        skirmishName = `Divided Skirmish (${cards.length})`;
+        skirmishScore = effectiveValues.reduce((acc, val) => acc + val, 0);
+        skirmishName = `Divided Skirmish (${cards.length})${hasOne ? ' [Imitation]' : ''}`;
         style = "color: #f87171; font-weight: bold;";
     }
 
@@ -282,14 +296,15 @@ class FrontierGame {
                 cardEl.style.borderRadius = '4px';
                 cardEl.style.borderWidth = '1px';
                 
+                const cornerDisplay = val === 10 ? '<svg class="cypher-val" viewBox="0 0 20 28" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="14" r="7"/><line x1="10" y1="1" x2="10" y2="27"/></svg>' : val;
                 cardEl.innerHTML = `
-                    <div class="card-corner" style="font-size: 0.6rem; padding: 0;">${val}</div>
+                    <div class="card-corner" style="font-size: 0.6rem; padding: 0;">${cornerDisplay}</div>
                     <div class="card-center">
                         <div class="card-val" style="font-size: 1rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                             ${suit.symbol}
                         </div>
                     </div>
-                    <div class="card-corner bottom" style="font-size: 0.6rem; padding: 0;">${val}</div>
+                    <div class="card-corner bottom" style="font-size: 0.6rem; padding: 0;">${cornerDisplay}</div>
                 `;
                 grid.appendChild(cardEl);
             }
@@ -496,13 +511,13 @@ class FrontierGame {
 
             div.innerHTML = `
                 <div class="card-corner">
-                    <div class="corner-val">${card.val}</div>
+                    <div class="corner-val">${displayVal(card)}</div>
                 </div>
                 <div class="card-center">
                     <div class="card-val">${card.suit.symbol}</div>
                 </div>
                 <div class="card-corner bottom">
-                    <div class="corner-val">${card.val}</div>
+                    <div class="corner-val">${displayVal(card)}</div>
                 </div>
             `;
 
@@ -705,7 +720,7 @@ class FrontierGame {
                 const res = p.result;
                 const isWinner = p.playerId === roundResult.winnerId;
 
-                let cardsHtml = p.cards.map(c => `<div class="card-mini suit-${c.suit.id}"><span class="card-val" style="color:${c.suit.color}">${c.val}</span></div>`).join('');
+                let cardsHtml = p.cards.map(c => `<div class="card-mini suit-${c.suit.id}"><span class="card-val" style="color:${c.suit.color}">${displayVal(c)}</span></div>`).join('');
 
                 const details = res.tier === 'Tier 5' ? `Power: ${res.power}` : res.name;
 
