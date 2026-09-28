@@ -436,36 +436,14 @@
             font-weight: 800;
         }
 
-        /* Stacked Logo Styles */
-        .stacked-logo-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .logo-half {
-            background: linear-gradient(to bottom, #f3cf8e, #d4af37, #b8860b);
-            -webkit-mask-image: url('Casino%20Camino%20Title/CasinoCaminoTitleWhiteWeb.png');
-            mask-image: url('Casino%20Camino%20Title/CasinoCaminoTitleWhiteWeb.png');
-            -webkit-mask-size: 200% 100%;
-            mask-size: 200% 100%;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
-            height: 40px;
-            width: 250px;
-        }
-
-        .logo-casino {
-            -webkit-mask-position: left center;
-            mask-position: left center;
-        }
-
-        .logo-camino {
-            -webkit-mask-position: right center;
-            mask-position: right center;
-            margin-top: -5px;
+        .game-heading {
+            color: var(--gold);
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 4px 0 18px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -477,10 +455,7 @@
 
     <div id="game-container">
 
-        <div class="stacked-logo-wrapper">
-            <div class="logo-half logo-casino"></div>
-            <div class="logo-half logo-camino"></div>
-        </div>
+        <h1 class="game-heading">Ricochet</h1>
         <div class="hud">
             <div class="hud-item">
                 <span class="label">Total Pot</span>
