@@ -67,9 +67,8 @@ export class Ricochet {
 
     const ice = p.inventory.filter(x => x === 'ice').length;
     const fill = Math.max(0.2, 0.7 - Math.max(0, this.round - ice) * 0.05);
-    const plain = Math.max(0.2, 0.7 - this.round * 0.05);   // the width without ice, to show what the ice adds
     const slice = TAU / 6;
-    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill, plainEnd: i * slice + slice * plain }));
+    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill }));
 
     let speed = 3 + this.round * 0.3;          // radians per second
     let slowed = false;

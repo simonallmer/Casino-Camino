@@ -459,6 +459,11 @@ body.seated .hover-tag { display: none; }
 .rc-found img { width: 76px; height: 76px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
 .rc-found b { font-weight: 500; font-size: 20px; }
 .rc-found small { font-size: 14px; font-style: italic; color: #d6b26b; }
+.rc-legend { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
+.rc-legend li { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; margin: 0; font-size: 16px; line-height: 1.35; color: var(--ink-2); }
+.rc-legend img { width: 40px; height: 40px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); }
+.rc-legend b { display: block; }
+.sheet-rules .muted { margin: 0 0 22px; font-family: var(--serif); font-size: 16px; letter-spacing: 0; font-style: italic; }
 .rc-pocket { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; padding-top: 10px; }
 .rc-token { display: inline-flex; align-items: center; gap: 8px; text-align: left; max-width: 230px; }
 .rc-token img { width: 38px; height: 38px; flex: none; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35)); }
@@ -2620,9 +2625,8 @@ class Ricochet {
 
     const ice = p.inventory.filter(x => x === 'ice').length;
     const fill = Math.max(0.2, 0.7 - Math.max(0, this.round - ice) * 0.05);
-    const plain = Math.max(0.2, 0.7 - this.round * 0.05);   // the width without ice, to show what the ice adds
     const slice = TAU / 6;
-    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill, plainEnd: i * slice + slice * plain }));
+    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill }));
 
     let speed = 3 + this.round * 0.3;          // radians per second
     let slowed = false;
@@ -2868,11 +2872,23 @@ const RULES = `
   <ol>
     <li>Everyone buys in for <b>${BUY_IN}</b>. On your turn the wheel spins. Its tiles show their faces for one second, then the covers come down.</li>
     <li>Drop the ball when you like. A <b>gap</b> or a <b>skull</b> puts you out. A <b>coin</b> makes the bank add to the pot (1, 2, 4, 8… doubling each round); a <b>jackpot</b> adds double.</li>
-    <li>Trinkets: a <b>heart</b> saves you from one fall. An <b>hourglass</b> slows your next spin. The <b>glass</b> lets you see through the covers. <b>Ice</b> keeps your tiles a round wider.</li>
+    <li>Some tiles carry trinkets. Land on one and it goes in your pocket; the symbols are below.</li>
     <li>Round one is gentle: coins only. Each round after, the wheel turns faster and the tiles grow narrower.</li>
     <li>Before your spin you may leave with a quarter of the pot.</li>
     <li>Alone at the table? Take the whole pot, or challenge the house for three more spins and take it after.</li>
-  </ol>`;
+    <li>Drop the ball with the button, a tap on the wheel, or the space bar.</li>
+  </ol>
+  <p class="kicker">The tiles</p>
+  <ul class="rc-legend">
+    <li><img data-chip="coin" alt=""><span><b>Coin</b>Safe. The bank adds to the pot: 1, 2, 4, 8… doubling each round.</span></li>
+    <li><img data-chip="jackpot" alt=""><span><b>Jackpot</b>Safe. The bank adds double.</span></li>
+    <li><img data-medal="skull" alt=""><span><b>Skull</b>You are out. So is a gap between tiles.</span></li>
+    <li><img data-medal="heart" alt=""><span><b>Heart · extra life</b>Kept until you fall: the next skull or gap is forgiven, and the heart is spent.</span></li>
+    <li><img data-medal="hourglass" alt=""><span><b>Hourglass · slow down</b>Your next spin turns at the slowest speed. Spent on that spin.</span></li>
+    <li><img data-medal="glass" alt=""><span><b>Glass · true sight</b>You see through the covers on every spin after, for the rest of the game.</span></li>
+    <li><img data-medal="ice" alt=""><span><b>Ice · wider tiles</b>Your tiles stay a round wider for good, edged in frost. Each ice adds another round.</span></li>
+  </ul>
+  <p class="muted">While a trinket works on a spin, its medal shows in the middle of the wheel.</p>`;
 
 function openRicochet(root, { purse, onLeave }) {
   let alive = true, settled = false;
@@ -2880,6 +2896,7 @@ function openRicochet(root, { purse, onLeave }) {
   const game = new Ricochet([YOU, ...GUESTS].map(p => ({ ...p, cash: BUY_IN })));
   const me = () => game.players.find(p => p.id === 'you');
   const shell = createShell(root, { name: 'Ricochet', rules: RULES });
+  shell.$('.sheet-rules').querySelectorAll('[data-medal]').forEach(img => { img.src = medalURL(img.dataset.medal); });
 
   shell.center.innerHTML = `
     <div class="rc-wheel">
@@ -2904,7 +2921,10 @@ function openRicochet(root, { purse, onLeave }) {
   // where the wheel stands right now: the spin follows a fixed curve from its start
   const turned = now => wheel.rot0 + spinAngle(wheel.speed, (now - wheel.t0) / 1000);
   const chip = new Image();
-  chipFaceURL(PALETTES.camino, 'logo').then(u => { chip.src = u; });
+  chipFaceURL(PALETTES.camino, 'logo').then(u => {
+    chip.src = u;
+    shell.$('.sheet-rules').querySelectorAll('[data-chip]').forEach(img => { img.src = u; });
+  });
   const grain = (() => {
     const c = document.createElement('canvas'); c.width = c.height = 96;
     const g = c.getContext('2d');
@@ -2958,16 +2978,12 @@ function openRicochet(root, { purse, onLeave }) {
         for (let d = -S; d < S; d += S * 0.012) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + S, S); ctx.stroke(); }
         ctx.restore();
       }
-      if (wheel.wider && z.plainEnd < z.end) {
-        // the ice at work: frost on the strip of tile the ice has added
-        const p0 = z.plainEnd + wheel.rotation;
-        ctx.save(); ctx.beginPath(); ctx.arc(c, c, rOut, p0, a1); ctx.arc(c, c, rIn, a1, p0, true); ctx.closePath();
-        ctx.fillStyle = 'rgba(196, 228, 240, 0.78)'; ctx.fill(); ctx.clip();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = S * 0.003;
-        for (let d = -S; d < S; d += S * 0.016) { ctx.beginPath(); ctx.moveTo(d + S, 0); ctx.lineTo(d, S); ctx.stroke(); }
+      if (wheel.wider) {
+        // the ice at work: the tile is edged in frost
+        ctx.save(); ctx.beginPath(); ctx.arc(c, c, rOut, a0, a1); ctx.arc(c, c, rIn, a1, a0, true); ctx.closePath(); ctx.clip();
+        ctx.strokeStyle = 'rgba(205, 233, 243, 0.95)'; ctx.lineWidth = S * (0.012 + 0.006 * Math.min(wheel.wider, 3)); ctx.stroke();
+        ctx.strokeStyle = 'rgba(120, 170, 195, 0.55)'; ctx.lineWidth = S * 0.003; ctx.stroke();
         ctx.restore();
-        ctx.beginPath(); ctx.moveTo(c + Math.cos(p0) * rIn, c + Math.sin(p0) * rIn); ctx.lineTo(c + Math.cos(p0) * rOut, c + Math.sin(p0) * rOut);
-        ctx.strokeStyle = 'rgba(43, 74, 98, 0.6)'; ctx.lineWidth = S * 0.003; ctx.setLineDash([S * 0.008, S * 0.008]); ctx.stroke(); ctx.setLineDash([]);
       }
       ctx.beginPath(); ctx.arc(c, c, rOut, a0, a1); ctx.arc(c, c, rIn, a1, a0, true); ctx.closePath();
       ctx.strokeStyle = wheel.landed === z ? '#f3d58a' : '#2b251d'; ctx.lineWidth = wheel.landed === z ? S * 0.012 : S * 0.004; ctx.stroke();
@@ -2979,9 +2995,9 @@ function openRicochet(root, { purse, onLeave }) {
           for (let d = -S; d < S; d += S * 0.012) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + S, S); ctx.stroke(); }
           ctx.restore();
         }
-        const rm = (rIn + rOut) / 2, span = Math.min((z.plainEnd ?? z.end) - z.start, a1 - a0) * rm;
+        const rm = (rIn + rOut) / 2, span = (a1 - a0) * rm;
         ctx.save(); ctx.translate(c + Math.cos(mid) * rm, c + Math.sin(mid) * rm); ctx.rotate(mid + Math.PI / 2);
-        icon(z.type, Math.min(span * 0.95, (rOut - rIn) * 0.9));
+        icon(z.type, Math.min(span * 0.72, (rOut - rIn) * 0.62));
         ctx.restore();
       }
     }
@@ -3037,14 +3053,24 @@ function openRicochet(root, { purse, onLeave }) {
   shell.on('challenge', () => waitChoice?.('challenge'));
   shell.on('drop', () => waitDrop?.());
   canvas.addEventListener('click', () => waitDrop?.());
-  const onKey = e => { if (e.code === 'Space' && waitDrop) { e.preventDefault(); waitDrop(); } };
-  addEventListener('keydown', onKey);
+  // the space bar drops the ball (or spins, when a spin is on offer), whatever has focus
+  const atWheel = e => (e.code === 'Space' || e.key === ' ') && root.querySelector('.sheet-rules').hidden && root.querySelector('.sheet-result').hidden;
+  const onKey = e => {
+    if (!atWheel(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.repeat) return;
+    if (waitDrop) waitDrop();
+    else root.querySelector('[data-act="spin"]')?.click();
+  };
+  const noClick = e => { if (atWheel(e)) e.preventDefault(); };   // a focused button must not fire as well
+  addEventListener('keydown', onKey, true);
+  addEventListener('keyup', noClick, true);
   shell.on('again', () => { settle(); close(); openRicochet(root, { purse, onLeave }); });
   shell.on('leave', el => {
     if (game.phase !== 'over' && me().alive && !confirmLeave(el, 'Leave now? Your buy-in stays in the pot')) return;
     settle(); close(); onLeave();
   });
-  function close() { alive = false; ro.disconnect(); removeEventListener('keydown', onKey); }
+  function close() { alive = false; ro.disconnect(); removeEventListener('keydown', onKey, true); removeEventListener('keyup', noClick, true); }
 
   function settle() {
     if (settled) return;
