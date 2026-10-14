@@ -126,7 +126,7 @@ export function openFortuna(root, { purse, onLeave }) {
       seat.className = `seat seat-${p.id}${current ? ' current' : ''}${p.active ? '' : ' out'}`;
       seat.innerHTML = `
         <span class="seat-chip" style="--c:${p.color}">${p.mono}</span>
-        <div class="seat-who"><div class="seat-name">${p.name}</div><div class="seat-title">${p.title}</div></div>
+        <div class="seat-who"><div class="seat-name"><span class="full">${p.name}</span><span class="short">${p.short ?? p.name}</span></div><div class="seat-title">${p.title}</div></div>
         <div class="seat-stack"><span>${p.cash}</span><small>chips</small></div>
         <div class="seat-status">${status}<span class="seat-bets">${bets}</span></div>`;
     });

@@ -40,6 +40,14 @@
 
 @media (max-width: 760px) {
   .demo-timer { left: 16px; bottom: auto; top: 58px; height: 30px; padding: 0 12px; }
+}
+/* at a table on a phone: a slim pill above the table's title, clear of the seats */
+@media (max-width: 760px), (max-height: 520px) {
+  body.seated .demo-timer { left: 50%; top: 5px; bottom: auto; transform: translateX(-50%); height: 22px; padding: 0 10px; gap: 7px; font-size: 10.5px; }
+  body.seated .demo-timer b { font-size: 9px; }
+  body.seated .tbl { padding-top: 32px; }
+}
+@media (max-width: 760px) {
   .demo-card { padding: 26px 22px 22px; }
   .demo-card h2 { font-size: 27px; }
 }

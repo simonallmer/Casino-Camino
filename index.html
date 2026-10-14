@@ -254,6 +254,7 @@ body.seated .hover-tag { display: none; }
 .seat-you .seat-chip, .ranking li:has(.seat-chip[style*="efe3c4"]) .seat-chip { color: #2b251d; }
 .seat-who { grid-area: who; min-width: 0; }
 .seat-name { font-size: 19px; font-weight: 500; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat-name .short { display: none; }
 .seat-title { font-size: 13.5px; font-style: italic; color: var(--ink-3); line-height: 1.25; }
 .seat-stack { grid-area: stack; text-align: right; line-height: 1; }
 .seat-stack span { display: block; font-size: 24px; font-variant-numeric: tabular-nums lining-nums; }
@@ -340,25 +341,6 @@ body.seated .hover-tag { display: none; }
   .recital { right: 16px; left: 16px; width: auto; top: auto; bottom: 96px; max-height: 55svh; }
   body.reciting .stop-card { opacity: 0; pointer-events: none; }
 
-  .tbl { padding: 12px 16px 16px; }
-  .tbl-top { grid-template-columns: auto 1fr auto; }
-  .tbl-top .link { font-size: 10px; letter-spacing: 0.12em; }
-  .tbl-name { font-size: 18px; }
-  .tbl-meta { font-size: 9px; letter-spacing: 0.1em; white-space: nowrap; }
-  .tbl-top .link { max-width: 96px; text-align: left; line-height: 1.4; }
-  .tbl-top .link:last-child { text-align: right; }
-  .tbl-stage {
-    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas: "left top right" "board board board" "you you you";
-  }
-  .seat { grid-template-columns: auto 1fr; grid-template-areas: "chip stack" "who who" "status status"; padding: 8px; gap: 4px 8px; }
-  .seat-title { display: none; }
-  .seat-name { font-size: 14px; }
-  .seat-stack span { font-size: 18px; }
-  .seat-chip { width: 26px; height: 26px; font-size: 11px; }
-  .seat-you { grid-template-columns: auto 1fr auto; grid-template-areas: "chip who stack" "chip status status"; max-width: none; }
-  .croupier { font-size: 17px; min-height: 3.9em; margin-bottom: 8px; }
   .sheet-card { padding: 24px 22px; }
   .sheet-card h2 { font-size: 28px; }
 }
@@ -430,18 +412,90 @@ body.seated .hover-tag { display: none; }
 .rc-hub > span { display: block; font-size: 36px; line-height: 1; font-weight: 500; font-variant-numeric: lining-nums; }
 .rc-hub small { font-family: var(--sans); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.8; }
 
-@media (max-width: 760px) {
-  .card { --w: 58px; }
-  .card.mini { --w: 30px; }
-  .ft-hand { min-height: 96px; gap: 5px; }
-  .ft-felt { border-radius: 90px / 70px; aspect-ratio: auto; height: 100%; }
-  .ft-middle { gap: 0; }
-  .ft-pot span { font-size: 22px; }
-  .ft-table-cards { gap: 3px; min-height: 52px; }
-  .ft-table-cards .card { --w: clamp(44px, min(13cqw, 30cqh), 60px); }
-  .ft-play .card.mini { --w: 34px; }
-  .ft-note { font-size: 9px; max-width: 110px; }
+/* ── tables on a phone (portrait, or landscape where height is short) */
+@media (max-width: 760px), (max-height: 520px) {
+  .tbl { padding: 10px 12px 12px; }
+  .tbl-top { grid-template-columns: auto 1fr auto; }
+  .tbl-top .link { font-size: 10px; letter-spacing: 0.12em; max-width: 96px; text-align: left; line-height: 1.4; padding: 4px 0; }
+  .tbl-top .link:last-child { text-align: right; }
+  .tbl-name { font-size: 18px; }
+  .tbl-meta { font-size: 9px; letter-spacing: 0.1em; white-space: nowrap; }
+  .tbl-stage {
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "left top right" "board board board" "you you you";
+  }
+
+  /* the guests: one slim row of three */
+  .seat { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "chip who stack" "status status status"; padding: 5px 8px; gap: 1px 6px; max-width: none; }
+  .seat-title, .seat-stack small { display: none; }
+  .seat-name { font-size: 13.5px; }
+  .seat-name .full { display: none; }
+  .seat-name .short { display: inline; }
+  .seat-stack span { font-size: 16px; }
+  .seat-chip { width: 22px; height: 22px; font-size: 10px; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.25); }
+  .seat-status { font-size: 8.5px; letter-spacing: 0.1em; min-height: 11px; white-space: nowrap; overflow: hidden; }
+  .seat-status:empty { display: none; }
+  .seat-you { grid-template-areas: "chip who status stack"; grid-template-columns: auto auto minmax(0, 1fr) auto; padding: 5px 10px; }
+  .seat-you .seat-status { justify-content: flex-end; }
+  /* your move: the guests step back to their chip, stack and bet */
+  .tbl.acting .seat:not(.seat-you) { grid-template-areas: "chip stack" "status status"; grid-template-columns: auto 1fr; padding: 4px 7px; }
+  .tbl.acting .seat:not(.seat-you) .seat-who { display: none; }
+  .tbl.acting .seat:not(.seat-you) { opacity: 0.8; }
+
+  .tbl-console { padding-top: 4px; }
+  .croupier { font-size: 15.5px; min-height: 2.6em; margin-bottom: 6px; }
+  .tbl-actions { gap: 6px; min-height: 38px; }
+  .tbl-actions .btn { min-height: 38px; padding: 0 12px; font-size: 10.5px; letter-spacing: 0.14em; }
+  .stepper .btn { min-width: 36px; }
+  .stepper b { font-size: 18px; min-width: 1.6em; }
+
+  /* Frontier: the felt takes the room the seats gave up */
+  .card { --w: 54px; }
+  .ft-hand .card { --w: 62px; }
+  .ft-hand { min-height: 0; gap: 5px; padding-top: 6px; }
+  .ft-read { font-size: 9.5px; letter-spacing: 0.1em; margin-top: 2px; }
+  .tbl-console .ft-note { font-size: 9.5px; }
+  .ft-felt { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 34px; }
+  .ft-middle { inset: 16% 0 0; gap: 0; }
+  .ft-middle small { margin-top: 3px; font-size: 8.5px; }
+  .ft-pot span { font-size: 20px; }
+  .ft-table-cards { gap: 3px; min-height: 0; }
+  .ft-table-cards .card { --w: clamp(34px, min(18cqw, 26cqh), 76px); }
+  .ft-play .card.mini { --w: clamp(22px, min(7.5cqw, 16cqh), 40px); }
+  .ft-play .ft-cards { gap: 0; }
+  .ft-play .ft-cards .card + .card { margin-left: calc(var(--w) * -0.45); }
+  .ft-calloway { top: 4%; }
+  .ft-valeska { left: 3%; }
+  .ft-shen { right: 3%; }
+  .ft-note { font-size: 8px; letter-spacing: 0.08em; max-width: 92px; }
+  .ft-valeska .ft-note, .ft-shen .ft-note { max-width: 80px; }
+
   .rc-hub > span { font-size: 26px; }
+}
+
+/* a narrow or tall felt (any phone): no room beside the Table Cards, so the three guests sit in a row along the top edge */
+@container (max-width: 560px) or (max-aspect-ratio: 5 / 4) {
+  .ft-play { top: 5%; transform: none; max-width: 30%; }
+  .ft-valeska { left: 4%; }
+  .ft-calloway { left: 50%; transform: translateX(-50%); }
+  .ft-shen { right: 4%; }
+  .ft-valeska .ft-note, .ft-shen .ft-note, .ft-note { max-width: 100%; }
+  .ft-middle { inset: 30% 0 0; }
+}
+
+/* ── a phone on its side: the console moves beside the table */
+@media (max-height: 520px) and (orientation: landscape) {
+  .tbl {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 38%); grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "head head" "stage console"; column-gap: 14px; padding: 6px 14px 8px;
+  }
+  .tbl-top { grid-area: head; }
+  .tbl-stage { grid-area: stage; min-height: 0; }
+  .tbl-console { grid-area: console; min-height: 0; overflow: auto; display: flex; flex-direction: column; justify-content: center; }
+  .tbl-top .link { max-width: none; }
+  .tbl-name { font-size: 16px; }
+  .croupier { min-height: 0; }
 }
 
 /* Ricochet trinkets */
@@ -1362,6 +1416,8 @@ function createShell(root, { name, rules }) {
     meta(text) { $('.tbl-meta').textContent = text; },
     say(text) { line.textContent = text; line.classList.remove('in'); void line.offsetWidth; line.classList.add('in'); },
     actions(html) { actions.innerHTML = html; },
+    // while it is your move, small screens shrink the other seats to make room for the felt
+    acting(on) { tbl.classList.toggle('acting', on); },
     seats(players, { current, status = () => '', pips = () => 0 } = {}) {
       for (const p of players) {
         const seat = $(`.seat-${p.id}`);
@@ -1369,7 +1425,7 @@ function createShell(root, { name, rules }) {
         seat.className = `seat seat-${p.id}${isCurrent ? ' current' : ''}${p.active === false ? ' out' : ''}`;
         seat.innerHTML = `
           <span class="seat-chip" style="--c:${p.color}">${p.mono}</span>
-          <div class="seat-who"><div class="seat-name">${p.name}</div><div class="seat-title">${p.title}</div></div>
+          <div class="seat-who"><div class="seat-name"><span class="full">${p.name}</span><span class="short">${p.short ?? p.name}</span></div><div class="seat-title">${p.title}</div></div>
           <div class="seat-stack"><span>${p.cash}</span><small>chips</small></div>
           <div class="seat-status">${p.active === false ? 'Out' : status(p)}<span class="seat-bets">${'<i></i>'.repeat(pips(p))}</span></div>`;
       }
@@ -1749,7 +1805,7 @@ function openFortuna(root, { purse, onLeave }) {
       seat.className = `seat seat-${p.id}${current ? ' current' : ''}${p.active ? '' : ' out'}`;
       seat.innerHTML = `
         <span class="seat-chip" style="--c:${p.color}">${p.mono}</span>
-        <div class="seat-who"><div class="seat-name">${p.name}</div><div class="seat-title">${p.title}</div></div>
+        <div class="seat-who"><div class="seat-name"><span class="full">${p.name}</span><span class="short">${p.short ?? p.name}</span></div><div class="seat-title">${p.title}</div></div>
         <div class="seat-stack"><span>${p.cash}</span><small>chips</small></div>
         <div class="seat-status">${status}<span class="seat-bets">${bets}</span></div>`;
     });
@@ -2421,11 +2477,11 @@ function openFrontier(root, { purse, onLeave }) {
   }
 
   function waitFor(m) {
-    mode = m; selected.clear();
+    mode = m; selected.clear(); shell.acting(true);
     render(); renderActions();
     return new Promise(r => { resolveYou = r; });
   }
-  function done(value) { const r = resolveYou; resolveYou = null; mode = null; selected.clear(); renderActions(); r?.(value); }
+  function done(value) { const r = resolveYou; resolveYou = null; mode = null; selected.clear(); shell.acting(false); renderActions(); r?.(value); }
 
   shell.on('pick', el => {
     const id = el.dataset.id;

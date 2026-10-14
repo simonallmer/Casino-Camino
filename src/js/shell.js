@@ -45,6 +45,8 @@ export function createShell(root, { name, rules }) {
     meta(text) { $('.tbl-meta').textContent = text; },
     say(text) { line.textContent = text; line.classList.remove('in'); void line.offsetWidth; line.classList.add('in'); },
     actions(html) { actions.innerHTML = html; },
+    // while it is your move, small screens shrink the other seats to make room for the felt
+    acting(on) { tbl.classList.toggle('acting', on); },
     seats(players, { current, status = () => '', pips = () => 0 } = {}) {
       for (const p of players) {
         const seat = $(`.seat-${p.id}`);
@@ -52,7 +54,7 @@ export function createShell(root, { name, rules }) {
         seat.className = `seat seat-${p.id}${isCurrent ? ' current' : ''}${p.active === false ? ' out' : ''}`;
         seat.innerHTML = `
           <span class="seat-chip" style="--c:${p.color}">${p.mono}</span>
-          <div class="seat-who"><div class="seat-name">${p.name}</div><div class="seat-title">${p.title}</div></div>
+          <div class="seat-who"><div class="seat-name"><span class="full">${p.name}</span><span class="short">${p.short ?? p.name}</span></div><div class="seat-title">${p.title}</div></div>
           <div class="seat-stack"><span>${p.cash}</span><small>chips</small></div>
           <div class="seat-status">${p.active === false ? 'Out' : status(p)}<span class="seat-bets">${'<i></i>'.repeat(pips(p))}</span></div>`;
       }

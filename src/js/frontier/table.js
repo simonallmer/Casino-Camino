@@ -113,11 +113,11 @@ export function openFrontier(root, { purse, onLeave }) {
   }
 
   function waitFor(m) {
-    mode = m; selected.clear();
+    mode = m; selected.clear(); shell.acting(true);
     render(); renderActions();
     return new Promise(r => { resolveYou = r; });
   }
-  function done(value) { const r = resolveYou; resolveYou = null; mode = null; selected.clear(); renderActions(); r?.(value); }
+  function done(value) { const r = resolveYou; resolveYou = null; mode = null; selected.clear(); shell.acting(false); renderActions(); r?.(value); }
 
   shell.on('pick', el => {
     const id = el.dataset.id;
