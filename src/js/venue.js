@@ -736,6 +736,9 @@ const KEYS = [
 ];
 export const STOP_KEYS = KEYS.map((k, i) => (k.stop !== undefined ? i : -1)).filter(i => i >= 0);
 
+// The long walk: what wakes up in colour while the camera rests in each room.
+const ROOMS = [['portico'], ['fountain'], ['concierge', 'lifts'], ['fortuna', 'ricochet', 'frontier', 'merchant'], ['theater']];
+
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 export async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate = () => {} }) {
@@ -846,7 +849,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   canvas.addEventListener('pointerleave', () => { pointerIn = false; });
   canvas.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY }; });
   canvas.addEventListener('pointerup', e => {
-    if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
+    if (tour || !downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     // touch screens have no hover: the first tap paints and picks
     if (e.pointerType !== 'mouse') { ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); pick(); }
     if (hovered) { hovered.keep(); onActivate(hovered.name); }
@@ -907,6 +910,8 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   let pose = at(0);
   let free = null;         // a pose held off the path (e.g. hovering over a table)
   let paused = false;
+  let tour = null;         // the long walk, while it runs
+  let veil = 0, veilTo = 0; // a fade to paper, for cuts
   const pointer = new THREE.Vector2(), look = new THREE.Vector2();
   addEventListener('pointermove', e => { pointer.set(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5); });
 
@@ -928,7 +933,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     camera.aspect = w / h;
     camera.fov = w / h < 1 ? Math.min(78, 40 / (w / h) * 0.8) : 40;
     // on portrait screens the stop card covers the lower half, so lift the drawing into the upper half
-    if (w / h < 1) camera.setViewOffset(w, h, 0, h * 0.2, w, h); else camera.clearViewOffset();
+    if (w / h < 1 && !tour) camera.setViewOffset(w, h, 0, h * 0.2, w, h); else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     lineMats.forEach(m => m.resolution.set(w, h));
   }
@@ -959,19 +964,21 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     if (look.distanceToSquared(pointer) < 1e-6) look.copy(pointer);
     camera.position.copy(pose.pos);
     const tgt = pose.tgt.clone();
-    if (!free) { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
+    if (tour) { tgt.x += Math.sin(time * 0.23) * 1.6; tgt.y += Math.sin(time * 0.17) * 0.6; }
+    else if (!free) { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
     camera.lookAt(tgt);
 
     const z = camera.position.z, inside = z < HALL.z0;
     exterior.visible = !inside; interior.visible = inside;
     scene.fog.near = inside ? 60 : 140; scene.fog.far = inside ? 230 : 560;
-    if (wash) wash.style.opacity = Math.max(0, 1 - Math.abs(z - HALL.z0) / 5.5).toFixed(3);
+    veil += Math.sign(veilTo - veil) * Math.min(Math.abs(veilTo - veil), 0.035);
+    if (wash) wash.style.opacity = Math.max(veil, 1 - Math.abs(z - HALL.z0) / 5.5).toFixed(3);
 
     mats.water.dashOffset = -time * 1.6;
 
     const dt = Math.min(0.05, (now - (frame.last ?? now)) / 1000); frame.last = now;
-    if (pointerIn && !fly && !free) pick();
-    else if (hovered && (fly || free)) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
+    if (pointerIn && !fly && !free && !tour) pick();
+    else if (hovered && (fly || free || tour)) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
     paintables.forEach(pt => pt.step(dt));
     // he sways, and always turns to face whoever is looking at him
     const mm = merchant.mesh;
@@ -998,5 +1005,45 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
       free = null; p = STOP_KEYS[i];
     },
     setPaused(v) { paused = v; },
+    tour: runTour,
+    endTour() { if (!tour || tour.cancelled) return; tour.cancelled = true; tour.wake?.(); if (travel) { const r = travel.resolve; travel = null; r(); } },
   };
+
+  // ── the long walk: from the far approach through every room, resting in each while it comes to colour
+  async function runTour() {
+    if (tour || fly || free) return;
+    const t = tour = { cancelled: false, wake: null };
+    hovered?.leave(); hovered = null; canvas.style.cursor = ''; onHover(null);
+    const wait = ms => new Promise(r => { const id = setTimeout(r, ms); t.wake = () => { clearTimeout(id); r(); }; });
+    const veilTo_ = async (v, ms = 900) => { veilTo = v; await wait(ms); };
+    const lit = [];
+
+    await veilTo_(1);
+    resize(); travel = null; p = 0;
+    if (!t.cancelled) await veilTo_(0, 700);
+    let from = 0;
+    for (const [i, key] of STOP_KEYS.entries()) {
+      if (t.cancelled) break;
+      await goToKey(key, 2.6 + (key - from) * 1.5);
+      from = key;
+      if (t.cancelled) break;
+      // the room wakes up, one thing after another
+      for (const name of ROOMS[i]) {
+        const pt = paintables.find(x => x.name === name);
+        if (!pt) continue;
+        pt.touch(pt.center); lit.push(pt);
+        await wait(650);
+        if (t.cancelled) break;
+      }
+      await wait(3200);
+      lit.splice(0).forEach(pt => pt.leave());
+    }
+    lit.forEach(pt => pt.leave());
+    t.wake = null;
+    // back to the doors
+    veilTo = 1; await new Promise(r => setTimeout(r, 900));
+    travel = null; p = STOP_KEYS[0];
+    tour = null; resize();
+    veilTo = 0; await new Promise(r => setTimeout(r, 700));
+  }
 }

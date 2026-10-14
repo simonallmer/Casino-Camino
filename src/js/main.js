@@ -174,13 +174,15 @@ let stop = 0, moving = false, seated = false;
 
 function renderCard() {
   card.innerHTML = STOPS[stop].render();
+  document.body.classList.toggle('at-arrival', stop === 0);
   rail.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === stop));
 }
 
 async function go(i) {
-  if (seated || i < 0 || i >= STOPS.length || (i === stop && !moving)) return;
+  if (seated || touring || i < 0 || i >= STOPS.length || (i === stop && !moving)) return;
   moving = true;
   stop = i;
+  document.body.classList.remove('at-arrival');
   hush();
   card.classList.add('away');
   hint.classList.add('away');
@@ -222,6 +224,36 @@ document.addEventListener('click', e => {
   const seat = e.target.closest('[data-sit]');
   if (seat) sit(seat.dataset.sit);
 });
+
+// ── the long walk: a tiny star beside the wordmark, for those who know it is there.
+// The text steps aside and the camera glides through every room, resting in each while it comes to colour.
+let touring = false;
+const tourBtn = document.createElement('button');
+tourBtn.className = 'tour-btn';
+tourBtn.setAttribute('aria-label', 'The long walk');
+tourBtn.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z"/></svg>';
+$('.wordmark').append(tourBtn);
+const cine = Object.assign(document.createElement('div'), { className: 'cine' });
+cine.setAttribute('aria-hidden', 'true');
+document.body.append(cine);
+
+tourBtn.addEventListener('click', async e => {
+  e.stopPropagation();
+  if (touring || seated || moving || stop !== 0) return;
+  touring = moving = true;
+  hush(); tag.classList.remove('on');
+  card.classList.add('away'); hint.classList.add('away');
+  document.body.classList.add('touring');
+  tourBtn.blur();
+  await venue.tour();
+  document.body.classList.remove('touring');
+  touring = moving = false;
+  stop = 0; renderCard(); card.classList.remove('away');
+});
+// any touch, click or key ends it
+const endTour = e => { if (!touring) return; e.preventDefault?.(); e.stopPropagation(); venue.endTour(); };
+addEventListener('pointerdown', endTour, true);
+addEventListener('keydown', endTour, true);
 
 // ── the Fortuna table
 async function sit(name = 'fortuna') {

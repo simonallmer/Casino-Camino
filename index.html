@@ -92,6 +92,26 @@ body.dimming .wash { opacity: 1 !important; transition: opacity .3s; }
 .theme-toggle svg { width: 17px; height: 17px; fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; }
 :root[data-theme="night"] .i-sun, :root:not([data-theme="night"]) .i-moon { display: none; }
 
+/* ── the long walk: a star you have to know about, and the cinema it opens */
+.tour-btn {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 8px; padding: 0; vertical-align: -3px;
+  background: none; border: 0; cursor: pointer; opacity: 0.2; transition: opacity .5s;
+}
+.tour-btn svg { width: 10px; height: 10px; fill: var(--ink); }
+.tour-btn:hover, .tour-btn:focus-visible { opacity: 0.8; }
+body:not(.at-arrival) .tour-btn { opacity: 0; pointer-events: none; }
+.cine { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+.cine::before, .cine::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 0; background: #0d0c0a;
+  transition: height 1.2s cubic-bezier(.6, 0, .2, 1);
+}
+.cine::before { top: 0; } .cine::after { bottom: 0; }
+body.touring .cine::before, body.touring .cine::after { height: 9vh; }
+.topbar, .promenade { transition: opacity .6s; }
+body.touring .topbar, body.touring .promenade, body.touring .walk-hint, body.touring .stop-card,
+body.touring .hover-tag, body.touring .toast, body.touring .recital { opacity: 0 !important; pointer-events: none !important; }
+body.touring #venue { cursor: none; }
+
 /* ── stop card */
 .stop-card {
   position: fixed; z-index: 4; left: 40px; bottom: 116px; width: min(420px, calc(100vw - 32px));
@@ -3984,6 +4004,9 @@ const KEYS = [
 ];
 const STOP_KEYS = KEYS.map((k, i) => (k.stop !== undefined ? i : -1)).filter(i => i >= 0);
 
+// The long walk: what wakes up in colour while the camera rests in each room.
+const ROOMS = [['portico'], ['fountain'], ['concierge', 'lifts'], ['fortuna', 'ricochet', 'frontier', 'merchant'], ['theater']];
+
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate = () => {} }) {
@@ -4094,7 +4117,7 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
   canvas.addEventListener('pointerleave', () => { pointerIn = false; });
   canvas.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY }; });
   canvas.addEventListener('pointerup', e => {
-    if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
+    if (tour || !downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     // touch screens have no hover: the first tap paints and picks
     if (e.pointerType !== 'mouse') { ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); pick(); }
     if (hovered) { hovered.keep(); onActivate(hovered.name); }
@@ -4155,6 +4178,8 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
   let pose = at(0);
   let free = null;         // a pose held off the path (e.g. hovering over a table)
   let paused = false;
+  let tour = null;         // the long walk, while it runs
+  let veil = 0, veilTo = 0; // a fade to paper, for cuts
   const pointer = new THREE.Vector2(), look = new THREE.Vector2();
   addEventListener('pointermove', e => { pointer.set(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5); });
 
@@ -4176,7 +4201,7 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     camera.aspect = w / h;
     camera.fov = w / h < 1 ? Math.min(78, 40 / (w / h) * 0.8) : 40;
     // on portrait screens the stop card covers the lower half, so lift the drawing into the upper half
-    if (w / h < 1) camera.setViewOffset(w, h, 0, h * 0.2, w, h); else camera.clearViewOffset();
+    if (w / h < 1 && !tour) camera.setViewOffset(w, h, 0, h * 0.2, w, h); else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     lineMats.forEach(m => m.resolution.set(w, h));
   }
@@ -4207,19 +4232,21 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     if (look.distanceToSquared(pointer) < 1e-6) look.copy(pointer);
     camera.position.copy(pose.pos);
     const tgt = pose.tgt.clone();
-    if (!free) { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
+    if (tour) { tgt.x += Math.sin(time * 0.23) * 1.6; tgt.y += Math.sin(time * 0.17) * 0.6; }
+    else if (!free) { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
     camera.lookAt(tgt);
 
     const z = camera.position.z, inside = z < HALL.z0;
     exterior.visible = !inside; interior.visible = inside;
     scene.fog.near = inside ? 60 : 140; scene.fog.far = inside ? 230 : 560;
-    if (wash) wash.style.opacity = Math.max(0, 1 - Math.abs(z - HALL.z0) / 5.5).toFixed(3);
+    veil += Math.sign(veilTo - veil) * Math.min(Math.abs(veilTo - veil), 0.035);
+    if (wash) wash.style.opacity = Math.max(veil, 1 - Math.abs(z - HALL.z0) / 5.5).toFixed(3);
 
     mats.water.dashOffset = -time * 1.6;
 
     const dt = Math.min(0.05, (now - (frame.last ?? now)) / 1000); frame.last = now;
-    if (pointerIn && !fly && !free) pick();
-    else if (hovered && (fly || free)) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
+    if (pointerIn && !fly && !free && !tour) pick();
+    else if (hovered && (fly || free || tour)) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
     paintables.forEach(pt => pt.step(dt));
     // he sways, and always turns to face whoever is looking at him
     const mm = merchant.mesh;
@@ -4246,7 +4273,47 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
       free = null; p = STOP_KEYS[i];
     },
     setPaused(v) { paused = v; },
+    tour: runTour,
+    endTour() { if (!tour || tour.cancelled) return; tour.cancelled = true; tour.wake?.(); if (travel) { const r = travel.resolve; travel = null; r(); } },
   };
+
+  // ── the long walk: from the far approach through every room, resting in each while it comes to colour
+  async function runTour() {
+    if (tour || fly || free) return;
+    const t = tour = { cancelled: false, wake: null };
+    hovered?.leave(); hovered = null; canvas.style.cursor = ''; onHover(null);
+    const wait = ms => new Promise(r => { const id = setTimeout(r, ms); t.wake = () => { clearTimeout(id); r(); }; });
+    const veilTo_ = async (v, ms = 900) => { veilTo = v; await wait(ms); };
+    const lit = [];
+
+    await veilTo_(1);
+    resize(); travel = null; p = 0;
+    if (!t.cancelled) await veilTo_(0, 700);
+    let from = 0;
+    for (const [i, key] of STOP_KEYS.entries()) {
+      if (t.cancelled) break;
+      await goToKey(key, 2.6 + (key - from) * 1.5);
+      from = key;
+      if (t.cancelled) break;
+      // the room wakes up, one thing after another
+      for (const name of ROOMS[i]) {
+        const pt = paintables.find(x => x.name === name);
+        if (!pt) continue;
+        pt.touch(pt.center); lit.push(pt);
+        await wait(650);
+        if (t.cancelled) break;
+      }
+      await wait(3200);
+      lit.splice(0).forEach(pt => pt.leave());
+    }
+    lit.forEach(pt => pt.leave());
+    t.wake = null;
+    // back to the doors
+    veilTo = 1; await new Promise(r => setTimeout(r, 900));
+    travel = null; p = STOP_KEYS[0];
+    tour = null; resize();
+    veilTo = 0; await new Promise(r => setTimeout(r, 700));
+  }
 }
 
 return { OBJECTS, STOP_KEYS, createVenue };
@@ -4429,13 +4496,15 @@ let stop = 0, moving = false, seated = false;
 
 function renderCard() {
   card.innerHTML = STOPS[stop].render();
+  document.body.classList.toggle('at-arrival', stop === 0);
   rail.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === stop));
 }
 
 async function go(i) {
-  if (seated || i < 0 || i >= STOPS.length || (i === stop && !moving)) return;
+  if (seated || touring || i < 0 || i >= STOPS.length || (i === stop && !moving)) return;
   moving = true;
   stop = i;
+  document.body.classList.remove('at-arrival');
   hush();
   card.classList.add('away');
   hint.classList.add('away');
@@ -4477,6 +4546,36 @@ document.addEventListener('click', e => {
   const seat = e.target.closest('[data-sit]');
   if (seat) sit(seat.dataset.sit);
 });
+
+// ── the long walk: a tiny star beside the wordmark, for those who know it is there.
+// The text steps aside and the camera glides through every room, resting in each while it comes to colour.
+let touring = false;
+const tourBtn = document.createElement('button');
+tourBtn.className = 'tour-btn';
+tourBtn.setAttribute('aria-label', 'The long walk');
+tourBtn.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z"/></svg>';
+$('.wordmark').append(tourBtn);
+const cine = Object.assign(document.createElement('div'), { className: 'cine' });
+cine.setAttribute('aria-hidden', 'true');
+document.body.append(cine);
+
+tourBtn.addEventListener('click', async e => {
+  e.stopPropagation();
+  if (touring || seated || moving || stop !== 0) return;
+  touring = moving = true;
+  hush(); tag.classList.remove('on');
+  card.classList.add('away'); hint.classList.add('away');
+  document.body.classList.add('touring');
+  tourBtn.blur();
+  await venue.tour();
+  document.body.classList.remove('touring');
+  touring = moving = false;
+  stop = 0; renderCard(); card.classList.remove('away');
+});
+// any touch, click or key ends it
+const endTour = e => { if (!touring) return; e.preventDefault?.(); e.stopPropagation(); venue.endTour(); };
+addEventListener('pointerdown', endTour, true);
+addEventListener('keydown', endTour, true);
 
 // ── the Fortuna table
 async function sit(name = 'fortuna') {

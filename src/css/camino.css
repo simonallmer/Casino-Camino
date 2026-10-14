@@ -80,6 +80,26 @@ body.dimming .wash { opacity: 1 !important; transition: opacity .3s; }
 .theme-toggle svg { width: 17px; height: 17px; fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; }
 :root[data-theme="night"] .i-sun, :root:not([data-theme="night"]) .i-moon { display: none; }
 
+/* ── the long walk: a star you have to know about, and the cinema it opens */
+.tour-btn {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 8px; padding: 0; vertical-align: -3px;
+  background: none; border: 0; cursor: pointer; opacity: 0.2; transition: opacity .5s;
+}
+.tour-btn svg { width: 10px; height: 10px; fill: var(--ink); }
+.tour-btn:hover, .tour-btn:focus-visible { opacity: 0.8; }
+body:not(.at-arrival) .tour-btn { opacity: 0; pointer-events: none; }
+.cine { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+.cine::before, .cine::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 0; background: #0d0c0a;
+  transition: height 1.2s cubic-bezier(.6, 0, .2, 1);
+}
+.cine::before { top: 0; } .cine::after { bottom: 0; }
+body.touring .cine::before, body.touring .cine::after { height: 9vh; }
+.topbar, .promenade { transition: opacity .6s; }
+body.touring .topbar, body.touring .promenade, body.touring .walk-hint, body.touring .stop-card,
+body.touring .hover-tag, body.touring .toast, body.touring .recital { opacity: 0 !important; pointer-events: none !important; }
+body.touring #venue { cursor: none; }
+
 /* ── stop card */
 .stop-card {
   position: fixed; z-index: 4; left: 40px; bottom: 116px; width: min(420px, calc(100vw - 32px));
