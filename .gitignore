@@ -1,0 +1,5 @@
+.DS_Store
+# old games, kept locally only
+Archive/
+# separate repo: simonallmer/Casino-Camino-Demo (built by build.py --demo)
+Casino Camino Demo/

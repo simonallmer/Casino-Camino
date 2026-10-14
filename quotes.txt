@@ -1,0 +1,25 @@
+# Casino Camino — every line spoken or shown in the venue.
+# One line per entry. Lines starting with # are notes and are ignored.
+# Each section starts with "## ". After editing, rebuild with: python3 build.py
+
+## Mr. Jeremiah Thistlewood
+Politics: what a toxic endeavour, yet the air we breathe.
+My life is mine; let my art be yours.
+Decency demands distance.
+My hair turned white from the gambling addiction. But it grew back from the drinks.
+
+## Thistlewood, stage directions
+He raises his tankard to you and spills most of it.
+He bows, very nearly to the floor, and stays there a while.
+He taps his nose twice, as if you now share a secret.
+He forgets you are there and says it again, more quietly.
+
+## The fountain
+It lands face up. The house considers that a good sign.
+A koi you had not noticed takes an interest, then thinks better of it.
+Somewhere above, a window lights up. Coincidence, probably.
+The water keeps it. The water keeps everything.
+It skips twice and sinks beside a much older chip.
+
+## The hotel lifts
+The Grand Hotel opens later. The lift attendant is asleep on his stool.

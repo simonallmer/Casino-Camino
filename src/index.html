@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Casino Camino</title>
+  <meta name="description" content="Casino Camino: a venue for games, shows and long nights.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/camino.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="venue" aria-hidden="true"></canvas>
+  <div class="wash" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <span class="wordmark">Casino Camino</span>
+    <div class="topbar-right">
+      <button class="purse" data-go="2" title="Your purse — visit the concierge">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 50 12 L 61 31 L 83 31 L 72 50 L 83 69 L 61 69 L 50 88 L 39 69 L 17 69 L 28 50 L 17 31 L 39 31 Z"/></svg>
+        <span class="purse-val">—</span>
+      </button>
+      <button class="theme-toggle" aria-label="Switch between day and night">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="stop-card" aria-live="polite"></section>
+
+  <nav class="promenade" aria-label="The promenade"></nav>
+  <p class="walk-hint">Scroll to walk the camino. Touch the drawing to bring it to life.</p>
+  <div class="hover-tag" aria-hidden="true"></div>
+  <aside class="recital" aria-live="polite"></aside>
+  <p class="toast" role="status"></p>
+
+  <div class="table-layer" aria-hidden="true"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

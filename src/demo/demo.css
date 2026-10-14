@@ -1,0 +1,45 @@
+/* ── demo build only: 10 minutes of play per day (injected by build.py --demo) */
+.demo-timer {
+  position: fixed; z-index: 40; left: 24px; bottom: 24px;
+  display: inline-flex; align-items: center; gap: 10px; height: 34px; padding: 0 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 999px; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; letter-spacing: 0.14em; font-variant-numeric: tabular-nums;
+  color: var(--ink); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: border-color .2s;
+}
+.demo-timer:hover { border-color: var(--gold); }
+.demo-timer b { font-weight: 500; color: var(--gold); letter-spacing: 0.26em; font-size: 10.5px; }
+.demo-timer.low span { color: var(--down); }
+
+.demo-sheet {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity .35s;
+}
+.demo-sheet.on { opacity: 1; pointer-events: auto; }
+.demo-sheet.ended { background: color-mix(in srgb, var(--paper) 94%, transparent); }
+.demo-card {
+  width: min(440px, 100%); padding: 34px 34px 28px; text-align: center;
+  background: var(--card); border: 1px solid var(--rule);
+}
+.demo-card .kicker { margin-bottom: 12px; }
+.demo-card h2 { margin: 0 0 12px; font-weight: 500; font-size: 32px; line-height: 1.1; }
+.demo-card p { margin: 0 0 24px; font-size: 18px; line-height: 1.45; color: var(--ink-2); }
+.demo-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.demo-primary {
+  display: inline-block; padding: 12px 30px; border-radius: 999px; text-decoration: none;
+  background: var(--gold); color: var(--paper);
+  font-family: var(--sans); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+}
+.demo-quiet {
+  background: none; border: 0; padding: 4px; cursor: pointer; text-decoration: none; color: var(--ink-3);
+  font-family: var(--sans); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+}
+.demo-quiet:hover { color: var(--ink); }
+
+@media (max-width: 760px) {
+  .demo-timer { left: 16px; bottom: auto; top: 58px; height: 30px; padding: 0 12px; }
+  .demo-card { padding: 26px 22px 22px; }
+  .demo-card h2 { font-size: 27px; }
+}
