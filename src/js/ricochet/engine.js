@@ -5,6 +5,21 @@
 
 export const BUY_IN = 5;
 const TAU = Math.PI * 2;
+// The wheel starts from rest and gathers speed, as the classic room did: slow enough to read
+// the tiles while they show, at full speed by the time the drop gets hard.
+export const ACCEL = 1.8;     // radians per second²
+
+// How far the wheel has turned t seconds into a spin that tops out at `speed`.
+export function spinAngle(speed, t) {
+  const T = speed / ACCEL;
+  return t <= T ? ACCEL * t * t / 2 : ACCEL * T * T / 2 + speed * (t - T);
+}
+
+// The inverse: how long it takes the wheel to turn through `angle`.
+export function spinTime(speed, angle) {
+  const T = speed / ACCEL, aT = ACCEL * T * T / 2;
+  return angle <= aT ? Math.sqrt((2 * angle) / ACCEL) : T + (angle - aT) / speed;
+}
 
 export const TILES = {
   coin: { label: 'Coin', note: 'Safe. The bank adds to the pot.' },
@@ -52,8 +67,9 @@ export class Ricochet {
 
     const ice = p.inventory.filter(x => x === 'ice').length;
     const fill = Math.max(0.2, 0.7 - Math.max(0, this.round - ice) * 0.05);
+    const plain = Math.max(0.2, 0.7 - this.round * 0.05);   // the width without ice, to show what the ice adds
     const slice = TAU / 6;
-    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill }));
+    const zones = types.map((type, i) => ({ type, start: i * slice, end: i * slice + slice * fill, plainEnd: i * slice + slice * plain }));
 
     let speed = 3 + this.round * 0.3;          // radians per second
     let slowed = false;
@@ -128,15 +144,16 @@ export class Ricochet {
 const AIM = { countess: 0.05, cowboy: 0.22, calculator: 0.07 };   // how far off their timing runs (s)
 
 // When a guest drops the ball: aim for the best tile they saw before the covers came down.
-export function planDrop(spin, rotationAt1s, style, rng = Math.random) {
+// Returns seconds after the spin starts; rotation0 is where the wheel stood at the start.
+export function planDrop(spin, rotation0, style, rng = Math.random) {
   const rank = { jackpot: 5, coin: 4, heart: 4.5, glass: 3, ice: 3, hourglass: 2, skull: -9 };
   const best = [...spin.zones].sort((a, b) => (rank[b.type] ?? 0) - (rank[a.type] ?? 0))[0];
   const mid = (best.start + best.end) / 2;
-  // rotation needed so that `mid` sits under the ball, at least 0.8 s after the covers fall
-  let target = Math.PI * 1.5 - mid;
-  const earliest = rotationAt1s + spin.speed * 0.8;
-  while (target < earliest) target += TAU;
-  const t = 1 + (target - rotationAt1s) / spin.speed;
+  // the turn needed so that `mid` sits under the ball, no sooner than 1.8 s into the spin
+  const earliest = spinAngle(spin.speed, 1.8);
+  let turn = Math.PI * 1.5 - mid - rotation0;
+  while (turn < earliest) turn += TAU;
+  const t = spinTime(spin.speed, turn);
   const noise = (rng() + rng() + rng() - 1.5) * (AIM[style] ?? 0.12);
   return Math.max(1.05, t + noise);
 }

@@ -1,6 +1,6 @@
 // The Ricochet table: a painted wheel, six covered tiles, one ball, and nerve.
 
-import { Ricochet, TILES, BUY_IN, planDrop, wantsToLeave, soloChoice } from './engine.js';
+import { Ricochet, TILES, BUY_IN, planDrop, wantsToLeave, soloChoice, spinAngle } from './engine.js';
 import { GUESTS } from '../fortuna/engine.js';
 import { createShell, confirmLeave, sleep, YOU } from '../shell.js';
 import { chipFaceURL, PALETTES } from '../chip.js';
@@ -53,7 +53,9 @@ export function openRicochet(root, { purse, onLeave }) {
   // ── wheel state and drawing
   // at rest the wheel shows six covered tiles
   const resting = Array.from({ length: 6 }, (_, i) => ({ type: 'coin', start: i * Math.PI / 3, end: i * Math.PI / 3 + (Math.PI / 3) * 0.7 }));
-  const wheel = { zones: resting, rotation: -Math.PI / 2 - Math.PI / 3 * 0.35, speed: 0, spinning: false, t0: 0, covered: true, trueSight: false, landed: undefined };
+  const wheel = { zones: resting, rotation: -Math.PI / 2 - Math.PI / 3 * 0.35, rot0: 0, speed: 0, spinning: false, t0: 0, covered: true, trueSight: false, wider: 0, landed: undefined };
+  // where the wheel stands right now: the spin follows a fixed curve from its start
+  const turned = now => wheel.rot0 + spinAngle(wheel.speed, (now - wheel.t0) / 1000);
   const chip = new Image();
   chipFaceURL(PALETTES.camino, 'logo').then(u => { chip.src = u; });
   const grain = (() => {
@@ -83,16 +85,16 @@ export function openRicochet(root, { purse, onLeave }) {
   }
 
   function draw() {
-    const S = canvas.width, c = S / 2, rIn = S * 0.255, rOut = S * 0.43;
+    const S = canvas.width, c = S / 2, rIn = S * 0.205, rOut = S * 0.445;
     ctx.clearRect(0, 0, S, S);
     // felt and rails
-    ctx.beginPath(); ctx.arc(c, c, S * 0.485, 0, Math.PI * 2); ctx.fillStyle = '#1d3a30'; ctx.fill();
+    ctx.beginPath(); ctx.arc(c, c, S * 0.49, 0, Math.PI * 2); ctx.fillStyle = '#1d3a30'; ctx.fill();
     ctx.strokeStyle = '#d4b46f'; ctx.lineWidth = S * 0.004;
-    for (const r of [0.47, 0.455, rOut / S + 0.012, rIn / S - 0.012]) { ctx.beginPath(); ctx.arc(c, c, S * r, 0, Math.PI * 2); ctx.stroke(); }
+    for (const r of [0.48, 0.472, rIn / S - 0.012]) { ctx.beginPath(); ctx.arc(c, c, S * r, 0, Math.PI * 2); ctx.stroke(); }
     ctx.globalAlpha = 0.35;
     for (let k = 0; k < 60; k++) {
       const a = (k / 60) * Math.PI * 2 + wheel.rotation;
-      ctx.beginPath(); ctx.moveTo(c + Math.cos(a) * (rOut + S * 0.012), c + Math.sin(a) * (rOut + S * 0.012)); ctx.lineTo(c + Math.cos(a) * (rOut + S * 0.022), c + Math.sin(a) * (rOut + S * 0.022)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(c + Math.cos(a) * (rOut + S * 0.01), c + Math.sin(a) * (rOut + S * 0.01)); ctx.lineTo(c + Math.cos(a) * (rOut + S * 0.022), c + Math.sin(a) * (rOut + S * 0.022)); ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
@@ -109,6 +111,17 @@ export function openRicochet(root, { purse, onLeave }) {
         for (let d = -S; d < S; d += S * 0.012) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + S, S); ctx.stroke(); }
         ctx.restore();
       }
+      if (wheel.wider && z.plainEnd < z.end) {
+        // the ice at work: frost on the strip of tile the ice has added
+        const p0 = z.plainEnd + wheel.rotation;
+        ctx.save(); ctx.beginPath(); ctx.arc(c, c, rOut, p0, a1); ctx.arc(c, c, rIn, a1, p0, true); ctx.closePath();
+        ctx.fillStyle = 'rgba(196, 228, 240, 0.78)'; ctx.fill(); ctx.clip();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = S * 0.003;
+        for (let d = -S; d < S; d += S * 0.016) { ctx.beginPath(); ctx.moveTo(d + S, 0); ctx.lineTo(d, S); ctx.stroke(); }
+        ctx.restore();
+        ctx.beginPath(); ctx.moveTo(c + Math.cos(p0) * rIn, c + Math.sin(p0) * rIn); ctx.lineTo(c + Math.cos(p0) * rOut, c + Math.sin(p0) * rOut);
+        ctx.strokeStyle = 'rgba(43, 74, 98, 0.6)'; ctx.lineWidth = S * 0.003; ctx.setLineDash([S * 0.008, S * 0.008]); ctx.stroke(); ctx.setLineDash([]);
+      }
       ctx.beginPath(); ctx.arc(c, c, rOut, a0, a1); ctx.arc(c, c, rIn, a1, a0, true); ctx.closePath();
       ctx.strokeStyle = wheel.landed === z ? '#f3d58a' : '#2b251d'; ctx.lineWidth = wheel.landed === z ? S * 0.012 : S * 0.004; ctx.stroke();
       if (!hidden) {
@@ -119,31 +132,30 @@ export function openRicochet(root, { purse, onLeave }) {
           for (let d = -S; d < S; d += S * 0.012) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + S, S); ctx.stroke(); }
           ctx.restore();
         }
-        const rm = (rIn + rOut) / 2, span = Math.min((a1 - a0) * rm, rOut - rIn);
+        const rm = (rIn + rOut) / 2, span = Math.min((z.plainEnd ?? z.end) - z.start, a1 - a0) * rm;
         ctx.save(); ctx.translate(c + Math.cos(mid) * rm, c + Math.sin(mid) * rm); ctx.rotate(mid + Math.PI / 2);
-        icon(z.type, Math.min(span * 0.85, S * 0.11));
+        icon(z.type, Math.min(span * 0.95, (rOut - rIn) * 0.9));
         ctx.restore();
       }
     }
     if (wheel.landed === null) {
       ctx.beginPath(); ctx.arc(c, c - (rIn + rOut) / 2, S * 0.05, 0, Math.PI * 2); ctx.strokeStyle = '#e0877c'; ctx.lineWidth = S * 0.008; ctx.stroke();
     }
-    // the ball, waiting at the top
+    // the pointer, and the ball: waiting under it, or dropped onto the tile (or into the gap) below
     const by = c - rOut - S * 0.035;
     ctx.beginPath(); ctx.moveTo(c - S * 0.022, by - S * 0.03); ctx.lineTo(c + S * 0.022, by - S * 0.03); ctx.lineTo(c, by + S * 0.012); ctx.closePath();
     ctx.fillStyle = '#d4b46f'; ctx.fill(); ctx.strokeStyle = '#2b251d'; ctx.lineWidth = S * 0.003; ctx.stroke();
-    ctx.beginPath(); ctx.arc(c, by + S * 0.022, S * 0.016, 0, Math.PI * 2);
-    const g = ctx.createRadialGradient(c - S * 0.005, by + S * 0.016, S * 0.002, c, by + S * 0.022, S * 0.016);
+    const ballY = wheel.landed === undefined ? by + S * 0.022 : c - rOut + S * 0.03, br = S * 0.018;
+    ctx.beginPath(); ctx.arc(c, ballY, br, 0, Math.PI * 2);
+    const g = ctx.createRadialGradient(c - br * 0.3, ballY - br * 0.35, br * 0.1, c, ballY, br);
     g.addColorStop(0, '#fffdf6'); g.addColorStop(1, '#bfb398'); ctx.fillStyle = g; ctx.fill(); ctx.stroke();
   }
 
-  let last = performance.now();
   function frame(now) {
     if (!alive) return;
     requestAnimationFrame(frame);
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
     if (wheel.spinning) {
-      wheel.rotation += wheel.speed * dt;
+      wheel.rotation = turned(now);
       wheel.covered = now - wheel.t0 > 1000;
     }
     draw();
@@ -158,7 +170,7 @@ export function openRicochet(root, { purse, onLeave }) {
     hubRound.textContent = `Round ${ROMAN(game.round)}`;
     shell.seats(game.players.map(p => ({ ...p, active: p.alive || !!p.cashOut, cash: p.alive ? BUY_IN : (p.cashOut ?? 0) })), {
       current: cur?.alive ? cur.id : null,
-      status: p => (p.cashOut && !p.alive ? `Left with ${p.cashOut}` : p.id === cur?.id ? (p.id === 'you' ? 'Your spin' : 'Spinning') : p.inventory.map(i => TILES[i].label).join(' · ')),
+      status: p => `${p.cashOut && !p.alive ? `Left with ${p.cashOut}` : p.id === cur?.id ? (p.id === 'you' ? 'Your spin' : 'Spinning') : ''}${p.alive ? p.inventory.map(i => `<img class="rc-carry" src="${medalURL(i)}" alt="${TILES[i].label}" title="${TILES[i].label}: ${TILES[i].note}">`).join('') : ''}`,
     });
     const pocket = me().inventory;
     const kinds = ITEMS.filter(i => pocket.includes(i));
@@ -210,23 +222,27 @@ export function openRicochet(root, { purse, onLeave }) {
 
   async function spinFor(p) {
     const spin = game.spin();
-    Object.assign(wheel, { zones: spin.zones, speed: spin.speed, spinning: true, t0: performance.now(), covered: false, trueSight: spin.trueSight, landed: undefined });
-    hubFx.textContent = [spin.trueSight && 'True sight', spin.slowed && 'Slowed', spin.wider && 'Wider tiles'].filter(Boolean).join(' · ');
-    if (spin.slowed) present('hourglass', 'The hourglass turns', 'This spin runs at the slowest speed.');
+    render();   // a spent hourglass leaves the pocket as the wheel starts
     const rot0 = wheel.rotation;
+    Object.assign(wheel, { zones: spin.zones, rot0, speed: spin.speed, spinning: true, t0: performance.now(), covered: false, trueSight: spin.trueSight, wider: spin.wider, landed: undefined });
+    // what is working on this spin, shown in the hub for as long as it turns
+    const fx = [spin.slowed && ['hourglass', 'Slowed'], spin.trueSight && ['glass', 'True sight'], spin.wider && ['ice', spin.wider > 1 ? `Wider ×${spin.wider}` : 'Wider']].filter(Boolean);
+    hubFx.innerHTML = fx.map(([type, label]) => `<img src="${medalURL(type)}" alt="${label}" title="${label}: ${TILES[type].note}">`).join('');
+    if (fx.length) shell.say(`${p.id === 'you' ? 'Your' : `${p.name}'s`} spin: ${fx.map(([, label]) => label.toLowerCase()).join(', ')}.`);
     if (p.id === 'you') {
       shell.actions('<button class="btn" data-act="drop" disabled>Watch the tiles…</button>');
       setTimeout(() => alive && wheel.spinning && shell.actions('<button class="btn" data-act="drop">Drop the ball</button>'), 1000);
       await new Promise(r => { waitDrop = () => { if (performance.now() - wheel.t0 >= 1000) { waitDrop = null; r(); } }; });
       shell.actions('');
     } else {
-      const t = planDrop(spin, rot0 + spin.speed, p.style);
+      const t = planDrop(spin, rot0, p.style);
       await sleep(t * 1000);
     }
+    wheel.rotation = turned(performance.now());
     wheel.spinning = false;
     const zone = Ricochet.under(wheel.zones, wheel.rotation);
     wheel.landed = zone; wheel.covered = false;
-    hubFx.textContent = '';
+    hubFx.innerHTML = '';
     const out = game.resolve(zone);
     if (out.kind === 'item') present(out.item, `${p.id === 'you' ? 'You find' : `${p.short} finds`} the ${TILES[out.item].label.toLowerCase()}`, TILES[out.item].note);
     if (out.kind === 'saved') present('heart', 'The heart holds', `${out.cause === 'gap' ? 'Into the gap' : 'A skull'}, and still standing.`);
@@ -289,7 +305,7 @@ export function openRicochet(root, { purse, onLeave }) {
       shell.say(tell(p, out));
       if (out.kind === 'dead' || out.kind === 'saved') shell.pulse(p.id);
       render();
-      await sleep(1900); if (!alive) return;
+      await sleep(p.id === 'you' && out.kind === 'dead' ? 2800 : 1900); if (!alive) return;
       const next = game.advance();
       render();
       if (p.id === 'you' && out.kind === 'dead') return finish('The wheel has the last word tonight.');
