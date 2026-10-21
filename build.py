@@ -19,12 +19,13 @@ SRC = ROOT / 'src'
 
 # dependencies first
 MODULES = [
-    'assets.js', 'paint.js', 'chip.js', 'merchant.js', 'zoetrope.js', 'wallet.js',
+    'assets.js', 'paint.js', 'chip.js', 'figure.js', 'merchant.js', 'keeper.js', 'zoetrope.js', 'wallet.js',
+    'coins/world.js', 'coins/coin.js', 'coins/viewer.js', 'coins/globe.js',
     'shell.js', 'fortuna/engine.js', 'fortuna/table.js', 'frontier/engine.js', 'frontier/table.js',
     'ricochet/engine.js', 'ricochet/medals.js', 'ricochet/table.js', 'venue.js', 'main.js',
 ]
 TEXT_ASSETS = [f'American_Playing_Cards_Symbols/{s}.svg' for s in ('spades', 'hearts', 'clubs', 'diamonds', 'star')] + ['quotes.txt']
-BINARY_ASSETS = ['Casino Camino Title/3D Title/CasinoCamino3dTitle.stl'] + [
+BINARY_ASSETS = ['Casino Camino Title/3D Title/CasinoCamino3dTitle.stl', 'assets/coin/C2 Casino Camino Chip Arc Star.stl'] + [
     f'assets/cards/{s}_{r}.jpg' for s in ('spades', 'clubs', 'hearts', 'diamonds', 'stars') for r in range(1, 11)]
 
 IMPORT = re.compile(r"^import (.+) from '([^']+)';\s*$")

@@ -12,6 +12,9 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { watercolorMaterial, tint, Paintable } from './paint.js';
 import { chipStacks, bigChip } from './chip.js';
 import { createMerchant } from './merchant.js';
+import { createKeeper } from './keeper.js';
+import { worldCanvas, loadLand, lonLatToVec } from './coins/world.js';
+import { buildCoin, matcapMaterials, COIN_R } from './coins/coin.js';
 import { createZoetrope } from './zoetrope.js';
 import { assetBinary, loadSuits } from './assets.js';
 
@@ -466,6 +469,60 @@ function drawClock(s) {
   return { cx: cx + 0.05, cy, cz, R };
 }
 
+// The coin desk stands by the velvet ropes at the entrance to the casino floor:
+// Miss Sterling behind it, a globe at one end, a coin on a stand at the other.
+const DESK = { x0: 5.8, x1: 12.4, z0: -43.2, z1: -41.2, top: 3.0 };
+const GLOBE = { pos: new THREE.Vector3(6.85, 4.2, -42.15), r: 0.66, tilt: 23.4 * Math.PI / 180 };
+const COIN = { pos: new THREE.Vector3(11.35, 3.78, -42.2), r: 0.58 };
+const KEEPER = new THREE.Vector3(9.25, 0, -44.3);
+
+function drawCoinDesk(s) {
+  const v = THREE.Vector3, { x0, x1, z0, z1, top } = DESK, front = z1 + 0.012;
+  s.object('keeper', '#5b2b22');
+  s.block(x0, 0, z0, x1, top - 0.25, z1, { over: 0.3 });
+  s.block(x0 - 0.3, top - 0.25, z0 - 0.3, x1 + 0.3, top, z1 + 0.3, { over: 0.3, paint: '#c9a35a' });
+  s.block(x0 - 0.15, 0, z0 - 0.15, x1 + 0.15, 0.25, z1 + 0.15, { over: 0.2, arr: s.fine, paint: '#3e1d17' });
+  // fluting, broken by a medallion that carries the coin's star
+  const mx = (x0 + x1) / 2, my = 1.38, mr = 0.78;
+  for (let x = x0 + 0.45; x < x1 - 0.3; x += 0.45) {
+    if (Math.abs(x - mx) < mr + 0.1) {
+      const h = Math.sqrt(Math.max(0, (mr + 0.1) ** 2 - (x - mx) ** 2));
+      s.seg(s.fine, new v(x, 0.4, front), new v(x, my - h, front)); s.seg(s.fine, new v(x, my + h, front), new v(x, top - 0.45, front));
+    } else s.seg(s.fine, new v(x, 0.4, front), new v(x, top - 0.45, front));
+  }
+  const ring = (r, arr) => { const pts = []; for (let i = 0; i < 48; i++) { const a = (i / 48) * Math.PI * 2; pts.push(new v(mx + Math.cos(a) * r, my + Math.sin(a) * r, front + 0.005)); } s.poly(arr, pts, true); };
+  ring(mr, s.main); ring(mr - 0.1, s.fine);
+  { const g = new THREE.CircleGeometry(mr, 48); g.translate(mx, my, front); s.paintOnly(g, '#c9ccd0'); }
+  const star = [];
+  for (let k = 0; k <= 12; k++) { const r = k % 2 ? 0.27 : 0.5, a = Math.PI / 2 + (k * Math.PI) / 6; star.push(new v(mx + Math.cos(a) * r, my + Math.sin(a) * r, front + 0.01)); }
+  s.poly(s.accent, star);
+  { const sh = new THREE.Shape(star.slice(0, 12).map(p => new THREE.Vector2(p.x, p.y))); const g = new THREE.ShapeGeometry(sh); g.translate(0, 0, front + 0.006); s.paintOnly(g, '#d6b066'); }
+  s.object(null);
+
+  // the globe's brass stand: foot, stem and a half meridian ring
+  const { pos: g, r: gr, tilt } = GLOBE;
+  s.object('globe', '#b8913f');
+  s.cylinder(g.x, top, g.z, 0.42, top + 0.12, 0.36, { n: 40 });
+  s.cylinder(g.x, top + 0.12, g.z, 0.07, g.y - gr - 0.08, 0.06, { n: 12 });
+  const mer = [];
+  for (let i = 0; i <= 32; i++) {
+    const a = -Math.PI / 2 + (i / 32) * Math.PI, rr = gr + 0.1;
+    // a half circle in the x–y plane, tipped with the globe's axis
+    const lx = -Math.cos(a) * rr, ly = Math.sin(a) * rr;
+    mer.push(new v(g.x + lx * Math.cos(tilt) + ly * Math.sin(tilt), g.y - lx * Math.sin(tilt) + ly * Math.cos(tilt), g.z));
+  }
+  s.poly(s.main, mer);
+  s.seg(s.main, new v(g.x, g.y - gr - 0.08, g.z), mer[0]);
+  s.object(null);
+
+  // the coin's stand: a little block with two brass prongs that cradle the rim
+  const c = COIN.pos;
+  s.object('coin', '#3e1d17');
+  s.block(c.x - 0.42, top, c.z - 0.22, c.x + 0.42, top + 0.16, c.z + 0.22, { over: 0.06 });
+  for (const sd of [-1, 1]) s.block(c.x + sd * 0.36 - 0.035, top + 0.16, c.z - 0.035, c.x + sd * 0.36 + 0.035, c.y - 0.3, c.z + 0.035, { over: 0.02, paint: '#c9a35a' });
+  s.object(null);
+}
+
 const TABLE = { fortuna: new THREE.Vector3(0, 3, -66), ricochet: new THREE.Vector3(-8.5, 3, -88), frontier: new THREE.Vector3(8.5, 3, -88) };
 
 function drawCasino(s) {
@@ -708,6 +765,9 @@ export const OBJECTS = {
   frontier: { label: 'Frontier', hint: 'Take a seat' },
   theater: { label: 'The Theater', hint: 'Dark tonight' },
   merchant: { label: 'Mr. Jeremiah Thistlewood', hint: 'Merchant of Bristol, in his cups' },
+  keeper: { label: 'Miss Vivienne Sterling', hint: 'Keeper of the Coin · hear her out' },
+  globe: { label: 'The globe', hint: 'Where the coins are' },
+  coin: { label: 'The Casino Camino Coin', hint: 'Turn it in your hand' },
 };
 
 function glowTexture() {
@@ -729,15 +789,16 @@ const KEYS = [
   { pos: [5, 3.6, 30], tgt: [0, 4.5, 0] },
   { pos: [0, 3.8, 16], tgt: [0, 4.2, -20] },
   { pos: [3, 5.6, -3], tgt: [-6, 6, -30], stop: 2 },
-  { pos: [0, 9, -28], tgt: [0, 3, -64] },
-  { pos: [0, 14, -44], tgt: [0, 2, -72], stop: 3 },
+  { pos: [-3.5, 6.2, -26], tgt: [7.6, 4.4, -44], stop: 3 },
+  { pos: [-1, 9, -33], tgt: [0, 3, -66] },
+  { pos: [0, 14, -44], tgt: [0, 2, -72], stop: 4 },
   { pos: [0, 8, -100], tgt: [0, 10, -170] },
-  { pos: [0, 7, -122], tgt: [0, 16, -170], stop: 4 },
+  { pos: [0, 7, -122], tgt: [0, 16, -170], stop: 5 },
 ];
 export const STOP_KEYS = KEYS.map((k, i) => (k.stop !== undefined ? i : -1)).filter(i => i >= 0);
 
 // The long walk: what wakes up in colour while the camera rests in each room.
-const ROOMS = [['portico'], ['fountain'], ['concierge', 'lifts'], ['fortuna', 'ricochet', 'frontier', 'merchant'], ['theater']];
+const ROOMS = [['portico'], ['fountain'], ['concierge', 'lifts'], ['keeper', 'globe', 'coin'], ['fortuna', 'ricochet', 'frontier', 'merchant'], ['theater']];
 
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -767,7 +828,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   scene.add(exterior);
 
   const int = new Sheet();
-  drawHall(int); drawConcierge(int); drawCasino(int); drawTheater(int);
+  drawHall(int); drawConcierge(int); drawCoinDesk(int); drawCasino(int); drawTheater(int);
   const clockFace = drawClock(int);
   const interior = build(int, mats);
   interior.visible = false;
@@ -816,6 +877,73 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   merchant.mesh.position.set(9, 0, -71);
   interior.add(merchant.mesh);
   paintables.push(Object.assign(new Paintable({ name: 'merchant', materials: [merchant.material], hit: merchant.mesh, center: new THREE.Vector3(), radius: 1 }), { inside: true }));
+
+  // ── the coin desk: Miss Sterling, her globe and the coin
+  // extra pieces join the paintable of the desk part they belong to, and wake with it
+  const join = (name, material, mesh, radius) => {
+    const pt = paintables.find(p => p.name === name);
+    if (material) {
+      pt.materials.push(material);
+      if (material.uniforms.uOrigin.value.isVector3) material.uniforms.uOrigin.value.copy(pt.center);
+      if (radius) pt.materials.forEach(m => { if (m.uniforms.uRadius) m.uniforms.uRadius.value = radius; });
+      material.uniforms.uReveal.value = pt.reveal;
+    }
+    (pt.extraHits ??= []).push(mesh);
+  };
+  const keeper = createKeeper();
+  keeper.mesh.position.copy(KEEPER);
+  interior.add(keeper.mesh);
+  join('keeper', keeper.material, keeper.mesh);
+  const figures = [merchant, keeper];
+
+  // the globe turns slowly on its tipped axis: ink lines over a hidden ball, watercolour seas and lands when touched
+  const globeTilt = new THREE.Group(), globeSpin = new THREE.Group();
+  globeTilt.position.copy(GLOBE.pos); globeTilt.rotation.z = -GLOBE.tilt;
+  globeTilt.add(globeSpin); interior.add(globeTilt);
+  const globeMat = watercolorMaterial();
+  const globeBall = new THREE.Mesh(tint(new THREE.SphereGeometry(GLOBE.r, 48, 32), '#ffffff'), globeMat);
+  globeBall.renderOrder = 1;
+  const globeHide = new THREE.Mesh(new THREE.SphereGeometry(GLOBE.r * 0.995, 32, 24), mats.occluder);
+  globeHide.renderOrder = -1;
+  globeSpin.add(globeBall, globeHide);
+  {
+    const grat = [], R = GLOBE.r * 1.003, p = new THREE.Vector3(), q = new THREE.Vector3();
+    for (let lon = 0; lon < 180; lon += 30) for (let i = 0; i < 48; i++) {
+      lonLatToVec(lon, -180 + i * 7.5, R, p); lonLatToVec(lon, -180 + (i + 1) * 7.5, R, q); grat.push(p.x, p.y, p.z, q.x, q.y, q.z);
+    }
+    for (let lat = -60; lat <= 60; lat += 30) for (let i = 0; i < 48; i++) {
+      lonLatToVec(i * 7.5, lat, R, p); lonLatToVec((i + 1) * 7.5, lat, R, q); grat.push(p.x, p.y, p.z, q.x, q.y, q.z);
+    }
+    const g = new LineSegmentsGeometry(); g.setPositions(grat);
+    globeSpin.add(new LineSegments2(g, mats.fine));
+  }
+  join('globe', globeMat, globeBall, 1.4);
+  // the coastlines in ink, and the map for the watercolour, once the land has been fetched
+  loadLand().then(polys => {
+    if (!polys.length) return;
+    const coast = [], R = GLOBE.r * 1.004, p = new THREE.Vector3(), q = new THREE.Vector3();
+    for (const poly of polys) for (const ring of poly) for (let i = 1; i < ring.length; i++) {
+      if (Math.abs(ring[i][0] - ring[i - 1][0]) > 90) continue;
+      lonLatToVec(...ring[i - 1], R, p); lonLatToVec(...ring[i], R, q); coast.push(p.x, p.y, p.z, q.x, q.y, q.z);
+    }
+    const g = new LineSegmentsGeometry(); g.setPositions(coast);
+    globeSpin.add(new LineSegments2(g, mats.main));
+    return worldCanvas({ width: 1024, sea: '#5d8fb5', land: '#d9c48e', coast: '#6d5a3a', coastWidth: 1.2 });
+  }).then(c => {
+    if (!c) return;
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    globeMat.uniforms.uMap.value = tex; globeMat.uniforms.uHasMap.value = 1;
+  }).catch(() => {});
+
+  // the coin on its stand: like the chip, always in colour
+  const coinPivot = new THREE.Group();
+  coinPivot.position.copy(COIN.pos);
+  interior.add(coinPivot);
+  buildCoin(matcapMaterials()).then(({ group, body, top, back }) => {
+    group.scale.setScalar(COIN.r / COIN_R);
+    coinPivot.add(group);
+    [body, top, back].forEach(m => join('coin', null, m));
+  }).catch(() => {});
 
   // ── the chip: stacks on every table, and a monument spinning above the fountain
   const fz = TABLE.fortuna.z;
@@ -891,8 +1019,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     mats.fine.opacity = n ? 0.8 : 0.7;
     scene.traverse(o => { if (o.userData.nightOnly) o.visible = n; });
     scene.traverse(o => { if (o.material?.uniforms?.uNight) o.material.uniforms.uNight.value = n ? 1 : 0; });
-    merchant.material.uniforms.uLine.value.set(t.ink);
-    merchant.material.uniforms.uPaper.value.set(t.paper);
+    for (const f of figures) { f.material.uniforms.uLine.value.set(t.ink); f.material.uniforms.uPaper.value.set(t.paper); }
   }
   setTheme(night);
 
@@ -983,6 +1110,11 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     // he sways, and always turns to face whoever is looking at him
     const mm = merchant.mesh;
     mm.rotation.set(0, Math.atan2(camera.position.x - mm.position.x, camera.position.z - mm.position.z), Math.sin(time * 1.3) * 0.045);
+    // Miss Sterling keeps her poise: she turns to you, and only just breathes
+    const km = keeper.mesh;
+    km.rotation.set(0, Math.atan2(camera.position.x - km.position.x, camera.position.z - km.position.z), Math.sin(time * 0.9) * 0.012);
+    globeSpin.rotation.y = time * 0.12;
+    coinPivot.rotation.y = time * 0.55;
     if (monument) monument.rotation.y = Math.sin(time * 0.45) * 0.55;
     zoetrope.update(time);
     renderer.render(scene, camera);
@@ -995,6 +1127,11 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     stopCount: STOP_KEYS.length,
     goToStop: (i, dur) => goToKey(STOP_KEYS[i], dur),
     jumpToStop: i => { travel = null; p = STOP_KEYS[i]; },
+    // up close to the globe or the coin on the desk
+    flyToDesk: name => {
+      const at = name === 'globe' ? GLOBE.pos : COIN.pos;
+      return flyTo({ pos: at.clone().add(new THREE.Vector3(name === 'globe' ? 0.9 : -0.9, 0.5, 2.6)), tgt: at.clone() }, 1.5);
+    },
     flyToTable: (name = 'fortuna') => name === 'ricochet'
       // low and from the side, so the galloping band passes right in front of you
       ? flyTo({ pos: TABLE.ricochet.clone().add(new THREE.Vector3(0.6, 1.9, 4.6)), tgt: TABLE.ricochet.clone().add(new THREE.Vector3(0, 0.45, 0)) }, 1.8)

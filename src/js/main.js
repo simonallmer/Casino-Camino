@@ -10,6 +10,11 @@ const TABLES = {
   frontier: { open: openFrontier, min: FRONTIER_STAKE, label: 'Frontier', blurb: `Five rounds of cards, alliances and nerve. Buy-in ${FRONTIER_STAKE}.` },
 };
 import { loadQuotes, drawLine } from './assets.js';
+import { openGlobe } from './coins/globe.js';
+import { openCoin } from './coins/viewer.js';
+
+// the six stops of the camino
+const S = { arrival: 0, court: 1, hall: 2, coins: 3, casino: 4, theater: 5 };
 
 const $ = s => document.querySelector(s);
 const card = $('.stop-card'), rail = $('.promenade'), hint = $('.walk-hint'), layer = $('.table-layer'), tag = $('.hover-tag'), recital = $('.recital'), toastEl = $('.toast');
@@ -43,7 +48,7 @@ $('.theme-toggle').addEventListener('click', async () => {
 // ── purse
 const fmtIn = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`; };
 function renderPurse() { $('.purse-val').textContent = purse.balance; }
-purse.subscribe(() => { renderPurse(); if (stop === 2 || stop === 3) renderCard(); });
+purse.subscribe(() => { renderPurse(); if (stop === S.hall || stop === S.casino) renderCard(); });
 renderPurse();
 setInterval(() => { if (checkDawn()) renderCard(); }, 60e3);
 
@@ -67,10 +72,12 @@ function toast(text) {
 function activate(name) {
   tag.classList.remove('on');
   switch (name) {
-    case 'portico': go(2); break;
-    case 'concierge': stop === 2 ? renderCard() : go(2); break;
-    case 'fortuna': case 'ricochet': case 'frontier': stop === 3 ? sit(name) : go(3); break;
-    case 'theater': go(4); break;
+    case 'portico': go(S.hall); break;
+    case 'concierge': stop === S.hall ? renderCard() : go(S.hall); break;
+    case 'keeper': stop === S.coins ? talk(talkAt < 0 ? 0 : talkAt) : go(S.coins); break;
+    case 'globe': case 'coin': stop === S.coins ? visit(name) : go(S.coins); break;
+    case 'fortuna': case 'ricochet': case 'frontier': stop === S.casino ? sit(name) : go(S.casino); break;
+    case 'theater': go(S.theater); break;
     case 'lifts': loadQuotes().then(q => toast(drawLine(q, 'The hotel lifts'))); break;
     case 'fountain':
       if (purse.balance < 1) { toast('Your purse is empty. You wish anyway, for free.'); break; }
@@ -101,7 +108,20 @@ recital.addEventListener('click', e => {
   if (e.target.closest('[data-encore]')) recite();
 });
 
-// ── the five stops of the camino
+// ── Miss Sterling explains the coin, one line at a time (the stop card becomes her side of the conversation)
+const KEEPER_LINES = [
+  { say: 'Inside these walls we play with chips. Out there, the whole world is the casino, and this is its chip.', aside: 'She holds a coin up to the light: silver, with a star of gold.' },
+  { say: 'One hundred thousand coins, ever. One for every hundred thousand people on Earth. Not one more.' },
+  { say: 'The mint runs a test in 2027. From the first of January 2028 it strikes about eight a day, on a fixed public schedule, until the last coin in 2060.', aside: 'No drops. No surprises.' },
+  { say: 'Look at the star. Inside it sits a tiny chip that holds the coin’s own serial number. Tap the coin with your phone and it checks in.', show: 'coin' },
+  { say: 'Every tap adds a stop to that coin’s travel log, and the globe shows where the coins are. By country only: never where a coin, or its holder, is exactly.', show: 'globe' },
+  { say: 'So play with them, trade them, pass them on. A currency for the world’s casino: never sold as an investment, never cashed out.', aside: 'She sets the coin back on its stand.' },
+];
+const SHOW = { coin: 'Show me the coin', globe: 'Show me the globe' };
+let talkAt = -1;
+function talk(i) { talkAt = i; renderCard(); }
+
+// ── the six stops of the camino
 const STOPS = [
   {
     label: 'Arrival',
@@ -135,14 +155,39 @@ const STOPS = [
           ? `The tables are closed to you until dawn, in ${fmtIn(nextDawn() - Date.now())}. The hall, the gardens and the theater stay open.`
           : `Each dawn the house tops your purse up to ${DAILY_STAKE}. Anything you win above that is yours to keep. What you lose stays lost until morning.`}</p>
         ${ledger ? `<ul class="ledger">${ledger}</ul>` : ''}
-        <div class="actions"><button class="btn" data-go="3">To the casino floor</button></div>`;
+        <div class="actions"><button class="btn" data-go="${S.casino}">To the casino floor</button></div>`;
+    },
+  },
+  {
+    label: 'Coins',
+    render: () => {
+      if (talkAt < 0) return `
+        <p class="kicker">IV · The Coin Desk</p>
+        <h1>The world is the casino.</h1>
+        <p>At the door to the tables, Miss Vivienne Sterling keeps the house’s other currency: a coin made to travel the world.</p>
+        <div class="actions"><button class="btn" data-talk="0">Hear her out</button></div>
+        <div class="actions wrap"><button class="btn ghost" data-visit="globe">The globe</button><button class="btn ghost" data-visit="coin">The coin</button></div>`;
+      const line = KEEPER_LINES[talkAt], last = talkAt === KEEPER_LINES.length - 1;
+      return `
+        <p class="kicker">Miss Sterling · Keeper of the Coin</p>
+        <blockquote class="says">“${line.say}”</blockquote>
+        ${line.aside ? `<p class="aside">${line.aside}</p>` : ''}
+        <div class="talk-nav">
+          <span class="talk-count">${talkAt + 1} / ${KEEPER_LINES.length}</span>
+          ${talkAt > 0 ? `<button class="link" data-talk="${talkAt - 1}">← Back</button>` : '<button class="link" data-talk="-1">← Leave her be</button>'}
+        </div>
+        <div class="actions wrap">
+          ${last
+            ? '<button class="btn" data-visit="globe">The globe</button><button class="btn" data-visit="coin">The coin</button><button class="btn ghost" data-talk="0">From the top</button>'
+            : `<button class="btn" data-talk="${talkAt + 1}">Go on</button>${line.show ? `<button class="btn ghost" data-visit="${line.show}">${SHOW[line.show]}</button>` : ''}`}
+        </div>`;
     },
   },
   {
     label: 'Casino',
     render: () => {
       return `
-        <p class="kicker">IV · The Casino Floor</p>
+        <p class="kicker">V · The Casino Floor</p>
         <h1>Three tables tonight.</h1>
         <ul class="tables">
           ${Object.entries(TABLES).map(([key, t]) => `
@@ -156,10 +201,10 @@ const STOPS = [
   {
     label: 'Theater',
     render: () => `
-      <p class="kicker">V · The Theater</p>
+      <p class="kicker">VI · The Theater</p>
       <h1>Dark tonight.</h1>
       <p>The first season is still in rehearsal. When the marquee lights up, this is where the shows will be.</p>
-      <div class="actions"><button class="btn ghost" data-go="3">Back to the tables</button></div>`,
+      <div class="actions"><button class="btn ghost" data-go="${S.casino}">Back to the tables</button></div>`,
   },
 ];
 
@@ -182,6 +227,7 @@ async function go(i) {
   if (seated || touring || i < 0 || i >= STOPS.length || (i === stop && !moving)) return;
   moving = true;
   stop = i;
+  talkAt = -1;
   document.body.classList.remove('at-arrival');
   hush();
   card.classList.add('away');
@@ -223,6 +269,10 @@ document.addEventListener('click', e => {
   if (goBtn) go(+goBtn.dataset.go);
   const seat = e.target.closest('[data-sit]');
   if (seat) sit(seat.dataset.sit);
+  const t = e.target.closest('[data-talk]');
+  if (t) talk(+t.dataset.talk);
+  const v = e.target.closest('[data-visit]');
+  if (v) visit(v.dataset.visit);
 });
 
 // ── the long walk: a tiny star beside the wordmark, for those who know it is there.
@@ -267,16 +317,32 @@ async function sit(name = 'fortuna') {
   await venue.flyToTable(name);
   layer.classList.add('open');
   layer.setAttribute('aria-hidden', 'false');
-  table.open(layer, { purse, onLeave: stand });
+  table.open(layer, { purse, onLeave: () => stand(S.casino) });
   setTimeout(() => venue.setPaused(true), 700);
 }
 
-async function stand() {
+// ── up close at the coin desk: the globe, or the coin in your hand
+const DESK_VIEWS = { globe: openGlobe, coin: openCoin };
+async function visit(name) {
+  if (seated || moving) return;
+  seated = true;
+  hush();
+  tag.classList.remove('on');
+  document.body.classList.add('seated');
+  await venue.flyToDesk(name);
+  layer.classList.add('open');
+  layer.setAttribute('aria-hidden', 'false');
+  DESK_VIEWS[name](layer, { night, onLeave: () => stand(S.coins) });
+  setTimeout(() => venue.setPaused(true), 700);
+}
+
+async function stand(to = S.casino) {
   venue.setPaused(false);
   layer.classList.remove('open');
   layer.setAttribute('aria-hidden', 'true');
   setTimeout(() => { if (!layer.classList.contains('open')) layer.innerHTML = ''; }, 700);
-  await venue.returnToStop(3);
+  await venue.returnToStop(to);
+  stop = to;
   seated = false;
   document.body.classList.remove('seated');
   renderCard();
