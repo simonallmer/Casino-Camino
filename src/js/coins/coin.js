@@ -1,4 +1,5 @@
-// The Casino Camino Coin, built from the Foundry print (C2, 39 mm × 3.3 mm).
+// The C2 print (39 mm × 3.3 mm), the first Casino Camino Coin, now kept in the archive.
+// Its front face is also the front of the nine coins in set.js.
 // The print has the six-pointed star, CASINO CAMINO and a ring sunk 0.5 mm into both faces.
 // Here the body is silver, the lettering darkened like an antique coin, and both stars are filled
 // with gold standing a hair proud of the face. Under the top star sits the chip that carries the serial.
@@ -8,13 +9,26 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { assetBinary } from '../assets.js';
 
 export const COIN_STL = 'assets/coin/C2 Casino Camino Chip Arc Star.stl';
-export const COIN_R = 19.5, COIN_T = 3.3;
-const FIELD = 3.3, FLOOR = 2.8, BACK_FLOOR = 0.5, STAR_R = 9.2, PROUD = 0.14;
+// one export per line: build.py picks up the first name of each export statement
+export const COIN_R = 19.5;
+export const COIN_T = 3.3;
+export const FIELD = 3.3;
+export const FLOOR = 2.8;
+export const BACK_FLOOR = 0.5;
+export const STAR_R = 9.2;
+export const PROUD = 0.14;
+// the engraved ring between the rim and the lettering
+export const GROOVE = [15.5, 17.5];
 
-let partsPromise = null;
+let stlPromise = null, partsPromise = null;
+// the raw print: a non-indexed geometry with the faces along ±Z, from z = 0 to 3.3
+export function coinSTL() {
+  stlPromise ??= assetBinary(COIN_STL).then(buf => new STLLoader().parse(buf));
+  return stlPromise;
+}
 // → { body, starTop, starBottom, chip } geometries in millimetres, centred, faces along ±Z
 export function coinParts() {
-  partsPromise ??= assetBinary(COIN_STL).then(buf => split(new STLLoader().parse(buf)));
+  partsPromise ??= coinSTL().then(split);
   return partsPromise;
 }
 
@@ -56,7 +70,7 @@ function split(geo) {
 }
 
 // A gold inlay from the floor triangles of a star recess: a cap at `capZ` and walls down to `wallZ`.
-function inlay(tris, capZ, wallZ, facing) {
+export function inlay(tris, capZ, wallZ, facing) {
   const p = [], n = [];
   const key = (x, y) => `${Math.round(x * 1000)},${Math.round(y * 1000)}`;
   const edges = new Map();
@@ -83,7 +97,7 @@ function inlay(tris, capZ, wallZ, facing) {
   return g;
 }
 
-function chipGeometry(z) {
+export function chipGeometry(z) {
   const g = new THREE.CircleGeometry(3.3, 48);
   g.translate(0, 0, z);
   return g;

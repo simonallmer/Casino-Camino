@@ -11,7 +11,7 @@ const TABLES = {
 };
 import { loadQuotes, drawLine } from './assets.js';
 import { openGlobe } from './coins/globe.js';
-import { openCoin } from './coins/viewer.js';
+import { openCoins } from './coins/gallery.js';
 
 // the six stops of the camino
 const S = { arrival: 0, court: 1, hall: 2, coins: 3, casino: 4, theater: 5 };
@@ -75,7 +75,8 @@ function activate(name) {
     case 'portico': go(S.hall); break;
     case 'concierge': stop === S.hall ? renderCard() : go(S.hall); break;
     case 'keeper': stop === S.coins ? talk(talkAt < 0 ? 0 : talkAt) : go(S.coins); break;
-    case 'globe': case 'coin': stop === S.coins ? visit(name) : go(S.coins); break;
+    case 'globe': stop === S.coins ? visit('globe') : go(S.coins); break;
+    case 'coin': stop === S.coins ? visit('coins') : go(S.coins); break;
     case 'fortuna': case 'ricochet': case 'frontier': stop === S.casino ? sit(name) : go(S.casino); break;
     case 'theater': go(S.theater); break;
     case 'lifts': loadQuotes().then(q => toast(drawLine(q, 'The hotel lifts'))); break;
@@ -113,11 +114,12 @@ const KEEPER_LINES = [
   { say: 'Inside these walls we play with chips. Out there, the whole world is the casino, and this is its chip.', aside: 'She holds a coin up to the light: silver, with a star of gold.' },
   { say: 'One hundred thousand coins, ever. One for every hundred thousand people on Earth. Not one more.' },
   { say: 'The mint runs a test in 2027. From the first of January 2028 it strikes about eight a day, on a fixed public schedule, until the last coin in 2060.', aside: 'No drops. No surprises.' },
-  { say: 'Look at the star. Inside it sits a tiny chip that holds the coin’s own serial number. Tap the coin with your phone and it checks in.', show: 'coin' },
+  { say: 'Nine coins, and you read them in two glances. Silver is one digit, gold is two, black is three. Then the star: green for a one, blue for a two, red for a five.', aside: 'A blue star on gold is twenty. A red star on black, five hundred.', show: 'coins' },
+  { say: 'Look at the star. Inside it sits a tiny chip that holds the coin’s own serial number. Tap the coin with your phone and it checks in.', show: 'coins' },
   { say: 'Every tap adds a stop to that coin’s travel log, and the globe shows where the coins are. By country only: never where a coin, or its holder, is exactly.', show: 'globe' },
   { say: 'So play with them, trade them, pass them on. A currency for the world’s casino: never sold as an investment, never cashed out.', aside: 'She sets the coin back on its stand.' },
 ];
-const SHOW = { coin: 'Show me the coin', globe: 'Show me the globe' };
+const SHOW = { coins: 'Show me the coins', globe: 'Show me the globe' };
 let talkAt = -1;
 function talk(i) { talkAt = i; renderCard(); }
 
@@ -164,9 +166,9 @@ const STOPS = [
       if (talkAt < 0) return `
         <p class="kicker">IV · The Coin Desk</p>
         <h1>The world is the casino.</h1>
-        <p>At the door to the tables, Miss Vivienne Sterling keeps the house’s other currency: a coin made to travel the world.</p>
+        <p>At the door to the tables, Miss Vivienne Sterling keeps the house’s other currency: nine coins made to travel the world.</p>
         <div class="actions"><button class="btn" data-talk="0">Hear her out</button></div>
-        <div class="actions wrap"><button class="btn ghost" data-visit="globe">The globe</button><button class="btn ghost" data-visit="coin">The coin</button></div>`;
+        <div class="actions wrap"><button class="btn ghost" data-visit="coins">The coins</button><button class="btn ghost" data-visit="globe">The globe</button></div>`;
       const line = KEEPER_LINES[talkAt], last = talkAt === KEEPER_LINES.length - 1;
       return `
         <p class="kicker">Miss Sterling · Keeper of the Coin</p>
@@ -178,7 +180,7 @@ const STOPS = [
         </div>
         <div class="actions wrap">
           ${last
-            ? '<button class="btn" data-visit="globe">The globe</button><button class="btn" data-visit="coin">The coin</button><button class="btn ghost" data-talk="0">From the top</button>'
+            ? '<button class="btn" data-visit="coins">The coins</button><button class="btn" data-visit="globe">The globe</button><button class="btn ghost" data-talk="0">From the top</button>'
             : `<button class="btn" data-talk="${talkAt + 1}">Go on</button>${line.show ? `<button class="btn ghost" data-visit="${line.show}">${SHOW[line.show]}</button>` : ''}`}
         </div>`;
     },
@@ -322,7 +324,7 @@ async function sit(name = 'fortuna') {
 }
 
 // ── up close at the coin desk: the globe, or the coin in your hand
-const DESK_VIEWS = { globe: openGlobe, coin: openCoin };
+const DESK_VIEWS = { globe: openGlobe, coins: openCoins };
 async function visit(name) {
   if (seated || moving) return;
   seated = true;

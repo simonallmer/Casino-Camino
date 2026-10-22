@@ -1,38 +1,37 @@
-// The coin in your hand: turn it, flip it, and lift the gold star out to see the chip beneath.
+// A coin in your hand: turn it, flip it, and lift the star out to see the chip beneath.
+// Any of the nine, or the C2 print from the archive.
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { buildCoin, metalMaterials, COIN_R } from './coin.js';
-import { mintDate, serial, TOTAL } from './world.js';
+import { SET, TIERS, buildSetCoin } from './set.js';
+import { mintDate, serial } from './world.js';
 
 // The shared frame of the desk views: a header with the way back, a stage and a side panel.
-export function deskFrame(root, { name, meta, onLeave, cls = '' }) {
+export function deskFrame(root, { name, meta, onLeave, cls = '', back = 'Back to the desk', body }) {
   root.innerHTML = `
     <div class="desk-view ${cls}">
       <header class="tbl-top">
-        <button class="link" data-act="leave">← Back to the desk</button>
+        <button class="link" data-act="leave">← ${back}</button>
         <div class="tbl-title"><span class="tbl-name">${name}</span><span class="tbl-meta">${meta}</span></div>
         <span></span>
       </header>
-      <div class="desk-body">
+      ${body ?? `<div class="desk-body">
         <div class="desk-stage"><canvas></canvas></div>
         <aside class="desk-side"></aside>
-      </div>
+      </div>`}
     </div>`;
   const $ = s => root.querySelector(s);
   const cleanups = [];
   let gone = false;
-  const leave = () => {
-    if (gone) return;
-    gone = true;
-    cleanups.forEach(f => f());
-    onLeave();
-  };
+  // close: stop everything this view runs; leave: close, then go back
+  const close = () => { if (gone) return false; gone = true; cleanups.forEach(f => f()); return true; };
+  const leave = () => { if (close()) onLeave(); };
   $('[data-act="leave"]').addEventListener('click', leave);
   const esc = e => { if (e.key === 'Escape') leave(); };
   addEventListener('keydown', esc);
   cleanups.push(() => removeEventListener('keydown', esc));
-  return { $, stage: $('.desk-stage'), canvas: $('canvas'), side: $('.desk-side'), onCleanup: f => cleanups.push(f), leave };
+  return { $, stage: $('.desk-stage'), canvas: $('canvas'), side: $('.desk-side'), onCleanup: f => cleanups.push(f), leave, close };
 }
 
 // a renderer that follows the size of its stage and stops when the view closes
@@ -62,8 +61,8 @@ export function stageRenderer(frame, { alpha = true } = {}) {
 
 const FEATURED = 7;
 
-// A dark studio with three softboxes, for the metal to reflect: silver needs something to mirror.
-function studio() {
+// A dark studio with a few softboxes, for the metal to reflect: silver needs something to mirror.
+export function studio() {
   const scene = new THREE.Scene();
   const c = document.createElement('canvas'); c.width = 4; c.height = 256;
   const ctx = c.getContext('2d'), g = ctx.createLinearGradient(0, 0, 0, 256);
@@ -83,10 +82,38 @@ function studio() {
   return scene;
 }
 
-export async function openCoin(root, { onLeave }) {
-  const frame = deskFrame(root, { name: 'The Coin', meta: `One of ${TOTAL.toLocaleString('en')}`, onLeave, cls: 'coin-view' });
-  frame.side.innerHTML = `
-    <p class="kicker">The Casino Camino Coin</p>
+const ringWords = ['', 'one ring', 'two rings', 'three rings'];
+
+// id: one of SET's ids, or 'c2' for the archived print. onNav(id) moves to a neighbouring coin.
+export async function openCoin(root, { id = 'c2', onLeave, back, onNav }) {
+  const spec = SET.find(c => c.id === id), at = SET.indexOf(spec);
+  const frame = deskFrame(root, spec
+    ? { name: spec.name, meta: `Worth ${spec.value} · ${TIERS[spec.tier].name}`, onLeave, back, cls: 'coin-view' }
+    : { name: 'The C2 Print', meta: 'From the archive', onLeave, back, cls: 'coin-view' });
+  const tier = spec && TIERS[spec.tier];
+  if (spec) frame.side.innerHTML = `
+    <p class="kicker">${tier.name} · ${ringWords[tier.rings]}</p>
+    <h2>${spec.name}</h2>
+    <div class="coin-worth"><span>${spec.value}</span><small>in play</small></div>
+    <p>${spec.blurb}</p>
+    <p>${tier.name} means ${['one digit', 'two digits', 'three digits'][spec.tier]}, and so do the ${ringWords[tier.rings]} on the face and round the edge. The value itself is struck on the back.</p>
+    <dl class="coin-specs">
+      <div><dt>Row</dt><dd>${tier.name} · ${['one digit', 'two digits', 'three digits'][spec.tier]}</dd></div>
+      <div><dt>Body</dt><dd>${spec.body}</dd></div>
+      <div><dt>Star</dt><dd>${spec.star}</dd></div>
+      <div><dt>Inside the star</dt><dd>NFC chip · serial</dd></div>
+      <div><dt>Size</dt><dd>39 mm · 3.3 mm</dd></div>
+    </dl>
+    <div class="actions wrap">
+      <button class="btn" data-act="open">Lift the star</button>
+      <button class="btn ghost" data-act="flip">Turn it over</button>
+    </div>
+    <nav class="coin-nav">
+      ${at > 0 ? `<button class="link" data-nav="${SET[at - 1].id}">← ${SET[at - 1].name}</button>` : '<span></span>'}
+      ${at < SET.length - 1 ? `<button class="link" data-nav="${SET[at + 1].id}">${SET[at + 1].name} →</button>` : '<span></span>'}
+    </nav>`;
+  else frame.side.innerHTML = `
+    <p class="kicker">Archive · the first coin</p>
     <h2>Silver, with a star of gold.</h2>
     <p>A silver coin, 39 mm across. The six-pointed star is set in gold, flush on both faces, and the words CASINO CAMINO ring it on either side.</p>
     <p>The coin’s identity lives <em>inside</em> the star: a tiny chip that holds its serial number, one of a hundred thousand. Hold a phone to the star and the coin checks in.</p>
@@ -114,13 +141,24 @@ export async function openCoin(root, { onLeave }) {
   scene.environment = env.texture;
   frame.onCleanup(() => { env.dispose(); pmrem.dispose(); });
 
-  const mats = metalMaterials();
-  const coin = await buildCoin(mats);
+  frame.$('.coin-nav')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-nav]');
+    if (b && onNav && frame.close()) onNav(b.dataset.nav);
+  });
+
+  let coin;
+  if (spec) {
+    coin = await buildSetCoin(spec);
+    frame.onCleanup(coin.dispose);
+  } else {
+    const mats = metalMaterials();
+    coin = await buildCoin(mats);
+    frame.onCleanup(() => Object.values(mats).forEach(m => { m.map?.dispose(); m.dispose(); }));
+  }
   const holder = new THREE.Group();
   holder.add(coin.group);
   scene.add(holder);
   coin.group.rotation.x = -0.32;
-  frame.onCleanup(() => Object.values(mats).forEach(m => { m.map?.dispose(); m.dispose(); }));
 
   camera.position.set(0, 0, COIN_R * 6.6);
   const controls = new OrbitControls(camera, frame.canvas);

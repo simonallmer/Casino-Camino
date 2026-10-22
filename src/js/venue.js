@@ -767,7 +767,7 @@ export const OBJECTS = {
   merchant: { label: 'Mr. Jeremiah Thistlewood', hint: 'Merchant of Bristol, in his cups' },
   keeper: { label: 'Miss Vivienne Sterling', hint: 'Keeper of the Coin · hear her out' },
   globe: { label: 'The globe', hint: 'Where the coins are' },
-  coin: { label: 'The Casino Camino Coin', hint: 'Turn it in your hand' },
+  coin: { label: 'The Casino Camino Coins', hint: 'All nine, side by side' },
 };
 
 function glowTexture() {

@@ -569,6 +569,7 @@ body.seated .hover-tag { display: none; }
 .desk-side h2 { margin: 0 0 16px; font-weight: 500; font-size: 38px; line-height: 1.05; }
 .desk-side h3 { margin: 26px 0 10px; font-weight: 500; font-size: 22px; }
 .desk-side p { margin: 0 0 14px; font-size: 18px; line-height: 1.45; color: var(--ink-2); }
+.desk-side p.kicker { margin: 0 0 12px; font-size: 11px; line-height: 1.4; color: var(--gold); }
 .desk-side p.fine { margin-top: 22px; font-size: 14px; color: var(--ink-3); }
 
 .coin-specs { margin: 18px 0 6px; border-top: 1px solid var(--rule); }
@@ -648,6 +649,34 @@ body.seated .hover-tag { display: none; }
 .globe-tip b { font-weight: 500; font-size: 17px; }
 .globe-tip span { font-family: var(--sans); font-size: 11px; letter-spacing: 0.1em; color: var(--gold); }
 
+/* a coin up close: its worth, and the way to its neighbours */
+.coin-worth { display: flex; align-items: baseline; gap: 10px; margin: -4px 0 14px; }
+.coin-worth span { font-family: var(--display); font-size: 44px; line-height: 1; color: var(--gold); }
+.coin-worth small { font-family: var(--sans); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+.coin-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; padding-top: 10px; border-top: 1px solid var(--rule); }
+
+/* all the coins, side by side */
+.gallery-view { grid-template-rows: auto minmax(0, 1fr); }
+.gallery { overflow: auto; min-height: 0; padding: 4px 0 40px; }
+.gallery-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.gallery-intro { max-width: 640px; margin: 6px auto 8px; text-align: center; font-size: 18px; line-height: 1.45; color: var(--ink-2); }
+.tier { max-width: 980px; margin: 0 auto; padding: 18px 0 6px; border-top: 1px solid var(--rule); }
+.tier:first-of-type { border-top: 0; }
+.tier-head { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
+.tier-head h3 { margin: 0; font-weight: 500; font-size: 26px; line-height: 1.1; }
+.tier-head p { margin: 2px 0 0; font-size: 16px; color: var(--ink-3); }
+.ring-mark { width: 34px; height: 34px; flex: none; fill: none; stroke: var(--gold); stroke-width: 1.6; }
+.tier-coins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.coin-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 8px 14px; cursor: pointer;
+  background: none; border: 1px solid transparent; text-align: center; transition: border-color .25s, background .25s;
+}
+.coin-cell:hover, .coin-cell:focus-visible { border-color: var(--rule); background: color-mix(in srgb, var(--paper-2) 50%, transparent); outline: none; }
+.coin-shot { width: min(100%, 210px); aspect-ratio: 1; }
+.coin-val { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; color: var(--gold); }
+.coin-name { font-size: 21px; line-height: 1.2; }
+.coin-cell small { font-family: var(--sans); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+
 @media (max-width: 760px), (max-height: 520px) {
   .desk-view { padding: 10px 12px 0; }
   .desk-view .tbl-top .link { font-size: 10px; letter-spacing: 0.12em; }
@@ -656,7 +685,14 @@ body.seated .hover-tag { display: none; }
   .desk-side h2 { font-size: 28px; }
   .desk-side p { font-size: 16px; }
   .stop-card blockquote.says { font-size: 21px; }
-  .chip-callout { max-width: 170px; }
+  .chip-callout { left: 50%; top: auto; bottom: 10px; max-width: 260px; margin: 0; transform: translateX(-50%) !important; }
+  .chip-callout::before, .chip-callout::after { display: none; }
+  .gallery-intro { font-size: 16px; padding: 0 4px; }
+  .tier-coins { gap: 4px; }
+  .coin-cell { padding: 0 2px 10px; }
+  .coin-val { font-size: 22px; }
+  .coin-name { font-size: 17px; }
+  .coin-cell small { display: none; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
   .desk-body { grid-template-columns: minmax(0, 1fr) minmax(260px, 42%); grid-template-rows: minmax(0, 1fr); }
@@ -1131,7 +1167,7 @@ async function chipFaceURL(pal, center) {
   return faceUrls.get(key);
 }
 
-return { PALETTES, drawChipFace, chipMaterials, CHIP_R, chipStacks, bigChip, chipFaceURL };
+return { PALETTES, drawChipFace, chipMaterials, CHIP_R, CHIP_H, chipStacks, bigChip, chipFaceURL };
 })();
 
 const __m_figure = (() => {
@@ -1251,7 +1287,7 @@ function paperFigure({ parts, details, extra, seed = 1, height = 7.4 }) {
   return { mesh, material };
 }
 
-return { FIG_W, P, ell, circ, paperFigure };
+return { FIG_W, FIG_H, P, ell, circ, paperFigure };
 })();
 
 const __m_merchant = (() => {
@@ -1775,11 +1811,12 @@ async function worldCanvas({ width = 2048, sea, land, coast, grid, coastWidth = 
   return c;
 }
 
-return { TOTAL, TEST_YEAR, TEST_COINS, PER_DAY, mintDate, mintedBy, serial, COUNTRIES, simulate, travelLog, dist, lonLatToVec, loadLand, worldCanvas };
+return { TOTAL, TEST_YEAR, FIRST_YEAR, LAST_YEAR, TEST_COINS, PER_DAY, mintDate, mintedBy, serial, COUNTRIES, simulate, travelLog, dist, lonLatToVec, loadLand, worldCanvas };
 })();
 
 const __m_coins_coin = (() => {
-// The Casino Camino Coin, built from the Foundry print (C2, 39 mm × 3.3 mm).
+// The C2 print (39 mm × 3.3 mm), the first Casino Camino Coin, now kept in the archive.
+// Its front face is also the front of the nine coins in set.js.
 // The print has the six-pointed star, CASINO CAMINO and a ring sunk 0.5 mm into both faces.
 // Here the body is silver, the lettering darkened like an antique coin, and both stars are filled
 // with gold standing a hair proud of the face. Under the top star sits the chip that carries the serial.
@@ -1787,13 +1824,26 @@ const __m_coins_coin = (() => {
 const { assetBinary } = __m_assets;
 
 const COIN_STL = 'assets/coin/C2 Casino Camino Chip Arc Star.stl';
-const COIN_R = 19.5, COIN_T = 3.3;
-const FIELD = 3.3, FLOOR = 2.8, BACK_FLOOR = 0.5, STAR_R = 9.2, PROUD = 0.14;
+// one export per line: build.py picks up the first name of each export statement
+const COIN_R = 19.5;
+const COIN_T = 3.3;
+const FIELD = 3.3;
+const FLOOR = 2.8;
+const BACK_FLOOR = 0.5;
+const STAR_R = 9.2;
+const PROUD = 0.14;
+// the engraved ring between the rim and the lettering
+const GROOVE = [15.5, 17.5];
 
-let partsPromise = null;
+let stlPromise = null, partsPromise = null;
+// the raw print: a non-indexed geometry with the faces along ±Z, from z = 0 to 3.3
+function coinSTL() {
+  stlPromise ??= assetBinary(COIN_STL).then(buf => new STLLoader().parse(buf));
+  return stlPromise;
+}
 // → { body, starTop, starBottom, chip } geometries in millimetres, centred, faces along ±Z
 function coinParts() {
-  partsPromise ??= assetBinary(COIN_STL).then(buf => split(new STLLoader().parse(buf)));
+  partsPromise ??= coinSTL().then(split);
   return partsPromise;
 }
 
@@ -1927,43 +1977,267 @@ async function buildCoin(mats) {
   return { group, body, top, back, chip };
 }
 
-return { COIN_STL, COIN_R, coinParts, chipTexture, matcapMaterials, metalMaterials, buildCoin };
+return { COIN_STL, COIN_R, COIN_T, FIELD, FLOOR, BACK_FLOOR, STAR_R, PROUD, GROOVE, coinSTL, coinParts, inlay, chipGeometry, chipTexture, matcapMaterials, metalMaterials, buildCoin };
+})();
+
+const __m_coins_set = (() => {
+// The nine coins, read in two glances:
+//   the body tells you how many digits — silver for one, gold for two, black for three;
+//   the star tells you the first digit — green for a 1, blue for a 2, red for a 5.
+// So a blue star on gold is 20, a red star on black is 500.
+// The engraved rings, on the face and round the edge, count the digits too, for touch and for anyone who can't tell the colours.
+// The front is the C2 print's face; the back carries the value.
+
+const { coinSTL, inlay, chipGeometry, chipTexture, COIN_R, COIN_T, FIELD, FLOOR, STAR_R, PROUD, GROOVE } = __m_coins_coin;
+
+const TIERS = [
+  { id: 'silver', name: 'Silver', rings: 1, finish: 'Silver', star: 'enamel', note: 'One digit: 1, 2 and 5, with stars of enamel.' },
+  { id: 'gold', name: 'Gold', rings: 2, finish: 'Gold', star: 'enamel', note: 'Two digits: 10, 20 and 50, with stars of enamel.' },
+  { id: 'black', name: 'Black', rings: 3, finish: 'Black', star: 'gem', note: 'Three digits: 100, 200 and 500, with stars of emerald, Paraíba tourmaline and ruby.' },
+];
+const COLOURS = [
+  { id: 'green', name: 'Green', digit: 1, enamel: '#16875a', gem: { name: 'Emerald', color: '#12a866', emissive: '#04502c' } },
+  // a bright blue leaning to turquoise, the colour Paraíba tourmaline is famous for
+  { id: 'blue', name: 'Blue', digit: 2, enamel: '#139fc0', gem: { name: 'Paraíba tourmaline', color: '#18c4dc', emissive: '#035a68' } },
+  // ruby, bright as a flame rather than the red of an error
+  { id: 'red', name: 'Red', digit: 5, enamel: '#e0243f', gem: { name: 'Ruby', color: '#e8123f', emissive: '#6a0418' } },
+];
+
+const BODIES = [
+  { field: { color: '#dfe2e6', metalness: 1, roughness: 0.3 }, engrave: { color: '#55595f', metalness: 0.7, roughness: 0.6 } },
+  { field: { color: '#e9b44c', metalness: 1, roughness: 0.26 }, engrave: { color: '#7a5418', metalness: 0.8, roughness: 0.55 } },
+  { field: { color: '#25272b', metalness: 1, roughness: 0.3 }, engrave: { color: '#e2b04f', metalness: 1, roughness: 0.3 } },
+];
+const WORDS = { 1: 'one', 2: 'two', 5: 'five', 10: 'ten', 20: 'twenty', 50: 'fifty', 100: 'a hundred', 200: 'two hundred', 500: 'five hundred' };
+
+const SET = TIERS.flatMap((t, ti) => COLOURS.map(c => {
+  const value = c.digit * 10 ** ti, gem = t.star === 'gem';
+  const star = gem ? c.gem.name : `${c.name} enamel`;
+  return {
+    id: `${c.id}-${t.id}`, name: `${c.name} ${value}`, value, tier: ti, colour: c.name, body: t.finish, star,
+    blurb: `A ${star.toLowerCase()} star on ${t.finish.toLowerCase()}: ${WORDS[value]}. ${c.name} always leads with a ${c.digit}: ${[1, 10, 100].map(k => c.digit * k).join(', ')}.`,
+    ...BODIES[ti],
+    // enamel is glass fused to the metal: glossy, and the chip's signal passes straight through it
+    starMat: gem ? null : { color: c.enamel, metalness: 0, roughness: 0.3, clearcoat: 0.55, clearcoatRoughness: 0.18 },
+    gem: gem ? c.gem : null,
+  };
+}));
+
+// ── materials
+function setMaterials(spec) {
+  const pbr = o => new THREE.MeshPhysicalMaterial({ ...o, side: THREE.DoubleSide });
+  const mats = {
+    field: pbr(spec.field),
+    engrave: pbr(spec.engrave),
+    // under a gem the recess is foil-backed, the old jeweller's trick that makes a stone light up
+    setting: spec.gem ? pbr({ color: '#f4f6f8', metalness: 1, roughness: 0.08 }) : pbr(spec.engrave),
+    chip: new THREE.MeshStandardMaterial({ map: chipTexture(), metalness: 0.3, roughness: 0.5 }),
+  };
+  mats.star = spec.gem
+    ? new THREE.MeshPhysicalMaterial({
+      color: spec.gem.color, emissive: spec.gem.emissive, metalness: 0, roughness: 0.03, ior: 2.1, specularIntensity: 1,
+      clearcoat: 1, clearcoatRoughness: 0, envMapIntensity: 2.4, flatShading: true,
+      iridescence: spec.gem.iridescence ?? 0, iridescenceIOR: 1.9, iridescenceThicknessRange: [200, 700],
+    })
+    : pbr(spec.starMat);
+  return mats;
+}
+
+// ── geometry
+let frontPromise = null;
+// The C2 front face, sorted into field (the face), engrave (letters and ring) and setting (the star's floor).
+function front() {
+  frontPromise ??= coinSTL().then(geo => {
+    const pos = geo.attributes.position.array, nrm = geo.attributes.normal.array;
+    const parts = { field: [], engrave: [], setting: [] }, star = [];
+    const near = (a, b) => Math.abs(a - b) < 0.03;
+    for (let i = 0; i < pos.length; i += 9) {
+      const z = [pos[i + 2], pos[i + 5], pos[i + 8]];
+      if (z.every(v => v < 0.55)) continue;                       // the back is made anew
+      let rMax = 0;
+      for (let k = 0; k < 9; k += 3) rMax = Math.max(rMax, Math.hypot(pos[i + k], pos[i + k + 1]));
+      const nz = nrm[i + 2];
+      if (Math.abs(nz) < 0.2 && rMax > COIN_R - 0.2) continue;   // so is the rim
+      const tri = Array.from(pos.slice(i, i + 9)), n = [nrm[i], nrm[i + 1], nrm[i + 2]];
+      const floor = z.every(v => near(v, FLOOR));
+      if (floor && rMax < STAR_R) { star.push(tri); parts.setting.push([tri, n]); }
+      else if (floor || Math.abs(nz) < 0.2) parts.engrave.push([tri, n]);
+      else parts.field.push([tri, n]);
+    }
+    const geom = list => {
+      const g = new THREE.BufferGeometry(), p = [], nn = [];
+      for (const [t, n] of list) { p.push(...t); nn.push(...n, ...n, ...n); }
+      g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(nn, 3));
+      return g;
+    };
+    return {
+      field: geom(parts.field), engrave: geom(parts.engrave), setting: geom(parts.setting),
+      inlay: inlay(star, FIELD + PROUD, FIELD - 0.1, 1),
+    };
+  });
+  return frontPromise;
+}
+
+// the grooves the rings are cut as: n equal grooves across the C2 ring band, split by n − 1 ridges
+const RIDGE = 0.26;
+function grooveBands(n) {
+  const [r0, r1] = GROOVE, g = (r1 - r0 - (n - 1) * RIDGE) / n, ridges = [];
+  for (let k = 1; k < n; k++) { const a = r0 + k * g + (k - 1) * RIDGE; ridges.push([a, a + RIDGE]); }
+  return ridges;
+}
+const annulus = (r0, r1, z, facing) => {
+  const g = new THREE.RingGeometry(r0, r1, 160);
+  if (facing < 0) g.rotateY(Math.PI);
+  return g.translate(0, 0, z);
+};
+const wall = (r, z0, z1) => new THREE.CylinderGeometry(r, r, z1 - z0, 160, 1, true).rotateX(Math.PI / 2).translate(0, 0, (z0 + z1) / 2);
+
+// the edge: a band with one V-groove per ring, cut round it
+function rimGeometry(n) {
+  const R = COIN_R, depth = 0.22, half = 0.15, pts = [new THREE.Vector2(R, 0)];
+  for (let k = 1; k <= n; k++) {
+    const z = (COIN_T * k) / (n + 1);
+    pts.push(new THREE.Vector2(R, z - half), new THREE.Vector2(R - depth, z), new THREE.Vector2(R, z + half));
+  }
+  pts.push(new THREE.Vector2(R, COIN_T));
+  const g = new THREE.LatheGeometry(pts, 180);
+  return g.rotateX(Math.PI / 2);
+}
+
+// the value, struck on the back: a big numeral with a small star beneath
+let fontReady = null;
+function backArt(value) {
+  const S = 1024, c = document.createElement('canvas'); c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  const size = [0, 470, 420, 330][String(value).length];
+  ctx.font = `700 ${size}px "Cinzel Decorative", "Cormorant Garamond", serif`;
+  ctx.fillText(String(value), S / 2, S / 2 + size * 0.34);
+  // a small six-pointed star under the value
+  ctx.beginPath();
+  for (let k = 0; k < 12; k++) {
+    const r = k % 2 ? 22 : 44, a = -Math.PI / 2 + (k * Math.PI) / 6;
+    const x = S / 2 + Math.cos(a) * r, y = S * 0.79 + Math.sin(a) * r;
+    k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath(); ctx.fill();
+  // and a hairline ring framing it
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.arc(S / 2, S / 2, S * 0.47, 0, Math.PI * 2); ctx.stroke();
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 8;
+  return t;
+}
+
+// the gem star: a six-pointed star cut with a raised centre, and a little faceted stone at every tip
+function gemStar() {
+  const pts = [], tip = 7.3, inner = 3.86, base = FLOOR + 0.02, crown = FIELD + 0.05, apex = FIELD + 1.5;
+  for (let k = 0; k < 12; k++) {
+    const r = k % 2 ? tip : inner, a = (k * Math.PI) / 6;
+    pts.push([Math.cos(a) * r, Math.sin(a) * r]);
+  }
+  const p = [];
+  for (let k = 0; k < 12; k++) {
+    const [ax, ay] = pts[k], [bx, by] = pts[(k + 1) % 12];
+    p.push(ax, ay, crown, bx, by, crown, 0, 0, apex);                                   // a facet up to the centre
+    p.push(ax, ay, base, bx, by, base, bx, by, crown, ax, ay, base, bx, by, crown, ax, ay, crown); // its girdle
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  g.computeVertexNormals();
+  const balls = [];
+  for (let k = 0; k < 6; k++) {
+    const a = Math.PI / 6 + (k * Math.PI) / 3;
+    balls.push(new THREE.IcosahedronGeometry(0.72, 0).translate(Math.cos(a) * 7.55, Math.sin(a) * 7.55, FIELD + 0.1).toNonIndexed());
+  }
+  return { star: g, balls };
+}
+
+// One of the nine, faces along ±Z, 1 unit = 1 mm. `top` is the star, which can be lifted out.
+async function buildSetCoin(spec, mats = setMaterials(spec)) {
+  const f = await front();
+  const n = TIERS[spec.tier].rings, ridges = grooveBands(n);
+  const group = new THREE.Group(), inner = new THREE.Group();
+  inner.position.z = -COIN_T / 2;
+  group.add(inner);
+  const add = (geo, mat) => { const m = new THREE.Mesh(geo, mat); inner.add(m); return m; };
+
+  // the front: the C2 face, with ridges standing in its ring groove to make two or three rings
+  add(f.field, mats.field); add(f.engrave, mats.engrave); add(f.setting, mats.setting);
+  for (const [a, b] of ridges) { add(annulus(a, b, FIELD, 1), mats.field); add(wall(a, FLOOR, FIELD), mats.engrave); add(wall(b, FLOOR, FIELD), mats.engrave); }
+
+  // the back: a plain field with the same rings, and the value
+  const [g0, g1] = GROOVE, B = 0.5;
+  add(annulus(0.001, g0, 0, -1), mats.field);
+  add(annulus(g1, COIN_R, 0, -1), mats.field);
+  add(annulus(g0, g1, B, -1), mats.engrave);
+  add(wall(g0, 0, B), mats.engrave); add(wall(g1, 0, B), mats.engrave);
+  for (const [a, b] of ridges) { add(annulus(a, b, 0, -1), mats.field); add(wall(a, 0, B), mats.engrave); add(wall(b, 0, B), mats.engrave); }
+  if (!fontReady) fontReady = document.fonts?.load('700 64px "Cinzel Decorative"').catch(() => {}) ?? Promise.resolve();
+  await fontReady;
+  const art = backArt(spec.value);
+  const ink = mats.engrave.clone();
+  Object.assign(ink, { alphaMap: art, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const decal = new THREE.CircleGeometry(g0 - 0.3, 96).rotateY(Math.PI).translate(0, 0, -0.01);
+  add(decal, ink);
+  mats.ink = ink;
+
+  // the edge, grooved once per ring, with the groove floors darkened
+  add(rimGeometry(n), mats.field);
+
+  // the star, and the chip beneath it
+  const top = new THREE.Group();
+  if (spec.gem) {
+    const { star, balls } = gemStar();
+    top.add(new THREE.Mesh(star, mats.star), ...balls.map(b => new THREE.Mesh(b, mats.star)));
+  } else top.add(new THREE.Mesh(f.inlay, mats.star));
+  inner.add(top);
+  const chip = add(chipGeometry(FLOOR + 0.02), mats.chip);
+
+  const dispose = () => {
+    group.traverse(o => { if (o.isMesh && ![f.field, f.engrave, f.setting, f.inlay].includes(o.geometry)) o.geometry.dispose(); });
+    Object.values(mats).forEach(m => { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); });
+  };
+  return { group, top, chip, dispose };
+}
+
+return { TIERS, COLOURS, SET, setMaterials, buildSetCoin };
 })();
 
 const __m_coins_viewer = (() => {
-// The coin in your hand: turn it, flip it, and lift the gold star out to see the chip beneath.
+// A coin in your hand: turn it, flip it, and lift the star out to see the chip beneath.
+// Any of the nine, or the C2 print from the archive.
 
 const { buildCoin, metalMaterials, COIN_R } = __m_coins_coin;
-const { mintDate, serial, TOTAL } = __m_coins_world;
+const { SET, TIERS, buildSetCoin } = __m_coins_set;
+const { mintDate, serial } = __m_coins_world;
 
 // The shared frame of the desk views: a header with the way back, a stage and a side panel.
-function deskFrame(root, { name, meta, onLeave, cls = '' }) {
+function deskFrame(root, { name, meta, onLeave, cls = '', back = 'Back to the desk', body }) {
   root.innerHTML = `
     <div class="desk-view ${cls}">
       <header class="tbl-top">
-        <button class="link" data-act="leave">← Back to the desk</button>
+        <button class="link" data-act="leave">← ${back}</button>
         <div class="tbl-title"><span class="tbl-name">${name}</span><span class="tbl-meta">${meta}</span></div>
         <span></span>
       </header>
-      <div class="desk-body">
+      ${body ?? `<div class="desk-body">
         <div class="desk-stage"><canvas></canvas></div>
         <aside class="desk-side"></aside>
-      </div>
+      </div>`}
     </div>`;
   const $ = s => root.querySelector(s);
   const cleanups = [];
   let gone = false;
-  const leave = () => {
-    if (gone) return;
-    gone = true;
-    cleanups.forEach(f => f());
-    onLeave();
-  };
+  // close: stop everything this view runs; leave: close, then go back
+  const close = () => { if (gone) return false; gone = true; cleanups.forEach(f => f()); return true; };
+  const leave = () => { if (close()) onLeave(); };
   $('[data-act="leave"]').addEventListener('click', leave);
   const esc = e => { if (e.key === 'Escape') leave(); };
   addEventListener('keydown', esc);
   cleanups.push(() => removeEventListener('keydown', esc));
-  return { $, stage: $('.desk-stage'), canvas: $('canvas'), side: $('.desk-side'), onCleanup: f => cleanups.push(f), leave };
+  return { $, stage: $('.desk-stage'), canvas: $('canvas'), side: $('.desk-side'), onCleanup: f => cleanups.push(f), leave, close };
 }
 
 // a renderer that follows the size of its stage and stops when the view closes
@@ -1993,7 +2267,7 @@ function stageRenderer(frame, { alpha = true } = {}) {
 
 const FEATURED = 7;
 
-// A dark studio with three softboxes, for the metal to reflect: silver needs something to mirror.
+// A dark studio with a few softboxes, for the metal to reflect: silver needs something to mirror.
 function studio() {
   const scene = new THREE.Scene();
   const c = document.createElement('canvas'); c.width = 4; c.height = 256;
@@ -2014,10 +2288,38 @@ function studio() {
   return scene;
 }
 
-async function openCoin(root, { onLeave }) {
-  const frame = deskFrame(root, { name: 'The Coin', meta: `One of ${TOTAL.toLocaleString('en')}`, onLeave, cls: 'coin-view' });
-  frame.side.innerHTML = `
-    <p class="kicker">The Casino Camino Coin</p>
+const ringWords = ['', 'one ring', 'two rings', 'three rings'];
+
+// id: one of SET's ids, or 'c2' for the archived print. onNav(id) moves to a neighbouring coin.
+async function openCoin(root, { id = 'c2', onLeave, back, onNav }) {
+  const spec = SET.find(c => c.id === id), at = SET.indexOf(spec);
+  const frame = deskFrame(root, spec
+    ? { name: spec.name, meta: `Worth ${spec.value} · ${TIERS[spec.tier].name}`, onLeave, back, cls: 'coin-view' }
+    : { name: 'The C2 Print', meta: 'From the archive', onLeave, back, cls: 'coin-view' });
+  const tier = spec && TIERS[spec.tier];
+  if (spec) frame.side.innerHTML = `
+    <p class="kicker">${tier.name} · ${ringWords[tier.rings]}</p>
+    <h2>${spec.name}</h2>
+    <div class="coin-worth"><span>${spec.value}</span><small>in play</small></div>
+    <p>${spec.blurb}</p>
+    <p>${tier.name} means ${['one digit', 'two digits', 'three digits'][spec.tier]}, and so do the ${ringWords[tier.rings]} on the face and round the edge. The value itself is struck on the back.</p>
+    <dl class="coin-specs">
+      <div><dt>Row</dt><dd>${tier.name} · ${['one digit', 'two digits', 'three digits'][spec.tier]}</dd></div>
+      <div><dt>Body</dt><dd>${spec.body}</dd></div>
+      <div><dt>Star</dt><dd>${spec.star}</dd></div>
+      <div><dt>Inside the star</dt><dd>NFC chip · serial</dd></div>
+      <div><dt>Size</dt><dd>39 mm · 3.3 mm</dd></div>
+    </dl>
+    <div class="actions wrap">
+      <button class="btn" data-act="open">Lift the star</button>
+      <button class="btn ghost" data-act="flip">Turn it over</button>
+    </div>
+    <nav class="coin-nav">
+      ${at > 0 ? `<button class="link" data-nav="${SET[at - 1].id}">← ${SET[at - 1].name}</button>` : '<span></span>'}
+      ${at < SET.length - 1 ? `<button class="link" data-nav="${SET[at + 1].id}">${SET[at + 1].name} →</button>` : '<span></span>'}
+    </nav>`;
+  else frame.side.innerHTML = `
+    <p class="kicker">Archive · the first coin</p>
     <h2>Silver, with a star of gold.</h2>
     <p>A silver coin, 39 mm across. The six-pointed star is set in gold, flush on both faces, and the words CASINO CAMINO ring it on either side.</p>
     <p>The coin’s identity lives <em>inside</em> the star: a tiny chip that holds its serial number, one of a hundred thousand. Hold a phone to the star and the coin checks in.</p>
@@ -2045,13 +2347,24 @@ async function openCoin(root, { onLeave }) {
   scene.environment = env.texture;
   frame.onCleanup(() => { env.dispose(); pmrem.dispose(); });
 
-  const mats = metalMaterials();
-  const coin = await buildCoin(mats);
+  frame.$('.coin-nav')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-nav]');
+    if (b && onNav && frame.close()) onNav(b.dataset.nav);
+  });
+
+  let coin;
+  if (spec) {
+    coin = await buildSetCoin(spec);
+    frame.onCleanup(coin.dispose);
+  } else {
+    const mats = metalMaterials();
+    coin = await buildCoin(mats);
+    frame.onCleanup(() => Object.values(mats).forEach(m => { m.map?.dispose(); m.dispose(); }));
+  }
   const holder = new THREE.Group();
   holder.add(coin.group);
   scene.add(holder);
   coin.group.rotation.x = -0.32;
-  frame.onCleanup(() => Object.values(mats).forEach(m => { m.map?.dispose(); m.dispose(); }));
 
   camera.position.set(0, 0, COIN_R * 6.6);
   const controls = new OrbitControls(camera, frame.canvas);
@@ -2104,7 +2417,7 @@ async function openCoin(root, { onLeave }) {
   });
 }
 
-return { deskFrame, stageRenderer, openCoin };
+return { deskFrame, stageRenderer, studio, openCoin };
 })();
 
 const __m_coins_globe = (() => {
@@ -2363,6 +2676,123 @@ async function openGlobe(root, { onLeave }) {
 }
 
 return { openGlobe };
+})();
+
+const __m_coins_gallery = (() => {
+// All nine coins side by side, in three rows.
+// Hover a coin and it turns toward you; click it to hold it.
+// One canvas draws every coin into its own cell, so the page needs only one drawing context.
+
+const { deskFrame, studio, openCoin } = __m_coins_viewer;
+const { SET, TIERS, buildSetCoin } = __m_coins_set;
+const { COIN_R } = __m_coins_coin;
+
+const rings = n => `<svg class="ring-mark" viewBox="0 0 40 40" aria-hidden="true">${[17, 12.5, 8].slice(0, n).map(r => `<circle cx="20" cy="20" r="${r}"/>`).join('')}</svg>`;
+const ringWords = ['', 'One ring', 'Two rings', 'Three rings'];
+
+function openCoins(root, { onLeave, back }) {
+  const reopen = () => openCoins(root, { onLeave, back });
+  const hold = id => openCoin(root, { id, back: 'All coins', onLeave: reopen, onNav: next => hold(next) });
+
+  const frame = deskFrame(root, {
+    name: 'The Coins', meta: 'Nine coins · three rows', onLeave, back, cls: 'gallery-view',
+    body: `
+      <div class="gallery">
+        <p class="gallery-intro">The body tells you how many digits: silver for one, gold for two, black for three. The star tells you the first: green for a 1, blue for a 2, red for a 5. The rings on the face and edge count the digits too.</p>
+        ${TIERS.map((t, ti) => `
+        <section class="tier">
+          <header class="tier-head">
+            ${rings(t.rings)}
+            <div><h3>${t.name}</h3><p>${ringWords[t.rings]} · ${t.note}</p></div>
+          </header>
+          <div class="tier-coins">
+            ${SET.filter(c => c.tier === ti).map(c => `
+            <button class="coin-cell" data-coin="${c.id}" aria-label="${c.name}, worth ${c.value}">
+              <div class="coin-shot"></div>
+              <b class="coin-val">${c.value}</b>
+              <span class="coin-name">${c.colour} star</span>
+              <small>${c.star} on ${c.body.toLowerCase()}</small>
+            </button>`).join('')}
+          </div>
+        </section>`).join('')}
+      </div>
+      <canvas class="gallery-canvas"></canvas>`,
+  });
+
+  const scroller = frame.$('.gallery'), canvas = frame.$('.gallery-canvas');
+  const cells = [...root.querySelectorAll('.coin-cell')];
+  scroller.addEventListener('click', e => {
+    const cell = e.target.closest('.coin-cell');
+    if (cell && frame.close()) hold(cell.dataset.coin);
+  });
+
+  // ── one renderer for every cell
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0, 0);
+  renderer.setScissorTest(true);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const env = pmrem.fromScene(studio(), 0.02);
+  const camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);
+  camera.position.set(0, 0, COIN_R / Math.tan(15 * Math.PI / 180) * 1.12);
+  const disposers = [];
+  let closed = false;
+  frame.onCleanup(() => { closed = true; cancelAnimationFrame(raf); disposers.forEach(f => f()); env.dispose(); pmrem.dispose(); renderer.dispose(); });
+
+  const shots = cells.map((cell, i) => {
+    const scene = new THREE.Scene(); scene.environment = env.texture;
+    const pivot = new THREE.Group(); scene.add(pivot);
+    const shot = { cell, el: cell.querySelector('.coin-shot'), scene, pivot, i, hover: 0, tx: 0, ty: 0 };
+    buildSetCoin(SET.find(c => c.id === cell.dataset.coin)).then(c => {
+      if (closed) { c.dispose(); return; }
+      pivot.add(c.group); c.group.rotation.x = -0.18;
+      disposers.push(c.dispose);
+    });
+    // hover: the coin turns toward the pointer
+    cell.addEventListener('pointerenter', () => { shot.on = true; });
+    cell.addEventListener('pointerleave', () => { shot.on = false; shot.tx = shot.ty = 0; });
+    cell.addEventListener('pointermove', e => {
+      const r = shot.el.getBoundingClientRect();
+      shot.tx = ((e.clientX - r.left) / r.width - 0.5) * 1.1;
+      shot.ty = ((e.clientY - r.top) / r.height - 0.5) * 0.9;
+    });
+    return shot;
+  });
+
+  let raf = 0;
+  const size = new THREE.Vector2();
+  const loop = now => {
+    raf = requestAnimationFrame(loop);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.getSize(size);
+    if (size.x !== w || size.y !== h) renderer.setSize(w, h, false);
+    const box = canvas.getBoundingClientRect(), view = scroller.getBoundingClientRect();
+    renderer.setScissor(0, 0, w, h); renderer.clear();
+    const t = now / 1000;
+    for (const s of shots) {
+      const r = s.el.getBoundingClientRect();
+      if (r.bottom < view.top || r.top > view.bottom || !r.width) continue;
+      // a slow idle sway; on hover it faces you and leans toward the pointer
+      s.hover += ((s.on ? 1 : 0) - s.hover) * 0.12;
+      const idle = Math.sin(t * 0.7 + s.i * 0.9) * 0.55;
+      s.pivot.rotation.y = idle * (1 - s.hover) + s.tx * s.hover;
+      s.pivot.rotation.x = s.ty * s.hover;
+      s.pivot.scale.setScalar(1 + s.hover * 0.06);
+      // draw it into its own cell, clipped to the scrolling area
+      const left = r.left - box.left, bottom = box.bottom - r.bottom;
+      const top = Math.max(r.top, view.top), bot = Math.min(r.bottom, view.bottom);
+      renderer.setViewport(left, bottom, r.width, r.height);
+      renderer.setScissor(left, box.bottom - bot, r.width, Math.max(0, bot - top));
+      camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+      renderer.render(s.scene, camera);
+    }
+  };
+  raf = requestAnimationFrame(loop);
+}
+
+return { openCoins };
 })();
 
 const __m_shell = (() => {
@@ -5012,7 +5442,7 @@ const OBJECTS = {
   merchant: { label: 'Mr. Jeremiah Thistlewood', hint: 'Merchant of Bristol, in his cups' },
   keeper: { label: 'Miss Vivienne Sterling', hint: 'Keeper of the Coin · hear her out' },
   globe: { label: 'The globe', hint: 'Where the coins are' },
-  coin: { label: 'The Casino Camino Coin', hint: 'Turn it in your hand' },
+  coin: { label: 'The Casino Camino Coins', hint: 'All nine, side by side' },
 };
 
 function glowTexture() {
@@ -5447,7 +5877,7 @@ const TABLES = {
 };
 const { loadQuotes, drawLine } = __m_assets;
 const { openGlobe } = __m_coins_globe;
-const { openCoin } = __m_coins_viewer;
+const { openCoins } = __m_coins_gallery;
 
 // the six stops of the camino
 const S = { arrival: 0, court: 1, hall: 2, coins: 3, casino: 4, theater: 5 };
@@ -5511,7 +5941,8 @@ function activate(name) {
     case 'portico': go(S.hall); break;
     case 'concierge': stop === S.hall ? renderCard() : go(S.hall); break;
     case 'keeper': stop === S.coins ? talk(talkAt < 0 ? 0 : talkAt) : go(S.coins); break;
-    case 'globe': case 'coin': stop === S.coins ? visit(name) : go(S.coins); break;
+    case 'globe': stop === S.coins ? visit('globe') : go(S.coins); break;
+    case 'coin': stop === S.coins ? visit('coins') : go(S.coins); break;
     case 'fortuna': case 'ricochet': case 'frontier': stop === S.casino ? sit(name) : go(S.casino); break;
     case 'theater': go(S.theater); break;
     case 'lifts': loadQuotes().then(q => toast(drawLine(q, 'The hotel lifts'))); break;
@@ -5549,11 +5980,12 @@ const KEEPER_LINES = [
   { say: 'Inside these walls we play with chips. Out there, the whole world is the casino, and this is its chip.', aside: 'She holds a coin up to the light: silver, with a star of gold.' },
   { say: 'One hundred thousand coins, ever. One for every hundred thousand people on Earth. Not one more.' },
   { say: 'The mint runs a test in 2027. From the first of January 2028 it strikes about eight a day, on a fixed public schedule, until the last coin in 2060.', aside: 'No drops. No surprises.' },
-  { say: 'Look at the star. Inside it sits a tiny chip that holds the coin’s own serial number. Tap the coin with your phone and it checks in.', show: 'coin' },
+  { say: 'Nine coins, and you read them in two glances. Silver is one digit, gold is two, black is three. Then the star: green for a one, blue for a two, red for a five.', aside: 'A blue star on gold is twenty. A red star on black, five hundred.', show: 'coins' },
+  { say: 'Look at the star. Inside it sits a tiny chip that holds the coin’s own serial number. Tap the coin with your phone and it checks in.', show: 'coins' },
   { say: 'Every tap adds a stop to that coin’s travel log, and the globe shows where the coins are. By country only: never where a coin, or its holder, is exactly.', show: 'globe' },
   { say: 'So play with them, trade them, pass them on. A currency for the world’s casino: never sold as an investment, never cashed out.', aside: 'She sets the coin back on its stand.' },
 ];
-const SHOW = { coin: 'Show me the coin', globe: 'Show me the globe' };
+const SHOW = { coins: 'Show me the coins', globe: 'Show me the globe' };
 let talkAt = -1;
 function talk(i) { talkAt = i; renderCard(); }
 
@@ -5600,9 +6032,9 @@ const STOPS = [
       if (talkAt < 0) return `
         <p class="kicker">IV · The Coin Desk</p>
         <h1>The world is the casino.</h1>
-        <p>At the door to the tables, Miss Vivienne Sterling keeps the house’s other currency: a coin made to travel the world.</p>
+        <p>At the door to the tables, Miss Vivienne Sterling keeps the house’s other currency: nine coins made to travel the world.</p>
         <div class="actions"><button class="btn" data-talk="0">Hear her out</button></div>
-        <div class="actions wrap"><button class="btn ghost" data-visit="globe">The globe</button><button class="btn ghost" data-visit="coin">The coin</button></div>`;
+        <div class="actions wrap"><button class="btn ghost" data-visit="coins">The coins</button><button class="btn ghost" data-visit="globe">The globe</button></div>`;
       const line = KEEPER_LINES[talkAt], last = talkAt === KEEPER_LINES.length - 1;
       return `
         <p class="kicker">Miss Sterling · Keeper of the Coin</p>
@@ -5614,7 +6046,7 @@ const STOPS = [
         </div>
         <div class="actions wrap">
           ${last
-            ? '<button class="btn" data-visit="globe">The globe</button><button class="btn" data-visit="coin">The coin</button><button class="btn ghost" data-talk="0">From the top</button>'
+            ? '<button class="btn" data-visit="coins">The coins</button><button class="btn" data-visit="globe">The globe</button><button class="btn ghost" data-talk="0">From the top</button>'
             : `<button class="btn" data-talk="${talkAt + 1}">Go on</button>${line.show ? `<button class="btn ghost" data-visit="${line.show}">${SHOW[line.show]}</button>` : ''}`}
         </div>`;
     },
@@ -5758,7 +6190,7 @@ async function sit(name = 'fortuna') {
 }
 
 // ── up close at the coin desk: the globe, or the coin in your hand
-const DESK_VIEWS = { globe: openGlobe, coin: openCoin };
+const DESK_VIEWS = { globe: openGlobe, coins: openCoins };
 async function visit(name) {
   if (seated || moving) return;
   seated = true;
