@@ -20,7 +20,7 @@ SRC = ROOT / 'src'
 
 # dependencies first
 MODULES = [
-    'assets.js', 'paint.js', 'drawing.js', 'chip.js', 'figure.js', 'merchant.js', 'keeper.js', 'concierge.js', 'zoetrope.js', 'wallet.js',
+    'assets.js', 'paint.js', 'drawing.js', 'chip.js', 'figure.js', 'merchant.js', 'keeper.js', 'concierge.js', 'guests.js', 'zoetrope.js', 'wallet.js',
     'coins/world.js', 'coins/coin.js', 'coins/set.js', 'coins/viewer.js', 'coins/globe.js', 'coins/gallery.js',
     'art.js', 'resort.js', 'resort-views.js',
     'shell.js', 'fortuna/engine.js', 'fortuna/table.js', 'frontier/engine.js', 'frontier/table.js',

@@ -22,8 +22,9 @@ export const WING = { x0: 24, x1: 64, z0: -6, z1: -112, h: 15 }; // gallery (−
 export const THEATER = { x: 64, z0: -112, z1: -196, h: 40 };
 export const ROOF = 74;                                          // the centre block's roof, now the sky garden
 export const LIFT = { x0: 24, x1: 28.4, zs: [-14, -22, -30], ride: -22, top: ROOF };
-// the horse in motion: a window in the cage's gate, at eye height, left of centre (heights from the cage floor)
-export const ZOETROPE = { x: LIFT.x1 - 0.18, z0: LIFT.ride - 1.3, z1: LIFT.ride + 0.1, y0: 4.2, y1: 5.25 };
+// the shaft wall just beyond the gate, and the band painted up it where the horse runs (heights from the cage floor)
+export const SHAFT_WALL = LIFT.x1 + 1.1;
+export const ZOETROPE = { x: SHAFT_WALL - 0.03, z0: LIFT.ride - 1.75, z1: LIFT.ride + 0.55, y0: 4.05, y1: 5.75 };
 export const ROOM = { x0: 21, x1: 35, z0: -25.6, z1: -14.4, y0: ROOF, y1: ROOF + 4.6 };
 export const SEA = -36;
 
@@ -286,7 +287,7 @@ export function drawSkyGarden(s, rand) {
     { const g = new THREE.SphereGeometry(2.4, 12, 8); g.scale(1, 0.45, 1).translate(x, y + hh - 0.4, z); s.paintOnly(g, '#5b8a4f'); }
     s.block(x - 1, y, z - 1, x + 1, y + 1.2, z + 1, { over: 0.1, paint: '#b1603e' });
   }
-  for (const z of [-12, -18]) for (const sd of [-1, 1]) {
+  for (const z of [-10, -28.4]) for (const sd of [-1, 1]) {
     const x = sd * 18.6, hh = 8 + rand() * 1.5, r = 1.1, pts = [], pts2 = [];
     for (let i = 0; i <= 16; i++) { const a = (i / 16) * Math.PI; pts.push(v(x + Math.sin(a) * r, y + 0.4 + (1 - Math.cos(a)) / 2 * hh, z)); pts2.push(v(x, y + 0.4 + (1 - Math.cos(a)) / 2 * hh, z + Math.sin(a) * r)); }
     s.poly(s.main, pts); s.poly(s.main, pts.map(p => v(2 * x - p.x, p.y, p.z))); s.poly(s.fine, pts2);
@@ -300,6 +301,23 @@ export function drawSkyGarden(s, rand) {
   for (const r of [1.2, 2.2]) s.circle(s.water, 0, y + 0.05, -15, r, 32);
   s.seg(s.water, v(-17.5, y + 0.05, -1.7), v(17.5, y + 0.05, -1.7));
   for (const sd of [-1, 1]) s.block(sd * 18.2 - 0.4, 72.4, 0.6, sd * 18.2 + 0.4, 72.9, 1.6, { over: 0.05 });
+  // the two towers' faces that look onto the garden: rows of hotel windows, and on the east one the terrace door
+  for (const sd of [-1, 1]) {
+    const x = sd * 19.98; // just outside the tower's garden face
+    for (let wy = y + 6.5; wy < 100; wy += 5.5) for (let wz = -26; wz < -1; wz += 4.2) {
+      if (wy < y + 7 && wz > -23 && wz < -15) continue;
+      s.rectX(s.fine, x, wz, wy, wz + 1.6, wy + 3.2);
+      if (((wy * 7 + wz * 3) | 0) % 3 === 0) s.lightX(x - sd * 0.01, wz, wy, wz + 1.6, wy + 3.2, -sd);
+    }
+    // a door at roof level, framed, with a lantern either side (the east one is the hotel room's)
+    s.rectX(s.main, x, -21, y, -18, y + 3.6);
+    s.rectX(s.fine, x, -20.7, y, -18.3, y + 3.3);
+    s.seg(s.fine, v(x, y, -19.5), v(x, y + 3.3, -19.5));
+    s.lightX(x - sd * 0.01, -20.7, y, -18.3, y + 3.3, -sd);
+    for (const lz of [-21.8, -17.2]) { s.rectX(s.fine, x, lz - 0.25, y + 2.6, lz + 0.25, y + 3.4); s.glow(x - sd * 0.4, y + 3, lz, 2.4); }
+    s.seg(s.main, v(x, y + 4.2, -22), v(x - sd * 1.2, y + 3.8, -22)); s.seg(s.main, v(x, y + 4.2, -17), v(x - sd * 1.2, y + 3.8, -17));
+    s.seg(s.main, v(x - sd * 1.2, y + 3.8, -22), v(x - sd * 1.2, y + 3.8, -17));
+  }
   // a bench under the pergola, lanterns on the posts
   s.block(-3, y + 1, -16.4, 3, y + 1.3, -15.6, { over: 0.1 });
   for (const x of px) s.glow(x, y + 5.6, -10, 2.6);
@@ -415,29 +433,35 @@ export function drawPanorama(s, rand) {
   }
 }
 
-// ── the lift ride: the hotel floors passing the gate, and the cage that rides with you
+// ── the lift ride: the shaft wall sliding past the gate, a landing at every floor,
+// and up the wall a painted band where the horse runs (venue.js draws the horse, frame by frame)
 export function drawShaft(s) {
-  const z = LIFT.ride, a = z - 4, b = z + 4;
-  for (let f = WING.h + 4.6; f < ROOF - 1; f += 4.6) {
-    s.block(LIFT.x1, f - 0.6, a, 36, f, b, { over: 0.1 });
-    s.block(36, f, a, 37, f + 4, b, { over: 0.05 });
-    for (const dz of [-2, 2]) s.rectX(s.fine, 35.98, z + dz - 0.9, f, z + dz + 0.9, f + 3.1);
-    s.glow(35.9, f + 3.2, z, 2.4);
-    s.seg(s.fine, v(LIFT.x1, f + 0.02, z), v(36, f + 0.02, z));
+  const z = LIFT.ride, a = z - 4, b = z + 4, W = SHAFT_WALL, f = W - 0.02;
+  s.solid(W, WING.h, a, W + 1, ROOF, b);
+  // stone courses, joints staggered
+  for (let y = WING.h, k = 0; y < ROOF; y += 1.15, k++) {
+    s.seg(s.fine, v(f, y, a), v(f, y, b));
+    for (let zz = a + (k % 2 ? 1.1 : 0); zz < b; zz += 2.2) s.seg(s.fine, v(f, y, zz), v(f, y + 1.15, zz));
+  }
+  // the painted band, its double borders running the whole height
+  for (const zz of [ZOETROPE.z0 - 0.15, ZOETROPE.z0 - 0.3, ZOETROPE.z1 + 0.15, ZOETROPE.z1 + 0.3]) s.seg(s.accent, v(f - 0.01, WING.h, zz), v(f - 0.01, ROOF, zz));
+  { const g = new THREE.PlaneGeometry(ZOETROPE.z1 - ZOETROPE.z0 + 0.6, ROOF - WING.h); g.rotateY(-Math.PI / 2); g.translate(f, (ROOF + WING.h) / 2, (ZOETROPE.z0 + ZOETROPE.z1) / 2); s.solids.push(g); }
+  // a landing at every floor: the slab edge, the landing gate, its number, a lamp
+  for (let fl = WING.h + 4.6, n = 2; fl < ROOF - 1; fl += 4.6, n++) {
+    s.block(LIFT.x1 + 0.1, fl - 0.5, a, W, fl, b, { over: 0.1 });
+    s.rectZ(s.main, a + 0.2, fl, b - 0.2, fl + 0.02, W - 0.4);
+    const gz = z + 2.6;
+    s.rectX(s.main, f, gz - 1.1, fl, gz + 1.1, fl + 3.4);
+    for (let k = 0; k < 6; k++) { const za = gz - 1.1 + (k / 6) * 2.2, zb = gz - 1.1 + ((k + 1) / 6) * 2.2; s.seg(s.fine, v(f, fl, za), v(f, fl + 3.4, zb)); s.seg(s.fine, v(f, fl, zb), v(f, fl + 3.4, za)); }
+    s.rectX(s.fine, f, gz - 0.4, fl + 3.6, gz + 0.4, fl + 4.1);
+    s.glow(f - 0.2, fl + 3.85, gz, 1.6);
   }
   for (const zz of [z - 2.4, z + 2.4]) for (let y = WING.h; y < ROOF; y += 1.8) s.seg(s.fine, v(LIFT.x0, y, zz), v(LIFT.x1, y + 1.8, zz));
   // walls beside the shaft, above the lobby
   s.solid(LIFT.x0 - 1, WING.h, a - 1, LIFT.x0, ROOF, b + 1);
-  for (const zz of [a - 1, b]) s.solid(LIFT.x0, WING.h, zz, 36, ROOF, zz + 1);
+  for (const zz of [a - 1, b]) s.solid(LIFT.x0, WING.h, zz, W + 1, ROOF, zz + 1);
 }
-export function drawCage(s) {
-  cage(s, LIFT.ride, s.main, 0);
-  const { x, z0, z1, y0, y1 } = ZOETROPE, f = x - 0.01;
-  s.rectX(s.main, f, z0 - 0.12, y0 - 0.12, z1 + 0.12, y1 + 0.12);
-  s.rectX(s.accent, f, z0 - 0.2, y0 - 0.2, z1 + 0.2, y1 + 0.2);
-  s.rectX(s.fine, f, (z0 + z1) / 2 - 0.55, y0 - 0.62, (z0 + z1) / 2 + 0.55, y0 - 0.32);
-  s.solid(x, y0 - 0.25, z0 - 0.25, x + 0.05, y1 + 0.25, z1 + 0.25);
-}
+export function drawCage(s) { cage(s, LIFT.ride, s.main, 0); }
 
 // ── the room at the top of the tower: a bed, a window over the town, a door out to the garden
 export function drawRoom(s) {

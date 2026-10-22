@@ -1800,6 +1800,130 @@ function createConcierge() {
 return { createConcierge };
 })();
 
+const __m_guests = (() => {
+// Guests in the resort lobby: paper figures like the house's own people. Names are placeholders,
+// and so are their lines until their conversations are written.
+
+const { paperFigure, P, ell, circ } = __m_figure;
+
+const GOLD = '#d6b066', PEARL = '#f3efe6';
+
+// Ms. Amara Okafor: an emerald evening gown, gold at her ears and throat, a clutch in one hand
+function amara() {
+  const SKIN = '#6e4532', HAIR = '#1c1410', GOWN = '#1f6b4f';
+  return {
+    parts: [
+      { color: HAIR, path: circ(300, 142, 38) },
+      { color: SKIN, path: P('M 282 272 L 318 272 L 320 330 L 280 330 Z') },
+      { color: GOWN, shade: true, path: P('M 236 344 Q 300 332 364 344 L 370 604 Q 418 880 444 1132 L 156 1132 Q 182 880 230 604 Z') },
+      { color: SKIN, path: P('M 226 330 Q 300 316 374 330 L 376 354 Q 300 346 224 354 Z') },
+      { color: SKIN, path: P('M 232 340 Q 204 362 198 444 Q 194 520 202 580 L 226 578 Q 222 500 238 424 Z') },
+      { color: GOLD, path: P('M 188 572 L 238 568 L 242 602 L 190 606 Z') },
+      { color: SKIN, path: P('M 368 340 Q 398 362 404 430 Q 408 484 382 522 L 362 510 Q 380 470 374 422 Z') },
+      { color: GOWN, path: P('M 232 600 Q 300 620 368 600 L 366 640 Q 300 656 234 640 Z') },
+      { color: SKIN, path: ell(300, 230, 47, 60) },
+      { color: HAIR, path: P('M 252 214 Q 256 168 300 164 Q 344 168 348 214 Q 330 190 300 192 Q 270 190 252 214 Z') },
+      { color: '#7a2a2a', path: P('M 284 270 Q 300 262 316 270 Q 300 282 284 270 Z') },
+      { color: GOLD, path: circ(252, 262, 7) }, { color: GOLD, path: circ(348, 262, 7) },
+      { color: GOLD, path: P('M 270 318 Q 300 340 330 318 L 332 324 Q 300 348 268 324 Z') },
+    ],
+    details: ['M 274 232 Q 284 226 294 232', 'M 306 232 Q 316 226 326 232', 'M 300 236 Q 296 252 302 256', 'M 284 270 Q 300 274 316 270', 'M 300 660 Q 290 900 280 1128', 'M 330 660 Q 350 900 372 1128'],
+    eyes: [[284, 236], [316, 236]],
+  };
+}
+
+// Mr. Kenji Watanabe: a white dinner jacket, a black tie, a glass of champagne raised
+function kenji() {
+  const SKIN = '#e6c29a', HAIR = '#16120f', JACKET = '#f1ebde', BLACK = '#1d1b22';
+  return {
+    parts: [
+      { color: BLACK, shade: true, path: P('M 236 600 L 364 600 L 380 1080 L 312 1084 L 300 820 L 288 1084 L 220 1080 Z') },
+      { color: '#2e2622', path: P('M 214 1078 L 290 1080 Q 292 1110 280 1124 L 200 1126 Q 188 1118 196 1104 Z') },
+      { color: '#2e2622', path: P('M 310 1080 L 386 1078 L 404 1104 Q 412 1118 400 1126 L 320 1124 Q 308 1110 310 1080 Z') },
+      { color: SKIN, path: P('M 280 270 L 320 270 L 322 334 L 278 334 Z') },
+      { color: '#ffffff', path: P('M 266 330 L 334 330 L 320 470 L 280 470 Z') },
+      { color: JACKET, path: P('M 204 350 Q 240 330 266 334 L 292 520 L 266 640 L 194 636 Q 194 470 204 350 Z') },
+      { color: JACKET, path: P('M 396 350 Q 360 330 334 334 L 308 520 L 334 640 L 406 636 Q 406 470 396 350 Z') },
+      { color: BLACK, path: P('M 266 334 L 292 520 L 280 470 Z M 334 334 L 308 520 L 320 470 Z') },
+      { color: JACKET, path: P('M 204 352 Q 170 380 166 460 Q 162 540 172 600 L 214 602 Q 210 520 220 440 Z') },
+      { color: SKIN, path: ell(192, 624, 21, 25) },
+      // the arm raising the glass
+      { color: JACKET, path: P('M 392 350 Q 446 370 458 440 Q 462 480 438 488 Q 414 488 408 460 Q 400 420 380 404 Z') },
+      { color: JACKET, path: P('M 420 470 Q 466 456 478 396 L 484 340 L 446 336 Q 446 396 418 432 Z') },
+      { color: SKIN, path: ell(466, 326, 18, 22) },
+      { color: '#efd889', path: P('M 456 248 L 476 248 L 472 292 L 460 292 Z') },
+      { color: BLACK, path: P('M 300 336 L 272 322 Q 264 336 272 350 Z M 300 336 L 328 322 Q 336 336 328 350 Z') },
+      { color: SKIN, path: ell(300, 230, 48, 60) },
+      { color: HAIR, path: P('M 250 222 Q 246 164 300 156 Q 356 164 352 224 Q 336 180 296 186 Q 262 192 250 222 Z') },
+    ],
+    details: [
+      'M 272 214 Q 284 208 294 214', 'M 306 214 Q 318 208 328 214', 'M 300 238 Q 296 254 302 258', 'M 286 280 Q 300 290 316 280',
+      'M 466 292 L 466 318', 'M 456 248 L 476 248',
+    ],
+    eyes: [[284, 232], [316, 232]],
+    extra: ic => { ic.lineWidth = 2.2; for (const x of [284, 316]) { ic.beginPath(); ic.arc(x, 232, 13, 0, Math.PI * 2); ic.stroke(); } ic.beginPath(); ic.moveTo(297, 232); ic.lineTo(303, 232); ic.stroke(); },
+  };
+}
+
+// Ms. Mei Lin: a tailored navy suit, pearls, a fan of cards in her hand
+function mei() {
+  const SKIN = '#ecc6a2', HAIR = '#141010', SUIT = '#1f2c4a';
+  return {
+    parts: [
+      { color: HAIR, path: P('M 236 296 Q 222 196 256 156 Q 300 126 344 156 Q 378 196 364 296 Q 350 310 336 300 L 264 300 Q 250 310 236 296 Z') },
+      { color: SKIN, path: P('M 282 270 L 318 270 L 320 334 L 280 334 Z') },
+      { color: SUIT, shade: true, path: P('M 238 600 L 362 600 Q 380 760 386 860 L 214 860 Q 220 760 238 600 Z') },
+      { color: SKIN, path: P('M 236 858 L 282 858 Q 286 980 276 1100 L 242 1100 Q 234 980 236 858 Z') },
+      { color: SKIN, path: P('M 318 858 L 364 858 Q 366 980 358 1100 L 324 1100 Q 314 980 318 858 Z') },
+      { color: '#2e2622', path: P('M 232 1096 L 280 1096 Q 284 1120 272 1130 L 214 1130 Q 206 1120 232 1096 Z') },
+      { color: '#2e2622', path: P('M 320 1096 L 368 1096 Q 394 1120 386 1130 L 328 1130 Q 316 1120 320 1096 Z') },
+      { color: PEARL, path: P('M 270 330 L 330 330 L 316 420 L 284 420 Z') },
+      { color: SUIT, shade: true, path: P('M 210 348 Q 244 330 270 334 L 296 520 L 272 620 L 204 618 Q 202 470 210 348 Z') },
+      { color: SUIT, shade: true, path: P('M 390 348 Q 356 330 330 334 L 304 520 L 328 620 L 396 618 Q 398 470 390 348 Z') },
+      { color: SUIT, shade: true, path: P('M 210 352 Q 178 380 174 460 Q 170 540 178 596 L 216 598 Q 212 520 224 440 Z') },
+      { color: SKIN, path: ell(196, 620, 19, 23) },
+      // the hand fanning out its cards
+      { color: SUIT, shade: true, path: P('M 386 352 Q 430 380 436 450 Q 438 490 412 500 L 392 480 Q 408 448 396 410 Z') },
+      { color: SKIN, path: ell(408, 500, 18, 16) },
+      { color: '#f6f2ea', path: P('M 392 494 L 380 440 L 398 434 L 408 488 Z') },
+      { color: '#f6f2ea', path: P('M 400 492 L 404 436 L 422 438 L 414 492 Z') },
+      { color: '#f6f2ea', path: P('M 408 494 L 428 444 L 444 452 L 420 498 Z') },
+      { color: '#7d1f24', path: circ(412, 448, 4), noInk: true },
+      { color: SKIN, path: ell(300, 232, 46, 58) },
+      { color: HAIR, path: P('M 252 206 Q 262 164 300 162 Q 340 164 348 206 Q 330 196 300 198 Q 270 196 252 206 Z') },
+      { color: '#a83a40', path: P('M 286 270 Q 300 262 314 270 Q 300 280 286 270 Z') },
+      { color: PEARL, path: (() => { const p = new Path2D(); for (let k = 0; k < 13; k++) { const a = Math.PI * (0.15 + 0.7 * k / 12); p.addPath(circ(300 + Math.cos(a) * 30, 318 + Math.sin(a) * 22, 4.2)); } return p; })() },
+    ],
+    details: ['M 274 230 Q 284 224 294 230', 'M 306 230 Q 316 224 326 230', 'M 300 236 Q 296 250 302 254', 'M 286 270 Q 300 274 314 270', 'M 300 600 L 300 858'],
+    eyes: [[284, 234], [316, 234]],
+  };
+}
+
+const GUESTS = [
+  { name: 'Ms. Amara Okafor', line: 'She raises her clutch in a small salute, as if you had met before.', make: amara, height: 7.5, at: [36.6, 0, -12.8] },
+  { name: 'Mr. Kenji Watanabe', line: 'He lifts his glass to you: later, it says, there will be a story.', make: kenji, height: 7.4, at: [39, 0, -15] },
+  { name: 'Ms. Mei Lin', line: 'She fans her cards, closes them, and smiles: not yet.', make: mei, height: 7.1, at: [35, 0, -26] },
+];
+
+function createGuests() {
+  return GUESTS.map((g, i) => {
+    const f = g.make();
+    const fig = paperFigure({
+      parts: f.parts, details: f.details, seed: 300 + i, height: g.height,
+      extra: ic => {
+        ic.fillStyle = '#fff';
+        for (const [x, y] of f.eyes) { ic.beginPath(); ic.ellipse(x, y, 4.5, 5, 0, 0, Math.PI * 2); ic.fill(); }
+        f.extra?.(ic);
+      },
+    });
+    fig.mesh.position.set(...g.at);
+    return { ...fig, name: `guest-${i}`, guest: g };
+  });
+}
+
+return { GUESTS, createGuests };
+})();
+
 const __m_zoetrope = (() => {
 // Ricochet's table piece: a low gold drum like a watch case, enamel dial on top,
 // and a zoetrope band of galloping horses round its side. As the drum turns,
@@ -3298,7 +3422,9 @@ function portrait(ctx, W, H) {
 // with all four hooves off the ground. Drawn here as a strip of frames, sepia, on his numbered backdrop.
 // The lift shows one frame at a time, chosen by its height, so the horse runs only while you ride.
 const HORSE_FRAMES = 12;
-function horseInMotion(fw = 320, fh = 240) {
+// style 'plate': sepia photographic plates; 'ink': white silhouettes on clear, to be tinted with the house's ink
+function horseInMotion(fw = 320, fh = 240, style = 'plate') {
+  const ink = style === 'ink', BODY = ink ? '#fff' : '#2e2116', FAR = ink ? 'rgba(255,255,255,0.5)' : '#5c4630';
   const n = HORSE_FRAMES, c = document.createElement('canvas'); c.width = fw * n; c.height = fh;
   const ctx = c.getContext('2d');
   // each leg: where it hangs from the body, when its stride starts, and which way its lower joint folds
@@ -3310,7 +3436,9 @@ function horseInMotion(fw = 320, fh = 240) {
   for (let f = 0; f < n; f++) {
     const t = f / n;
     ctx.save(); ctx.translate(f * fw, 0); ctx.scale(fw / 320, fh / 240);
-    // the plate: sepia, a vignette, the numbered lines of the backdrop
+    // the plate: sepia, a vignette, the numbered lines of the backdrop (in ink, just the ground)
+    if (ink) { ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(10, GROUND + 6, 300, 2); }
+    else {
     ctx.fillStyle = '#e8dbbf'; ctx.fillRect(0, 0, 320, 240);
     const vg = ctx.createRadialGradient(160, 120, 60, 160, 120, 200);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(70,45,20,0.35)');
@@ -3320,6 +3448,7 @@ function horseInMotion(fw = 320, fh = 240) {
     ctx.fillStyle = 'rgba(70,50,30,0.55)'; ctx.font = '9px Jost, sans-serif'; ctx.textAlign = 'center';
     for (let x = 20, k = 1; x < 320; x += 24, k++) ctx.fillText(String(k), x, 14);
     ctx.fillStyle = 'rgba(70,50,30,0.3)'; ctx.fillRect(0, GROUND, 320, 240 - GROUND);
+    }
     // the legs: on the ground they sweep back straight; in the air they fold and swing forward
     const legAt = L => {
       const p = (t + L.off) % 1;
@@ -3340,8 +3469,8 @@ function horseInMotion(fw = 320, fh = 240) {
       ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
       ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + 4, fy + 3); ctx.stroke();
     };
-    LEGS.filter(L => L.far).forEach(L => leg(L, '#5c4630'));
-    ctx.fillStyle = '#2e2116';
+    LEGS.filter(L => L.far).forEach(L => leg(L, FAR));
+    ctx.fillStyle = BODY;
     // body, neck and head, tail streaming
     ctx.beginPath(); ctx.ellipse(150, by + 6, 64, 25, -0.04, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.moveTo(186, by - 6); ctx.quadraticCurveTo(214, by - 34, 236, by - 48); ctx.lineTo(250, by - 34);
@@ -3349,17 +3478,19 @@ function horseInMotion(fw = 320, fh = 240) {
     ctx.beginPath(); ctx.moveTo(232, by - 52); ctx.quadraticCurveTo(262, by - 46, 278, by - 26); ctx.lineTo(270, by - 18);
     ctx.quadraticCurveTo(252, by - 26, 238, by - 30); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(236, by - 50); ctx.lineTo(240, by - 62); ctx.lineTo(244, by - 50); ctx.fill();
-    ctx.strokeStyle = '#2e2116'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.strokeStyle = BODY; ctx.lineWidth = 5; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(90, by - 4); ctx.quadraticCurveTo(66, by + 2 + Math.sin(t * Math.PI * 2) * 6, 50, by + 18); ctx.stroke();
     // the jockey, crouched
-    ctx.fillStyle = '#2e2116';
+    ctx.fillStyle = BODY;
     ctx.beginPath(); ctx.ellipse(162, by - 24, 9, 16, 0.7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(176, by - 40, 6, 0, Math.PI * 2); ctx.fill();
-    LEGS.filter(L => !L.far).forEach(L => leg(L, '#2e2116'));
+    LEGS.filter(L => !L.far).forEach(L => leg(L, BODY));
     // the plate's edge and its number
+    if (!ink) {
     ctx.strokeStyle = 'rgba(40,28,16,0.8)'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, 314, 234);
     ctx.fillStyle = 'rgba(40,28,16,0.85)'; ctx.font = '600 13px Jost, sans-serif'; ctx.textAlign = 'right';
     ctx.fillText(String(f + 1), 306, 228);
+    }
     ctx.restore();
   }
   return c;
@@ -3392,8 +3523,9 @@ const WING = { x0: 24, x1: 64, z0: -6, z1: -112, h: 15 }; // gallery (−x) and 
 const THEATER = { x: 64, z0: -112, z1: -196, h: 40 };
 const ROOF = 74;                                          // the centre block's roof, now the sky garden
 const LIFT = { x0: 24, x1: 28.4, zs: [-14, -22, -30], ride: -22, top: ROOF };
-// the horse in motion: a window in the cage's gate, at eye height, left of centre (heights from the cage floor)
-const ZOETROPE = { x: LIFT.x1 - 0.18, z0: LIFT.ride - 1.3, z1: LIFT.ride + 0.1, y0: 4.2, y1: 5.25 };
+// the shaft wall just beyond the gate, and the band painted up it where the horse runs (heights from the cage floor)
+const SHAFT_WALL = LIFT.x1 + 1.1;
+const ZOETROPE = { x: SHAFT_WALL - 0.03, z0: LIFT.ride - 1.75, z1: LIFT.ride + 0.55, y0: 4.05, y1: 5.75 };
 const ROOM = { x0: 21, x1: 35, z0: -25.6, z1: -14.4, y0: ROOF, y1: ROOF + 4.6 };
 const SEA = -36;
 
@@ -3656,7 +3788,7 @@ function drawSkyGarden(s, rand) {
     { const g = new THREE.SphereGeometry(2.4, 12, 8); g.scale(1, 0.45, 1).translate(x, y + hh - 0.4, z); s.paintOnly(g, '#5b8a4f'); }
     s.block(x - 1, y, z - 1, x + 1, y + 1.2, z + 1, { over: 0.1, paint: '#b1603e' });
   }
-  for (const z of [-12, -18]) for (const sd of [-1, 1]) {
+  for (const z of [-10, -28.4]) for (const sd of [-1, 1]) {
     const x = sd * 18.6, hh = 8 + rand() * 1.5, r = 1.1, pts = [], pts2 = [];
     for (let i = 0; i <= 16; i++) { const a = (i / 16) * Math.PI; pts.push(v(x + Math.sin(a) * r, y + 0.4 + (1 - Math.cos(a)) / 2 * hh, z)); pts2.push(v(x, y + 0.4 + (1 - Math.cos(a)) / 2 * hh, z + Math.sin(a) * r)); }
     s.poly(s.main, pts); s.poly(s.main, pts.map(p => v(2 * x - p.x, p.y, p.z))); s.poly(s.fine, pts2);
@@ -3670,6 +3802,23 @@ function drawSkyGarden(s, rand) {
   for (const r of [1.2, 2.2]) s.circle(s.water, 0, y + 0.05, -15, r, 32);
   s.seg(s.water, v(-17.5, y + 0.05, -1.7), v(17.5, y + 0.05, -1.7));
   for (const sd of [-1, 1]) s.block(sd * 18.2 - 0.4, 72.4, 0.6, sd * 18.2 + 0.4, 72.9, 1.6, { over: 0.05 });
+  // the two towers' faces that look onto the garden: rows of hotel windows, and on the east one the terrace door
+  for (const sd of [-1, 1]) {
+    const x = sd * 19.98; // just outside the tower's garden face
+    for (let wy = y + 6.5; wy < 100; wy += 5.5) for (let wz = -26; wz < -1; wz += 4.2) {
+      if (wy < y + 7 && wz > -23 && wz < -15) continue;
+      s.rectX(s.fine, x, wz, wy, wz + 1.6, wy + 3.2);
+      if (((wy * 7 + wz * 3) | 0) % 3 === 0) s.lightX(x - sd * 0.01, wz, wy, wz + 1.6, wy + 3.2, -sd);
+    }
+    // a door at roof level, framed, with a lantern either side (the east one is the hotel room's)
+    s.rectX(s.main, x, -21, y, -18, y + 3.6);
+    s.rectX(s.fine, x, -20.7, y, -18.3, y + 3.3);
+    s.seg(s.fine, v(x, y, -19.5), v(x, y + 3.3, -19.5));
+    s.lightX(x - sd * 0.01, -20.7, y, -18.3, y + 3.3, -sd);
+    for (const lz of [-21.8, -17.2]) { s.rectX(s.fine, x, lz - 0.25, y + 2.6, lz + 0.25, y + 3.4); s.glow(x - sd * 0.4, y + 3, lz, 2.4); }
+    s.seg(s.main, v(x, y + 4.2, -22), v(x - sd * 1.2, y + 3.8, -22)); s.seg(s.main, v(x, y + 4.2, -17), v(x - sd * 1.2, y + 3.8, -17));
+    s.seg(s.main, v(x - sd * 1.2, y + 3.8, -22), v(x - sd * 1.2, y + 3.8, -17));
+  }
   // a bench under the pergola, lanterns on the posts
   s.block(-3, y + 1, -16.4, 3, y + 1.3, -15.6, { over: 0.1 });
   for (const x of px) s.glow(x, y + 5.6, -10, 2.6);
@@ -3785,29 +3934,35 @@ function drawPanorama(s, rand) {
   }
 }
 
-// ── the lift ride: the hotel floors passing the gate, and the cage that rides with you
+// ── the lift ride: the shaft wall sliding past the gate, a landing at every floor,
+// and up the wall a painted band where the horse runs (venue.js draws the horse, frame by frame)
 function drawShaft(s) {
-  const z = LIFT.ride, a = z - 4, b = z + 4;
-  for (let f = WING.h + 4.6; f < ROOF - 1; f += 4.6) {
-    s.block(LIFT.x1, f - 0.6, a, 36, f, b, { over: 0.1 });
-    s.block(36, f, a, 37, f + 4, b, { over: 0.05 });
-    for (const dz of [-2, 2]) s.rectX(s.fine, 35.98, z + dz - 0.9, f, z + dz + 0.9, f + 3.1);
-    s.glow(35.9, f + 3.2, z, 2.4);
-    s.seg(s.fine, v(LIFT.x1, f + 0.02, z), v(36, f + 0.02, z));
+  const z = LIFT.ride, a = z - 4, b = z + 4, W = SHAFT_WALL, f = W - 0.02;
+  s.solid(W, WING.h, a, W + 1, ROOF, b);
+  // stone courses, joints staggered
+  for (let y = WING.h, k = 0; y < ROOF; y += 1.15, k++) {
+    s.seg(s.fine, v(f, y, a), v(f, y, b));
+    for (let zz = a + (k % 2 ? 1.1 : 0); zz < b; zz += 2.2) s.seg(s.fine, v(f, y, zz), v(f, y + 1.15, zz));
+  }
+  // the painted band, its double borders running the whole height
+  for (const zz of [ZOETROPE.z0 - 0.15, ZOETROPE.z0 - 0.3, ZOETROPE.z1 + 0.15, ZOETROPE.z1 + 0.3]) s.seg(s.accent, v(f - 0.01, WING.h, zz), v(f - 0.01, ROOF, zz));
+  { const g = new THREE.PlaneGeometry(ZOETROPE.z1 - ZOETROPE.z0 + 0.6, ROOF - WING.h); g.rotateY(-Math.PI / 2); g.translate(f, (ROOF + WING.h) / 2, (ZOETROPE.z0 + ZOETROPE.z1) / 2); s.solids.push(g); }
+  // a landing at every floor: the slab edge, the landing gate, its number, a lamp
+  for (let fl = WING.h + 4.6, n = 2; fl < ROOF - 1; fl += 4.6, n++) {
+    s.block(LIFT.x1 + 0.1, fl - 0.5, a, W, fl, b, { over: 0.1 });
+    s.rectZ(s.main, a + 0.2, fl, b - 0.2, fl + 0.02, W - 0.4);
+    const gz = z + 2.6;
+    s.rectX(s.main, f, gz - 1.1, fl, gz + 1.1, fl + 3.4);
+    for (let k = 0; k < 6; k++) { const za = gz - 1.1 + (k / 6) * 2.2, zb = gz - 1.1 + ((k + 1) / 6) * 2.2; s.seg(s.fine, v(f, fl, za), v(f, fl + 3.4, zb)); s.seg(s.fine, v(f, fl, zb), v(f, fl + 3.4, za)); }
+    s.rectX(s.fine, f, gz - 0.4, fl + 3.6, gz + 0.4, fl + 4.1);
+    s.glow(f - 0.2, fl + 3.85, gz, 1.6);
   }
   for (const zz of [z - 2.4, z + 2.4]) for (let y = WING.h; y < ROOF; y += 1.8) s.seg(s.fine, v(LIFT.x0, y, zz), v(LIFT.x1, y + 1.8, zz));
   // walls beside the shaft, above the lobby
   s.solid(LIFT.x0 - 1, WING.h, a - 1, LIFT.x0, ROOF, b + 1);
-  for (const zz of [a - 1, b]) s.solid(LIFT.x0, WING.h, zz, 36, ROOF, zz + 1);
+  for (const zz of [a - 1, b]) s.solid(LIFT.x0, WING.h, zz, W + 1, ROOF, zz + 1);
 }
-function drawCage(s) {
-  cage(s, LIFT.ride, s.main, 0);
-  const { x, z0, z1, y0, y1 } = ZOETROPE, f = x - 0.01;
-  s.rectX(s.main, f, z0 - 0.12, y0 - 0.12, z1 + 0.12, y1 + 0.12);
-  s.rectX(s.accent, f, z0 - 0.2, y0 - 0.2, z1 + 0.2, y1 + 0.2);
-  s.rectX(s.fine, f, (z0 + z1) / 2 - 0.55, y0 - 0.62, (z0 + z1) / 2 + 0.55, y0 - 0.32);
-  s.solid(x, y0 - 0.25, z0 - 0.25, x + 0.05, y1 + 0.25, z1 + 0.25);
-}
+function drawCage(s) { cage(s, LIFT.ride, s.main, 0); }
 
 // ── the room at the top of the tower: a bed, a window over the town, a door out to the garden
 function drawRoom(s) {
@@ -3851,7 +4006,7 @@ function drawRoom(s) {
   s.glow((x0 + x1) / 2, y1 - 0.3, (z0 + z1) / 2, 6);
 }
 
-return { DOOR_Z, FOYER, HALL, WING, THEATER, ROOF, LIFT, ZOETROPE, ROOM, SEA, drawFoyer, drawWings, GALLERY_SPOTS, drawGallery, RACK, SOFA, drawResort, drawTheater, drawSkyGarden, drawWaterfalls, drawRear, drawPanorama, drawShaft, drawCage, drawRoom };
+return { DOOR_Z, FOYER, HALL, WING, THEATER, ROOF, LIFT, SHAFT_WALL, ZOETROPE, ROOM, SEA, drawFoyer, drawWings, GALLERY_SPOTS, drawGallery, RACK, SOFA, drawResort, drawTheater, drawSkyGarden, drawWaterfalls, drawRear, drawPanorama, drawShaft, drawCage, drawRoom };
 })();
 
 const __m_resort_views = (() => {
@@ -5815,6 +5970,7 @@ const { chipStacks, bigChip } = __m_chip;
 const { createMerchant } = __m_merchant;
 const { createKeeper } = __m_keeper;
 const { createConcierge } = __m_concierge;
+const { createGuests, GUESTS } = __m_guests;
 const { ARTWORKS, JOURNALS, artworkCanvas, journalCover, horseInMotion, HORSE_FRAMES } = __m_art;
 const { ZOETROPE, DOOR_Z, HALL, WING, THEATER, LIFT, ROOM, ROOF, RACK, SOFA, GALLERY_SPOTS, drawFoyer, drawWings, drawGallery, drawResort, drawTheater, drawSkyGarden, drawWaterfalls, drawRear, drawPanorama, drawShaft, drawCage, drawRoom } = __m_resort;
 const { worldCanvas, loadLand, lonLatToVec } = __m_coins_world;
@@ -6348,6 +6504,7 @@ const OBJECTS = {
   journals: { label: 'The Allmer Journals', hint: 'Browse the rack' },
   terrace: { label: 'The terrace door', hint: 'Out to the sky garden' },
   ...Object.fromEntries(ARTWORKS.map((a, i) => [`art-${i}`, { label: a.title, hint: `${a.artist} · look closer` }])),
+  ...Object.fromEntries(GUESTS.map((g, i) => [`guest-${i}`, { label: g.name, hint: 'A guest of the house' }])),
 };
 
 function glowTexture() {
@@ -6405,7 +6562,7 @@ const STOP_IDS = ['garden', 'court', 'concierge', 'coins', 'casino', 'theater', 
 const ROOMS = {
   garden: ['portico', 'skygarden'], court: ['fountain'], concierge: ['concierge'], coins: ['keeper', 'globe', 'coin'],
   casino: ['fortuna', 'ricochet', 'frontier', 'merchant'], theater: ['theater'], gallery: ARTWORKS.map((a, i) => `art-${i}`).slice(0, 4),
-  lobby: ['lifts'], reading: ['sofa', 'journals'],
+  lobby: ['lifts', ...GUESTS.map((g, i) => `guest-${i}`)], reading: ['sofa', 'journals'],
 };
 
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -6490,12 +6647,14 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
   const cageSheet = new Sheet(); drawCage(cageSheet);
   const cage = build(cageSheet, mats);
   // the horse in motion rides in the cage: one frame at a time, picked by the lift's height
-  const horseTex = new THREE.CanvasTexture(horseInMotion(320, 240));
-  horseTex.colorSpace = THREE.SRGBColorSpace; horseTex.repeat.set(1 / HORSE_FRAMES, 1);
+  // (painted in ink inside the band on the shaft wall, so it belongs to the wall, not a screen)
+  const horseTex = new THREE.CanvasTexture(horseInMotion(320, 240, 'ink'));
+  horseTex.repeat.set(1 / HORSE_FRAMES, 1);
+  const horseMat = new THREE.MeshBasicMaterial({ map: horseTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   {
     const { x, z0, z1, y0, y1 } = ZOETROPE;
     const g = new THREE.PlaneGeometry(z1 - z0, y1 - y0); g.rotateY(-Math.PI / 2);
-    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: horseTex, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    const m = new THREE.Mesh(g, horseMat);
     m.position.set(x - 0.02, (y0 + y1) / 2, (z0 + z1) / 2);
     cage.add(m);
   }
@@ -6571,7 +6730,13 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
   concierge.mesh.position.set(-16.2, 0, -22);
   interior.add(concierge.mesh);
   join('concierge', concierge.material, concierge.mesh);
-  const figures = [merchant, keeper, concierge];
+  // guests in the lobby, waiting for their lines
+  const guests = createGuests();
+  for (const g of guests) {
+    interior.add(g.mesh);
+    paintables.push(Object.assign(new Paintable({ name: g.name, materials: [g.material], hit: g.mesh, center: new THREE.Vector3(), radius: 1 }), { zones: ['in'] }));
+  }
+  const figures = [merchant, keeper, concierge, ...guests];
 
   // a picture on a wall or a cover on the rack: a flat painting that washes in when touched
   const picture = (canvasPromise, w, h, facing) => {
@@ -6725,7 +6890,7 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     const t = THEMES[n ? 'night' : 'day'];
     renderer.setClearColor(t.paper);
     scene.fog.color.set(t.paper);
-    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water); mats.falls.color.set(t.water);
+    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water); mats.falls.color.set(t.water); horseMat.color.set(t.ink);
     mats.panel.color.set(t.ink);
     mats.window.color.set(t.window); mats.glow.color.set(t.glow);
     mats.fine.opacity = n ? 0.8 : 0.7;
@@ -6812,9 +6977,31 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     free = null; at = 'lobby';
     riding = false;
   }
-  async function cut(fn) { const was = riding; riding = true; await fade(1); fn(); await fade(0); riding = was; }
-  const toRoom = () => cut(() => { override = 'room'; free = { ...ROOM_POSE }; at = 'room'; });
-  const toSky = () => cut(() => { override = 'up'; free = { ...SKY_POSES[skyView] }; at = 'sky'; });
+  // through the terrace door: a walk from the room out onto the roof, or back in
+  const TERRACE = ROOM.x0 - 0.7; // the tower's outer face, where indoors becomes the roof
+  const OUT = [
+    { pos: V(25, ROOF + 2.6, -19.5), tgt: V(10, ROOF + 2.4, -19.5) },
+    { pos: V(17, ROOF + 3, -19.5), tgt: V(0, ROOF + 2, -14) },
+    { pos: V(9, ROOF + 4.4, -14), tgt: V(0, ROOF, -6) },
+  ];
+  const IN_FACE = { pos: V(8, ROOF + 3.6, -19.5), tgt: V(22, ROOF + 2.4, -19.5) }; // across the garden, facing the door
+  const IN = [
+    { pos: V(16, ROOF + 2.9, -19.5), tgt: V(30, ROOF + 2.6, -19.5) },
+    { pos: V(25, ROOF + 2.6, -19.5), tgt: V(34, ROOF + 2.4, -16) },
+  ];
+  function glide(poses, secs, end) {
+    return new Promise(resolve => {
+      fly = null; free = null;
+      const pts = [{ pos: camera.position.clone(), tgt: view.tgt.clone() }, ...poses];
+      const curve = l => new THREE.CatmullRomCurve3(l, false, 'centripetal');
+      travel = {
+        pos: curve(pts.map(p => p.pos)), tgt: curve(pts.map(p => p.tgt)), t0: performance.now(), dur: secs * 1000, door: true, resolve,
+        end: () => { free = { pos: pts[pts.length - 1].pos.clone(), tgt: pts[pts.length - 1].tgt.clone() }; at = end; override = end === 'sky' ? 'up' : 'room'; },
+      };
+    });
+  }
+  async function toRoom() { const was = riding; riding = true; await flyTo(IN_FACE, 1.8); await glide([...IN, ROOM_POSE], 3.2, 'room'); riding = was; }
+  async function toSky() { const was = riding; riding = true; await glide([...OUT, SKY_POSES[skyView]], 4.4, 'sky'); riding = was; }
 
   async function goToStop(i, dur) {
     const target = STOP_IDS[i];
@@ -6860,7 +7047,7 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     if (travel) {
       const t = THREE.MathUtils.clamp((now - travel.t0) / travel.dur, 0, 1), e = ease(t);
       view = { pos: travel.pos.getPoint(e), tgt: travel.tgt.getPoint(e) };
-      if (t >= 1) { at = travel.to; const r = travel.resolve; travel = null; r(); }
+      if (t >= 1) { if (travel.end) travel.end(); else at = travel.to; const r = travel.resolve; travel = null; r(); }
     } else if (fly) {
       const t = THREE.MathUtils.clamp((now - fly.t0) / fly.dur, 0, 1), e = ease(t);
       view = { pos: fly.from.pos.clone().lerp(fly.to.pos, e), tgt: fly.from.tgt.clone().lerp(fly.to.tgt, e) };
@@ -6880,13 +7067,16 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     else if (!free || override === 'room' || override === 'up') { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
     camera.lookAt(tgt);
 
+    // walking through the terrace door, the room gives way to the roof at the threshold
+    if (travel?.door) override = camera.position.x > TERRACE ? 'room' : 'up';
     const zone = zoneNow();
     showZone(zone);
     cage.position.y = camera.position.y - LIFT_LOW;
     // a frame for every 0.55 units climbed: up, the horse runs on; down, it runs backward
     if (cage.visible) horseTex.offset.x = (((Math.floor(cage.position.y / 0.55) % HORSE_FRAMES) + HORSE_FRAMES) % HORSE_FRAMES) / HORSE_FRAMES;
     veil += Math.sign(veilTo - veil) * Math.min(Math.abs(veilTo - veil), 0.035);
-    const door = override ? 0 : 1 - Math.abs(camera.position.z - DOOR_Z) / 5.5;
+    const door = travel?.door ? 0.9 * Math.max(0, 1 - Math.abs(camera.position.x - TERRACE) / 2.4)
+      : override ? 0 : 1 - Math.abs(camera.position.z - DOOR_Z) / 5.5;
     if (wash) wash.style.opacity = Math.max(veil, door).toFixed(3);
 
     mats.water.dashOffset = -time * 1.6;
@@ -6902,6 +7092,7 @@ async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate
     face(merchant.mesh, Math.sin(time * 1.3) * 0.045);
     face(keeper.mesh, Math.sin(time * 0.9) * 0.012);
     face(concierge.mesh, Math.sin(time * 0.7) * 0.01);
+    guests.forEach((g, i) => face(g.mesh, Math.sin(time * (0.8 + i * 0.17) + i) * 0.015));
     globeSpin.rotation.y = time * 0.12;
     coinPivot.rotation.y = time * 0.55;
     if (monument) monument.rotation.y = Math.sin(time * 0.45) * 0.55;
@@ -7009,7 +7200,7 @@ const { loadQuotes, drawLine } = __m_assets;
 const { openGlobe } = __m_coins_globe;
 const { openCoins } = __m_coins_gallery;
 const { openJournals, openArtwork } = __m_resort_views;
-const { ARTWORKS } = __m_art;
+const { GUESTS } = __m_guests;
 
 const TABLES = {
   fortuna: { open: openFortuna, min: MIN_STAKE, label: 'Fortuna', blurb: 'Twelve arms, three rings, two dice. Chips from 5.' },
@@ -7081,6 +7272,8 @@ function toast(text) {
 function activate(name) {
   tag.classList.remove('on');
   if (name.startsWith('art-')) { const i = +name.slice(4); stop === S.gallery ? visit('art', i) : go(S.gallery); return; }
+  // the guests' conversations are still being written: for now, a gesture
+  if (name.startsWith('guest-')) { stop === S.lobby ? toast(GUESTS[+name.slice(6)].line) : go(S.lobby); return; }
   switch (name) {
     case 'portico': go(S.concierge); break;
     case 'concierge': stop === S.concierge ? talk('concierge', 0) : go(S.concierge); break;

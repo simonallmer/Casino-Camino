@@ -15,6 +15,7 @@ import { chipStacks, bigChip } from './chip.js';
 import { createMerchant } from './merchant.js';
 import { createKeeper } from './keeper.js';
 import { createConcierge } from './concierge.js';
+import { createGuests, GUESTS } from './guests.js';
 import { ARTWORKS, JOURNALS, artworkCanvas, journalCover, horseInMotion, HORSE_FRAMES } from './art.js';
 import { ZOETROPE, DOOR_Z, HALL, WING, THEATER, LIFT, ROOM, ROOF, RACK, SOFA, GALLERY_SPOTS, drawFoyer, drawWings, drawGallery, drawResort, drawTheater, drawSkyGarden, drawWaterfalls, drawRear, drawPanorama, drawShaft, drawCage, drawRoom } from './resort.js';
 import { worldCanvas, loadLand, lonLatToVec } from './coins/world.js';
@@ -548,6 +549,7 @@ export const OBJECTS = {
   journals: { label: 'The Allmer Journals', hint: 'Browse the rack' },
   terrace: { label: 'The terrace door', hint: 'Out to the sky garden' },
   ...Object.fromEntries(ARTWORKS.map((a, i) => [`art-${i}`, { label: a.title, hint: `${a.artist} · look closer` }])),
+  ...Object.fromEntries(GUESTS.map((g, i) => [`guest-${i}`, { label: g.name, hint: 'A guest of the house' }])),
 };
 
 function glowTexture() {
@@ -605,7 +607,7 @@ export const STOP_IDS = ['garden', 'court', 'concierge', 'coins', 'casino', 'the
 const ROOMS = {
   garden: ['portico', 'skygarden'], court: ['fountain'], concierge: ['concierge'], coins: ['keeper', 'globe', 'coin'],
   casino: ['fortuna', 'ricochet', 'frontier', 'merchant'], theater: ['theater'], gallery: ARTWORKS.map((a, i) => `art-${i}`).slice(0, 4),
-  lobby: ['lifts'], reading: ['sofa', 'journals'],
+  lobby: ['lifts', ...GUESTS.map((g, i) => `guest-${i}`)], reading: ['sofa', 'journals'],
 };
 
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -690,12 +692,14 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   const cageSheet = new Sheet(); drawCage(cageSheet);
   const cage = build(cageSheet, mats);
   // the horse in motion rides in the cage: one frame at a time, picked by the lift's height
-  const horseTex = new THREE.CanvasTexture(horseInMotion(320, 240));
-  horseTex.colorSpace = THREE.SRGBColorSpace; horseTex.repeat.set(1 / HORSE_FRAMES, 1);
+  // (painted in ink inside the band on the shaft wall, so it belongs to the wall, not a screen)
+  const horseTex = new THREE.CanvasTexture(horseInMotion(320, 240, 'ink'));
+  horseTex.repeat.set(1 / HORSE_FRAMES, 1);
+  const horseMat = new THREE.MeshBasicMaterial({ map: horseTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   {
     const { x, z0, z1, y0, y1 } = ZOETROPE;
     const g = new THREE.PlaneGeometry(z1 - z0, y1 - y0); g.rotateY(-Math.PI / 2);
-    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: horseTex, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    const m = new THREE.Mesh(g, horseMat);
     m.position.set(x - 0.02, (y0 + y1) / 2, (z0 + z1) / 2);
     cage.add(m);
   }
@@ -771,7 +775,13 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   concierge.mesh.position.set(-16.2, 0, -22);
   interior.add(concierge.mesh);
   join('concierge', concierge.material, concierge.mesh);
-  const figures = [merchant, keeper, concierge];
+  // guests in the lobby, waiting for their lines
+  const guests = createGuests();
+  for (const g of guests) {
+    interior.add(g.mesh);
+    paintables.push(Object.assign(new Paintable({ name: g.name, materials: [g.material], hit: g.mesh, center: new THREE.Vector3(), radius: 1 }), { zones: ['in'] }));
+  }
+  const figures = [merchant, keeper, concierge, ...guests];
 
   // a picture on a wall or a cover on the rack: a flat painting that washes in when touched
   const picture = (canvasPromise, w, h, facing) => {
@@ -925,7 +935,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     const t = THEMES[n ? 'night' : 'day'];
     renderer.setClearColor(t.paper);
     scene.fog.color.set(t.paper);
-    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water); mats.falls.color.set(t.water);
+    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water); mats.falls.color.set(t.water); horseMat.color.set(t.ink);
     mats.panel.color.set(t.ink);
     mats.window.color.set(t.window); mats.glow.color.set(t.glow);
     mats.fine.opacity = n ? 0.8 : 0.7;
@@ -1012,9 +1022,31 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     free = null; at = 'lobby';
     riding = false;
   }
-  async function cut(fn) { const was = riding; riding = true; await fade(1); fn(); await fade(0); riding = was; }
-  const toRoom = () => cut(() => { override = 'room'; free = { ...ROOM_POSE }; at = 'room'; });
-  const toSky = () => cut(() => { override = 'up'; free = { ...SKY_POSES[skyView] }; at = 'sky'; });
+  // through the terrace door: a walk from the room out onto the roof, or back in
+  const TERRACE = ROOM.x0 - 0.7; // the tower's outer face, where indoors becomes the roof
+  const OUT = [
+    { pos: V(25, ROOF + 2.6, -19.5), tgt: V(10, ROOF + 2.4, -19.5) },
+    { pos: V(17, ROOF + 3, -19.5), tgt: V(0, ROOF + 2, -14) },
+    { pos: V(9, ROOF + 4.4, -14), tgt: V(0, ROOF, -6) },
+  ];
+  const IN_FACE = { pos: V(8, ROOF + 3.6, -19.5), tgt: V(22, ROOF + 2.4, -19.5) }; // across the garden, facing the door
+  const IN = [
+    { pos: V(16, ROOF + 2.9, -19.5), tgt: V(30, ROOF + 2.6, -19.5) },
+    { pos: V(25, ROOF + 2.6, -19.5), tgt: V(34, ROOF + 2.4, -16) },
+  ];
+  function glide(poses, secs, end) {
+    return new Promise(resolve => {
+      fly = null; free = null;
+      const pts = [{ pos: camera.position.clone(), tgt: view.tgt.clone() }, ...poses];
+      const curve = l => new THREE.CatmullRomCurve3(l, false, 'centripetal');
+      travel = {
+        pos: curve(pts.map(p => p.pos)), tgt: curve(pts.map(p => p.tgt)), t0: performance.now(), dur: secs * 1000, door: true, resolve,
+        end: () => { free = { pos: pts[pts.length - 1].pos.clone(), tgt: pts[pts.length - 1].tgt.clone() }; at = end; override = end === 'sky' ? 'up' : 'room'; },
+      };
+    });
+  }
+  async function toRoom() { const was = riding; riding = true; await flyTo(IN_FACE, 1.8); await glide([...IN, ROOM_POSE], 3.2, 'room'); riding = was; }
+  async function toSky() { const was = riding; riding = true; await glide([...OUT, SKY_POSES[skyView]], 4.4, 'sky'); riding = was; }
 
   async function goToStop(i, dur) {
     const target = STOP_IDS[i];
@@ -1060,7 +1092,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     if (travel) {
       const t = THREE.MathUtils.clamp((now - travel.t0) / travel.dur, 0, 1), e = ease(t);
       view = { pos: travel.pos.getPoint(e), tgt: travel.tgt.getPoint(e) };
-      if (t >= 1) { at = travel.to; const r = travel.resolve; travel = null; r(); }
+      if (t >= 1) { if (travel.end) travel.end(); else at = travel.to; const r = travel.resolve; travel = null; r(); }
     } else if (fly) {
       const t = THREE.MathUtils.clamp((now - fly.t0) / fly.dur, 0, 1), e = ease(t);
       view = { pos: fly.from.pos.clone().lerp(fly.to.pos, e), tgt: fly.from.tgt.clone().lerp(fly.to.tgt, e) };
@@ -1080,13 +1112,16 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     else if (!free || override === 'room' || override === 'up') { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
     camera.lookAt(tgt);
 
+    // walking through the terrace door, the room gives way to the roof at the threshold
+    if (travel?.door) override = camera.position.x > TERRACE ? 'room' : 'up';
     const zone = zoneNow();
     showZone(zone);
     cage.position.y = camera.position.y - LIFT_LOW;
     // a frame for every 0.55 units climbed: up, the horse runs on; down, it runs backward
     if (cage.visible) horseTex.offset.x = (((Math.floor(cage.position.y / 0.55) % HORSE_FRAMES) + HORSE_FRAMES) % HORSE_FRAMES) / HORSE_FRAMES;
     veil += Math.sign(veilTo - veil) * Math.min(Math.abs(veilTo - veil), 0.035);
-    const door = override ? 0 : 1 - Math.abs(camera.position.z - DOOR_Z) / 5.5;
+    const door = travel?.door ? 0.9 * Math.max(0, 1 - Math.abs(camera.position.x - TERRACE) / 2.4)
+      : override ? 0 : 1 - Math.abs(camera.position.z - DOOR_Z) / 5.5;
     if (wash) wash.style.opacity = Math.max(veil, door).toFixed(3);
 
     mats.water.dashOffset = -time * 1.6;
@@ -1102,6 +1137,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     face(merchant.mesh, Math.sin(time * 1.3) * 0.045);
     face(keeper.mesh, Math.sin(time * 0.9) * 0.012);
     face(concierge.mesh, Math.sin(time * 0.7) * 0.01);
+    guests.forEach((g, i) => face(g.mesh, Math.sin(time * (0.8 + i * 0.17) + i) * 0.015));
     globeSpin.rotation.y = time * 0.12;
     coinPivot.rotation.y = time * 0.55;
     if (monument) monument.rotation.y = Math.sin(time * 0.45) * 0.55;

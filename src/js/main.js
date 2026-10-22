@@ -7,7 +7,7 @@ import { loadQuotes, drawLine } from './assets.js';
 import { openGlobe } from './coins/globe.js';
 import { openCoins } from './coins/gallery.js';
 import { openJournals, openArtwork } from './resort-views.js';
-import { ARTWORKS } from './art.js';
+import { GUESTS } from './guests.js';
 
 const TABLES = {
   fortuna: { open: openFortuna, min: MIN_STAKE, label: 'Fortuna', blurb: 'Twelve arms, three rings, two dice. Chips from 5.' },
@@ -79,6 +79,8 @@ function toast(text) {
 function activate(name) {
   tag.classList.remove('on');
   if (name.startsWith('art-')) { const i = +name.slice(4); stop === S.gallery ? visit('art', i) : go(S.gallery); return; }
+  // the guests' conversations are still being written: for now, a gesture
+  if (name.startsWith('guest-')) { stop === S.lobby ? toast(GUESTS[+name.slice(6)].line) : go(S.lobby); return; }
   switch (name) {
     case 'portico': go(S.concierge); break;
     case 'concierge': stop === S.concierge ? talk('concierge', 0) : go(S.concierge); break;

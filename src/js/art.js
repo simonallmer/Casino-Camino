@@ -160,7 +160,9 @@ function portrait(ctx, W, H) {
 // with all four hooves off the ground. Drawn here as a strip of frames, sepia, on his numbered backdrop.
 // The lift shows one frame at a time, chosen by its height, so the horse runs only while you ride.
 export const HORSE_FRAMES = 12;
-export function horseInMotion(fw = 320, fh = 240) {
+// style 'plate': sepia photographic plates; 'ink': white silhouettes on clear, to be tinted with the house's ink
+export function horseInMotion(fw = 320, fh = 240, style = 'plate') {
+  const ink = style === 'ink', BODY = ink ? '#fff' : '#2e2116', FAR = ink ? 'rgba(255,255,255,0.5)' : '#5c4630';
   const n = HORSE_FRAMES, c = document.createElement('canvas'); c.width = fw * n; c.height = fh;
   const ctx = c.getContext('2d');
   // each leg: where it hangs from the body, when its stride starts, and which way its lower joint folds
@@ -172,7 +174,9 @@ export function horseInMotion(fw = 320, fh = 240) {
   for (let f = 0; f < n; f++) {
     const t = f / n;
     ctx.save(); ctx.translate(f * fw, 0); ctx.scale(fw / 320, fh / 240);
-    // the plate: sepia, a vignette, the numbered lines of the backdrop
+    // the plate: sepia, a vignette, the numbered lines of the backdrop (in ink, just the ground)
+    if (ink) { ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(10, GROUND + 6, 300, 2); }
+    else {
     ctx.fillStyle = '#e8dbbf'; ctx.fillRect(0, 0, 320, 240);
     const vg = ctx.createRadialGradient(160, 120, 60, 160, 120, 200);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(70,45,20,0.35)');
@@ -182,6 +186,7 @@ export function horseInMotion(fw = 320, fh = 240) {
     ctx.fillStyle = 'rgba(70,50,30,0.55)'; ctx.font = '9px Jost, sans-serif'; ctx.textAlign = 'center';
     for (let x = 20, k = 1; x < 320; x += 24, k++) ctx.fillText(String(k), x, 14);
     ctx.fillStyle = 'rgba(70,50,30,0.3)'; ctx.fillRect(0, GROUND, 320, 240 - GROUND);
+    }
     // the legs: on the ground they sweep back straight; in the air they fold and swing forward
     const legAt = L => {
       const p = (t + L.off) % 1;
@@ -202,8 +207,8 @@ export function horseInMotion(fw = 320, fh = 240) {
       ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
       ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + 4, fy + 3); ctx.stroke();
     };
-    LEGS.filter(L => L.far).forEach(L => leg(L, '#5c4630'));
-    ctx.fillStyle = '#2e2116';
+    LEGS.filter(L => L.far).forEach(L => leg(L, FAR));
+    ctx.fillStyle = BODY;
     // body, neck and head, tail streaming
     ctx.beginPath(); ctx.ellipse(150, by + 6, 64, 25, -0.04, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.moveTo(186, by - 6); ctx.quadraticCurveTo(214, by - 34, 236, by - 48); ctx.lineTo(250, by - 34);
@@ -211,17 +216,19 @@ export function horseInMotion(fw = 320, fh = 240) {
     ctx.beginPath(); ctx.moveTo(232, by - 52); ctx.quadraticCurveTo(262, by - 46, 278, by - 26); ctx.lineTo(270, by - 18);
     ctx.quadraticCurveTo(252, by - 26, 238, by - 30); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(236, by - 50); ctx.lineTo(240, by - 62); ctx.lineTo(244, by - 50); ctx.fill();
-    ctx.strokeStyle = '#2e2116'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.strokeStyle = BODY; ctx.lineWidth = 5; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(90, by - 4); ctx.quadraticCurveTo(66, by + 2 + Math.sin(t * Math.PI * 2) * 6, 50, by + 18); ctx.stroke();
     // the jockey, crouched
-    ctx.fillStyle = '#2e2116';
+    ctx.fillStyle = BODY;
     ctx.beginPath(); ctx.ellipse(162, by - 24, 9, 16, 0.7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(176, by - 40, 6, 0, Math.PI * 2); ctx.fill();
-    LEGS.filter(L => !L.far).forEach(L => leg(L, '#2e2116'));
+    LEGS.filter(L => !L.far).forEach(L => leg(L, BODY));
     // the plate's edge and its number
+    if (!ink) {
     ctx.strokeStyle = 'rgba(40,28,16,0.8)'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, 314, 234);
     ctx.fillStyle = 'rgba(40,28,16,0.85)'; ctx.font = '600 13px Jost, sans-serif'; ctx.textAlign = 'right';
     ctx.fillText(String(f + 1), 306, 228);
+    }
     ctx.restore();
   }
   return c;
