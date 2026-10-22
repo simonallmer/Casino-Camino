@@ -70,3 +70,10 @@ export function cardURL(suit, rank) {
   if (EMBED?.[path]) return `data:image/jpeg;base64,${EMBED[path]}`;
   return ROOT ? new URL(encodeURI(path), ROOT).href : '';
 }
+
+// Any binary asset as a URL: embedded in the built page, or fetched from the repository.
+const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
+export function assetURL(path) {
+  if (EMBED?.[path]) return `data:${MIME[path.split('.').pop().toLowerCase()] || 'application/octet-stream'};base64,${EMBED[path]}`;
+  return ROOT ? new URL(encodeURI(path), ROOT).href : '';
+}

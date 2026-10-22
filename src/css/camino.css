@@ -80,6 +80,19 @@ body.dimming .wash { opacity: 1 !important; transition: opacity .3s; }
 .theme-toggle svg { width: 17px; height: 17px; fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; }
 :root[data-theme="night"] .i-sun, :root:not([data-theme="night"]) .i-moon { display: none; }
 
+/* ── the way home to simonallmer.com: top right, above everything */
+.sa-home {
+  position: fixed; z-index: 60; top: 22px; right: 32px; height: 36px; display: inline-flex; align-items: center; padding: 0 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 999px; color: var(--ink); text-decoration: none;
+  font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: border-color .2s, color .2s;
+}
+.sa-home:hover { border-color: var(--gold); color: var(--gold); }
+.sa-home:focus-visible { outline: 1px solid var(--gold); outline-offset: 3px; }
+.topbar-right { margin-right: 146px; }
+.tbl-top { padding-right: 140px; }
+body.touring .sa-home { opacity: 0; pointer-events: none; }
+
 /* ── the long walk: a star you have to know about, and the cinema it opens */
 .tour-btn {
   display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 8px; padding: 0; vertical-align: -3px;
@@ -131,7 +144,7 @@ body.seated .stop-card, body.seated .promenade, body.seated .walk-hint { opacity
 .btn:hover { background: var(--gold); border-color: var(--gold); color: var(--paper); }
 .btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
 .btn.ghost:hover { border-color: var(--gold); color: var(--gold); }
-.btn:focus-visible, .link:focus-visible, .promenade button:focus-visible { outline: 1px solid var(--gold); outline-offset: 3px; }
+.btn:focus-visible, .link:focus-visible, .plan-up button:focus-visible, .plan-toggle:focus-visible { outline: 1px solid var(--gold); outline-offset: 3px; }
 
 .purse-big { display: flex; align-items: baseline; gap: 12px; margin: 4px 0 14px; }
 .purse-big span { font-size: 64px; line-height: 1; font-weight: 500; font-variant-numeric: lining-nums tabular-nums; }
@@ -151,25 +164,32 @@ body.seated .stop-card, body.seated .promenade, body.seated .walk-hint { opacity
 .tables p { margin: 0; font-size: 16px; }
 .tables .classic h3 { color: var(--ink-2); }
 
-/* ── promenade rail */
+/* ── the plan: the ground floor in miniature, bottom right */
 .promenade {
-  position: fixed; z-index: 4; left: 50%; bottom: 34px; transform: translateX(-50%);
-  display: flex; justify-content: space-between; width: min(560px, calc(100vw - 32px));
+  position: fixed; z-index: 4; right: 28px; bottom: 24px; width: 236px;
+  padding: 8px 8px 6px; background: var(--card); border: 1px solid var(--rule);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   transition: opacity .5s;
 }
-.rail-line { position: absolute; left: 6%; right: 6%; top: 8px; height: 1px; background: var(--ink); opacity: 0.35; }
-.promenade button {
-  position: relative; background: none; border: 0; cursor: pointer; padding: 0 4px;
-  display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 64px;
+.plan-toggle { display: none; }
+.plan-map { display: block; width: 100%; height: auto; overflow: visible; }
+.plan-map .room { cursor: pointer; outline: none; }
+.plan-map rect { fill: transparent; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 0.8; transition: fill .25s, stroke-opacity .25s; }
+.plan-map text {
+  font-family: var(--sans); font-size: 7.6px; letter-spacing: 0.16em; text-transform: uppercase;
+  fill: var(--ink-2); text-anchor: middle; dominant-baseline: central; pointer-events: none;
 }
-.promenade i {
-  width: 11px; height: 11px; margin-top: 3px; border-radius: 50%;
-  border: 1px solid var(--ink); background: var(--paper); transition: transform .3s, background .3s, border-color .3s;
+.plan-map .room:hover rect, .plan-map .room:focus-visible rect { stroke-opacity: 1; stroke: var(--gold); }
+.plan-map .room.active rect { fill: var(--gold); stroke: var(--gold); stroke-opacity: 1; }
+.plan-map .room.active text { fill: var(--paper); }
+.plan-up { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; }
+.plan-up button {
+  flex: 1; padding: 5px 0; background: none; border: 1px dashed var(--rule); cursor: pointer;
+  font-family: var(--sans); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2);
 }
-.promenade span { font-family: var(--sans); font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); }
-.promenade button:hover i { border-color: var(--gold); }
-.promenade button.active i { background: var(--gold); border-color: var(--gold); transform: scale(1.35); }
-.promenade button.active span { color: var(--ink); }
+.plan-up button:hover { border-color: var(--gold); color: var(--gold); }
+.plan-up button.active { background: var(--gold); border-color: var(--gold); color: var(--paper); }
+.stop-card p.nudge { font-size: 15px; font-style: italic; color: var(--ink-3); margin-bottom: 4px; }
 .walk-hint {
   position: fixed; z-index: 4; bottom: 88px; left: 50%; transform: translateX(-50%); margin: 0;
   font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink-2);
@@ -334,6 +354,11 @@ body.seated .hover-tag { display: none; }
 .sheet-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
 /* ── small screens */
+@media (max-width: 760px), (max-height: 520px) {
+  .sa-home { top: 14px; right: 12px; height: 30px; padding: 0 10px; font-size: 9.5px; letter-spacing: 0.1em; }
+  .topbar-right { margin-right: 108px; }
+  .tbl-top { padding-right: 104px; }
+}
 @media (max-width: 760px) {
   .topbar { padding: 14px 16px; }
   .wordmark { font-size: 13px; }
@@ -342,9 +367,17 @@ body.seated .hover-tag { display: none; }
   .stop-card h1.display { font-size: 27px; }
   .stop-card p { font-size: 17px; }
   .purse-big span { font-size: 48px; }
-  .promenade { bottom: 24px; }
-  .promenade span { display: none; }
-  .promenade button.active span { display: block; position: absolute; top: 24px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .promenade { right: 16px; bottom: 16px; width: auto; padding: 0; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .plan-toggle {
+    display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; margin-left: auto;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 999px; cursor: pointer;
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .plan-toggle svg { width: 16px; height: 16px; fill: none; stroke: var(--gold); stroke-width: 1.4; }
+  .promenade { display: flex; flex-direction: column; align-items: flex-end; }
+  .plan-body { display: none; width: 236px; margin-bottom: 8px; padding: 8px; background: var(--card); border: 1px solid var(--rule); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); order: -1; }
+  .promenade.open .plan-body { display: block; }
   .walk-hint { display: none; }
   .recital { right: 16px; left: 16px; width: auto; top: auto; bottom: 96px; max-height: 55svh; }
   body.reciting .stop-card { opacity: 0; pointer-events: none; }
@@ -685,4 +718,26 @@ body.seated .hover-tag { display: none; }
 @media (max-height: 520px) and (orientation: landscape) {
   .desk-body { grid-template-columns: minmax(0, 1fr) minmax(260px, 42%); grid-template-rows: minmax(0, 1fr); }
 }
-@media (max-width: 760px) { .promenade button { min-width: 0; } }
+
+/* the reading room's rack, and a work from the gallery, up close */
+.journals { overflow: auto; min-height: 0; padding: 4px 0 40px; }
+.journal-list { list-style: none; margin: 18px auto 0; padding: 0; max-width: 1000px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 28px 22px; }
+.journal { display: flex; flex-direction: column; gap: 4px; color: inherit; text-decoration: none; }
+.journal-cover { display: block; aspect-ratio: 3 / 4; background: var(--paper-2); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28); transition: transform .3s; }
+.journal:hover .journal-cover { transform: translateY(-4px); }
+.cover-canvas { width: 100%; height: 100%; display: block; }
+.journal b { margin-top: 10px; font-weight: 500; font-size: 20px; line-height: 1.15; }
+.journal span:not(.journal-cover) { font-size: 15px; line-height: 1.35; color: var(--ink-2); }
+.journal small { font-family: var(--sans); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.art-view .desk-stage { display: grid; place-items: center; padding: 20px; }
+.art-frame { max-width: 100%; max-height: 100%; display: grid; place-items: center; }
+.desk-stage canvas.art-canvas { position: static; inset: auto; cursor: default; touch-action: auto; }
+.art-canvas {
+  max-width: min(100%, 900px); max-height: calc(100svh - 160px); width: auto !important; height: auto !important; display: block;
+  border: 14px solid #b8913f; outline: 1px solid rgba(0, 0, 0, 0.3); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.desk-side p.art-by { font-style: italic; color: var(--gold); margin-top: -8px; }
+@media (max-width: 760px), (max-height: 520px) {
+  .journal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; padding: 0 4px; }
+  .desk-stage canvas.art-canvas { border-width: 8px; max-height: 42svh; width: auto; height: auto; }
+}

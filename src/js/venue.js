@@ -10,9 +10,13 @@ import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { watercolorMaterial, tint, Paintable } from './paint.js';
+import { Sheet, rng, drawPalm, drawLamp } from './drawing.js';
 import { chipStacks, bigChip } from './chip.js';
 import { createMerchant } from './merchant.js';
 import { createKeeper } from './keeper.js';
+import { createConcierge } from './concierge.js';
+import { ARTWORKS, JOURNALS, artworkCanvas, journalCover, horseInMotion, HORSE_FRAMES } from './art.js';
+import { ZOETROPE, DOOR_Z, HALL, WING, THEATER, LIFT, ROOM, ROOF, RACK, SOFA, GALLERY_SPOTS, drawFoyer, drawWings, drawGallery, drawResort, drawTheater, drawSkyGarden, drawWaterfalls, drawRear, drawPanorama, drawShaft, drawCage, drawRoom } from './resort.js';
 import { worldCanvas, loadLand, lonLatToVec } from './coins/world.js';
 import { buildCoin, matcapMaterials, COIN_R } from './coins/coin.js';
 import { createZoetrope } from './zoetrope.js';
@@ -23,181 +27,7 @@ const THEMES = {
   night: { paper: 0x0f0e0c, ink: 0xcaa862, fine: 0x8d7646, accent: 0xe6c27a, water: 0x86b4c2, window: 0xf6c56f, glow: 0xffc36a },
 };
 
-// ── Drawing kit ──────────────────────────────────────────────────
-
-class Sheet {
-  constructor() {
-    this.main = []; this.fine = []; this.accent = []; this.water = [];
-    this.solids = [];
-    this.lights = [];   // night-only window planes
-    this.glows = [];    // night-only lamp halos {pos, size}
-    this.paints = {};   // object name -> watercolor geometries
-    this.cur = null;
-  }
-  // everything solid drawn until the next object() call belongs to this paintable thing
-  object(name, color) { this.cur = name ? { name, color } : null; }
-  paintOnly(g, color) {
-    if (!this.cur) return;
-    (this.paints[this.cur.name] ??= []).push(tint(g, color ?? this.cur.color));
-  }
-  seg(arr, a, b, over = 0) {
-    if (over) {
-      const d = new THREE.Vector3().subVectors(b, a);
-      const len = d.length();
-      const o = Math.min(over, len * 0.06);
-      d.normalize().multiplyScalar(o);
-      a = a.clone().sub(d); b = b.clone().add(d);
-    }
-    arr.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  }
-  poly(arr, pts, closed = false) {
-    for (let i = 0; i < pts.length - 1; i++) this.seg(arr, pts[i], pts[i + 1]);
-    if (closed) this.seg(arr, pts[pts.length - 1], pts[0]);
-  }
-  rectZ(arr, x0, y0, x1, y1, z) {
-    const v = THREE.Vector3;
-    this.poly(arr, [new v(x0, y0, z), new v(x1, y0, z), new v(x1, y1, z), new v(x0, y1, z)], true);
-  }
-  rectX(arr, x, z0, y0, z1, y1) {
-    const v = THREE.Vector3;
-    this.poly(arr, [new v(x, y0, z0), new v(x, y0, z1), new v(x, y1, z1), new v(x, y1, z0)], true);
-  }
-  circle(arr, cx, y, cz, r, n = 64) {
-    const pts = [];
-    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; pts.push(new THREE.Vector3(cx + Math.cos(a) * r, y, cz + Math.sin(a) * r)); }
-    this.poly(arr, pts, true);
-  }
-  // arch opening on a z-facing plane: posts + semicircle
-  archZ(arr, cx, y0, spring, w, z) {
-    const v = THREE.Vector3, r = w / 2, pts = [new v(cx - r, y0, z), new v(cx - r, spring, z)];
-    for (let i = 1; i < 24; i++) { const a = Math.PI - (i / 24) * Math.PI; pts.push(new v(cx + Math.cos(a) * r, spring + Math.sin(a) * r, z)); }
-    pts.push(new v(cx + r, spring, z), new v(cx + r, y0, z));
-    this.poly(arr, pts);
-  }
-  archX(arr, x, cz, y0, spring, w) {
-    const v = THREE.Vector3, r = w / 2, pts = [new v(x, y0, cz - r), new v(x, spring, cz - r)];
-    for (let i = 1; i < 24; i++) { const a = Math.PI - (i / 24) * Math.PI; pts.push(new v(x, spring + Math.sin(a) * r, cz + Math.cos(a) * r)); }
-    pts.push(new v(x, spring, cz + r), new v(x, y0, cz + r));
-    this.poly(arr, pts);
-  }
-  // vertical hatching inside an arch (shadowed opening)
-  hatchArchZ(arr, cx, y0, spring, w, z, step = 0.42) {
-    const r = w / 2;
-    for (let x = cx - r + step / 2; x < cx + r; x += step) {
-      const dx = x - cx, top = spring + Math.sqrt(Math.max(0, r * r - dx * dx));
-      this.seg(arr, new THREE.Vector3(x, y0, z), new THREE.Vector3(x, top, z));
-    }
-  }
-  solid(x0, y0, z0, x1, y1, z1, paint) {
-    const g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0);
-    g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-    this.solids.push(g);
-    this.paintOnly(g.clone(), paint);
-  }
-  // a box drawn with slightly overshooting edges, the way an architect's pen runs past the corner
-  block(x0, y0, z0, x1, y1, z1, { over = 0.5, arr = this.main, solid = true, paint } = {}) {
-    const v = THREE.Vector3;
-    const c = [
-      new v(x0, y0, z0), new v(x1, y0, z0), new v(x1, y1, z0), new v(x0, y1, z0),
-      new v(x0, y0, z1), new v(x1, y0, z1), new v(x1, y1, z1), new v(x0, y1, z1),
-    ];
-    [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
-      .forEach(([a, b]) => this.seg(arr, c[a], c[b], over));
-    if (solid) this.solid(x0, y0, z0, x1, y1, z1, paint);
-  }
-  cylinder(cx, y0, cz, r0, y1, r1, { arr = this.main, n = 64, solid = true, paint } = {}) {
-    this.circle(arr, cx, y0, cz, r0, n);
-    this.circle(arr, cx, y1, cz, r1, n);
-    if (solid) {
-      const g = new THREE.CylinderGeometry(r1, r0, y1 - y0, n);
-      g.translate(cx, (y0 + y1) / 2, cz);
-      this.solids.push(g);
-      this.paintOnly(g.clone(), paint);
-    }
-  }
-  // flat paint: an arch-topped panel on a z-facing plane
-  archPanelZ(cx, y0, spring, w, z, color) {
-    const r = w / 2, sh = new THREE.Shape();
-    sh.moveTo(cx - r, y0); sh.lineTo(cx + r, y0); sh.lineTo(cx + r, spring);
-    sh.absarc(cx, spring, r, 0, Math.PI, false); sh.lineTo(cx - r, y0);
-    const g = new THREE.ShapeGeometry(sh, 24); g.translate(0, 0, z);
-    this.paintOnly(g, color);
-  }
-  disc(cx, y, cz, r, color) {
-    const g = new THREE.CircleGeometry(r, 64); g.rotateX(-Math.PI / 2); g.translate(cx, y, cz);
-    this.paintOnly(g, color);
-  }
-  planeX(x, z0, y0, z1, y1, color) {
-    const g = new THREE.PlaneGeometry(Math.abs(z1 - z0), y1 - y0); g.rotateY(Math.PI / 2);
-    g.translate(x, (y0 + y1) / 2, (z0 + z1) / 2);
-    this.paintOnly(g, color);
-  }
-  light(x0, y0, x1, y1, z) {
-    const g = new THREE.PlaneGeometry(x1 - x0, y1 - y0);
-    g.translate((x0 + x1) / 2, (y0 + y1) / 2, z);
-    this.lights.push(g);
-  }
-  lightX(x, z0, y0, z1, y1, facing) {
-    const g = new THREE.PlaneGeometry(Math.abs(z1 - z0), y1 - y0);
-    g.rotateY(facing * Math.PI / 2);
-    g.translate(x, (y0 + y1) / 2, (z0 + z1) / 2);
-    this.lights.push(g);
-  }
-  glow(x, y, z, size = 4) { this.glows.push({ pos: new THREE.Vector3(x, y, z), size }); }
-}
-
-// deterministic randomness so the drawing is identical on every visit
-function rng(seed) { return () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646; }
-
 // ── Exterior ─────────────────────────────────────────────────────
-
-function drawPalm(s, x, z, h, lean, rand) {
-  const v = THREE.Vector3;
-  const top = new v(x + lean * h * 0.18, h, z);
-  const trunk = [];
-  for (let i = 0; i <= 10; i++) {
-    const t = i / 10;
-    trunk.push(new v(x + lean * h * 0.18 * t * t, h * t, z));
-  }
-  const off = 0.22;
-  s.poly(s.main, trunk.map(p => p.clone().add(new v(-off * (1 - p.y / h * 0.4), 0, 0))));
-  s.poly(s.main, trunk.map(p => p.clone().add(new v(off * (1 - p.y / h * 0.4), 0, 0))));
-  for (let y = 0.6; y < h - 0.4; y += 0.55) {
-    const t = y / h, cx = x + lean * h * 0.18 * t * t, w = off * (1 - t * 0.4);
-    s.seg(s.fine, new v(cx - w, y, z), new v(cx + w, y + 0.12, z));
-  }
-  const fronds = 9;
-  for (let f = 0; f < fronds; f++) {
-    const a = (f / fronds) * Math.PI * 2 + rand() * 0.4;
-    const R = 4.2 + rand() * 1.4, lift = 1.1 + rand() * 0.8;
-    const pts = [];
-    for (let i = 0; i <= 12; i++) {
-      const t = i / 12;
-      pts.push(new v(top.x + Math.cos(a) * R * t, top.y + lift * Math.sin(Math.PI * t * 0.7) - 2.6 * t * t, top.z + Math.sin(a) * R * t));
-    }
-    s.poly(s.main, pts);
-    for (let i = 2; i < 12; i++) {
-      const p = pts[i], len = 1.1 * Math.sin(Math.PI * (i / 12));
-      const side = new v(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(len * 0.55);
-      s.seg(s.fine, p, p.clone().add(side).add(new v(0, -len * 0.75, 0)));
-      s.seg(s.fine, p, p.clone().sub(side).add(new v(0, -len * 0.75, 0)));
-    }
-  }
-}
-
-function drawLamp(s, x, z) {
-  const v = THREE.Vector3;
-  s.seg(s.main, new v(x, 0, z), new v(x, 6.2, z));
-  s.seg(s.fine, new v(x - 0.35, 0, z), new v(x + 0.35, 0, z));
-  s.seg(s.fine, new v(x - 0.2, 0.6, z), new v(x + 0.2, 0.6, z));
-  s.seg(s.main, new v(x - 0.9, 5.6, z), new v(x + 0.9, 5.6, z));
-  for (const dx of [-0.9, 0.9]) {
-    s.rectZ(s.main, x + dx - 0.28, 5.6, x + dx + 0.28, 6.5, z);
-    s.seg(s.fine, new v(x + dx - 0.36, 6.5, z), new v(x + dx, 6.85, z));
-    s.seg(s.fine, new v(x + dx + 0.36, 6.5, z), new v(x + dx, 6.85, z));
-    s.glow(x + dx, 6.05, z, 3.2);
-  }
-}
 
 function drawTowers(s, side, rand) {
   // stepped setbacks falling away from the centre block, as in the founding sketch
@@ -248,7 +78,6 @@ function drawFacade(s) {
   // centre block, recessed between the towers
   s.block(-20, 0, -30, 20, 72, 0, { over: 0.9 });
   s.block(-21, 72, -31, 21, 74, 1, { over: 0.6 });
-  s.block(-16, 74, -26, 16, 80, -4, { over: 0.5 });
   for (let x = -20.5; x <= 20.5; x += 1.25) s.seg(s.fine, new v(x, 74, 0.8), new v(x, 75.8, 0.8));
   s.seg(s.main, new v(-21, 75.8, 0.8), new v(21, 75.8, 0.8));
   // the suit panel frame
@@ -370,14 +199,14 @@ function drawCourt(s, rand) {
 
 // ── Interior ─────────────────────────────────────────────────────
 
-const HALL = { x: 18, z0: 9, z1: -170, wall: 20 };
 
 function drawHall(s) {
   const v = THREE.Vector3, { x: W, z0, z1, wall } = HALL;
   for (const sd of [-1, 1]) {
     const x = sd * W;
     for (const y of [0, 1.2, wall - 0.6, wall]) s.seg(y === 0 || y === wall ? s.main : s.fine, new v(x, y, z0), new v(x, y, z1));
-    for (let z = z0 - 3; z > z1; z -= 12) {
+    for (let z = 6; z > z1; z -= 12) {
+      if (z > z0 + 0.01) continue;
       s.block(Math.min(x, x - sd * 0.8), 0, z - 0.8, Math.max(x, x - sd * 0.8), wall, z + 0.8, { over: 0.2 });
       const mz = z - 6;
       if (mz < z1 + 2) continue;
@@ -389,7 +218,7 @@ function drawHall(s) {
     }
   }
   // barrel vault ribs and coffers
-  for (let z = z0 - 3; z > z1; z -= 12) {
+  for (let z = z0; z >= z1; z -= 12) {
     for (const r of [W, W - 0.7]) {
       const pts = [];
       for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI; pts.push(new v(Math.cos(a) * r, wall + Math.sin(a) * r, z)); }
@@ -404,12 +233,12 @@ function drawHall(s) {
   for (const x of [-16, -15.4, 15.4, 16]) s.seg(s.fine, new v(x, 0.01, z0), new v(x, 0.01, z1));
   for (let c = -200; c < 60; c += 5) {
     const a = new v(-15.4, 0.01, c), b = new v(15.4, 0.01, c - 30.8);
-    clipZ(s, s.fine, a, b, z1 + 12, z0);
-    clipZ(s, s.fine, new v(15.4, 0.01, c), new v(-15.4, 0.01, c - 30.8), z1 + 12, z0);
+    clipZ(s, s.fine, a, b, z1, z0);
+    clipZ(s, s.fine, new v(15.4, 0.01, c), new v(-15.4, 0.01, c - 30.8), z1, z0);
   }
   for (const x of [-3.6, -3, 3, 3.6]) s.seg(s.accent, new v(x, 0.02, z0), new v(x, 0.02, -46));
   // chandeliers
-  for (let z = -18; z > z1 + 20; z -= 24) {
+  for (let z = -18; z > z1 + 8; z -= 24) {
     s.seg(s.fine, new v(0, wall + W, z), new v(0, 26.5, z));
     s.circle(s.main, 0, 26.5, z, 0.9, 24);
     s.circle(s.main, 0, 25, z, 3.2, 48);
@@ -441,20 +270,6 @@ function drawConcierge(s) {
   s.planeX(-17.99, -27.4, 3.2, -16.6, 9.8, '#8a5a32');
   for (let z = -26; z < -17; z += 1.5) s.seg(s.fine, new v(-10.49, 0.3, z), new v(-10.49, 2.2, z));
   for (let y = 3.5; y < 9; y += 1.1) for (let z = -27; z < -17; z += 1.2) s.rectX(s.fine, -17.95, z, y, z + 0.8, y + 0.7);
-  s.object(null);
-  // elevator bank on the right with deco sunbursts
-  s.object('lifts', '#b8913f');
-  for (const z of [-16, -22, -28]) {
-    s.planeX(17.98, z - 1.8, 0, z + 1.8, 7.5);
-    s.planeX(17.98, z - 2, 8, z + 2, 10, '#d8b56a');
-    s.rectX(s.main, 17.95, z - 1.8, 0, z + 1.8, 7.5);
-    s.seg(s.fine, new v(17.95, 0, z), new v(17.95, 7.5, z));
-    for (let k = 0; k <= 8; k++) {
-      const a = (k / 8) * Math.PI;
-      s.seg(s.fine, new v(17.94, 8, z), new v(17.94, 8 + Math.sin(a) * 2, z + Math.cos(a) * 2));
-    }
-    s.archX(s.main, 17.94, z, 8, 8, 4);
-  }
   s.object(null);
 }
 
@@ -607,46 +422,6 @@ function pendant(s, x, z) {
   s.glow(x, 11.4, z, 9);
 }
 
-function drawTheater(s) {
-  const v = THREE.Vector3, z = HALL.z1 + 0.05;
-  s.object('theater', '#6b3a22');
-  s.archPanelZ(0, 2.2, 15, 23, z + 0.01, '#8e1f2b');
-  s.block(-12.5, 0, HALL.z1, 12.5, 2.2, HALL.z1 + 9, { over: 0.4 });
-  { const g = new THREE.PlaneGeometry(18, 4.5); g.translate(0, 30.75, z + 0.01); s.paintOnly(g, '#c9a35a'); }
-  for (let k = 0; k < 3; k++) s.block(-5, 0, HALL.z1 + 9 + k * 0.8, 5, 2.2 - (k + 1) * 0.55, HALL.z1 + 9.8 + k * 0.8, { over: 0.2 });
-  // proscenium
-  s.archZ(s.main, 0, 2.2, 15, 23, z);
-  s.archZ(s.main, 0, 2.2, 15, 25.4, z);
-  s.archZ(s.fine, 0, 2.2, 15, 24.2, z);
-  // curtain folds
-  for (let x = -11.2; x <= 11.2; x += 0.9) {
-    const top = 15 + Math.sqrt(Math.max(0, 11.5 ** 2 - x * x)) - 0.6, pts = [];
-    for (let i = 0; i <= 12; i++) { const t = i / 12; pts.push(new v(x + Math.sin(t * 9 + x) * 0.12, 2.2 + (top - 2.2) * t, z + 0.02)); }
-    s.poly(s.fine, pts);
-  }
-  for (let k = -5; k < 5; k++) {
-    const pts = [];
-    for (let i = 0; i <= 12; i++) { const t = i / 12; pts.push(new v((k + t) * 2.3, 24.2 - Math.sin(t * Math.PI) * 1.4, z + 0.03)); }
-    s.poly(s.main, pts);
-  }
-  // marquee with bulbs
-  s.rectZ(s.main, -9, 28.5, 9, 33, z);
-  s.rectZ(s.fine, -8.4, 29.1, 8.4, 32.4, z);
-  for (let x = -8.7; x <= 8.7; x += 0.87) { s.glow(x, 28.8, z + 0.1, 1.4); s.glow(x, 32.7, z + 0.1, 1.4); }
-  for (let x = -10; x <= 10; x += 1.5) s.glow(x, 2.5, HALL.z1 + 8.8, 1.8);
-  s.object(null);
-  // seats
-  for (let r = 0; r < 5; r++) {
-    const rz = HALL.z1 + 18 + r * 3;
-    for (let c = -5; c <= 5; c++) {
-      if (c === 0) continue;
-      const x = c * 2.2;
-      s.block(x - 0.85, 0, rz - 0.6, x + 0.85, 1.2, rz + 0.6, { over: 0.05, arr: s.fine });
-      s.block(x - 0.85, 1.2, rz + 0.45, x + 0.85, 2.6 + r * 0.05, rz + 0.75, { over: 0.05, arr: s.fine });
-    }
-  }
-}
-
 // ── Façade art: the five APC suits, engraved onto a canvas ─────
 
 function engraveSuit(ctx, path, cx, cy, size) {
@@ -725,7 +500,7 @@ function build(sheet, mats) {
     if (dashed) l.computeLineDistances();
     group.add(l);
   };
-  add(sheet.main, mats.main); add(sheet.fine, mats.fine); add(sheet.accent, mats.accent); add(sheet.water, mats.water, true);
+  add(sheet.main, mats.main); add(sheet.fine, mats.fine); add(sheet.accent, mats.accent); add(sheet.water, mats.water, true); add(sheet.falls, mats.falls, true);
   if (sheet.solids.length) {
     // solids must fill the depth buffer before any ink is drawn
     const solids = new THREE.Mesh(mergeGeometries(sheet.solids), mats.occluder);
@@ -758,8 +533,8 @@ function build(sheet, mats) {
 export const OBJECTS = {
   portico: { label: 'The doors', hint: 'Walk in' },
   fountain: { label: 'The fountain', hint: 'Toss in a wish' },
-  concierge: { label: 'The concierge', hint: 'Your purse and ledger' },
-  lifts: { label: 'Hotel lifts', hint: 'The Grand Hotel opens later' },
+  concierge: { label: 'Monsieur Bellamy, the concierge', hint: 'Touch to speak with him' },
+  lifts: { label: 'The lifts', hint: 'Up to the rooms and the sky garden' },
   fortuna: { label: 'Fortuna', hint: 'Take a seat' },
   ricochet: { label: 'Ricochet', hint: 'Take a seat' },
   frontier: { label: 'Frontier', hint: 'Take a seat' },
@@ -768,6 +543,11 @@ export const OBJECTS = {
   keeper: { label: 'Miss Vivienne Sterling', hint: 'Keeper of the Coin · hear her out' },
   globe: { label: 'The globe', hint: 'Where the coins are' },
   coin: { label: 'The Casino Camino Coins', hint: 'All nine, side by side' },
+  skygarden: { label: 'The sky garden', hint: 'Up the lifts in the resort' },
+  sofa: { label: 'A velvet sofa', hint: 'Rest a while, and the light turns' },
+  journals: { label: 'The Allmer Journals', hint: 'Browse the rack' },
+  terrace: { label: 'The terrace door', hint: 'Out to the sky garden' },
+  ...Object.fromEntries(ARTWORKS.map((a, i) => [`art-${i}`, { label: a.title, hint: `${a.artist} · look closer` }])),
 };
 
 function glowTexture() {
@@ -778,29 +558,96 @@ function glowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-// ── Camera path: the camino ─────────────────────────────────────
-
-const KEYS = [
-  { pos: [0, 52, 380], tgt: [0, 46, 0] },
-  { pos: [0, 16, 205], tgt: [0, 44, 0], stop: 0 },
-  { pos: [0, 9, 128], tgt: [0, 34, 0] },
-  { pos: [-8, 6.5, 86], tgt: [3, 19, 0], stop: 1 },
-  { pos: [15, 4, 52], tgt: [0, 6, 10] },
-  { pos: [5, 3.6, 30], tgt: [0, 4.5, 0] },
-  { pos: [0, 3.8, 16], tgt: [0, 4.2, -20] },
-  { pos: [3, 5.6, -3], tgt: [-6, 6, -30], stop: 2 },
-  { pos: [-3.5, 6.2, -26], tgt: [7.6, 4.4, -44], stop: 3 },
-  { pos: [-1, 9, -33], tgt: [0, 3, -66] },
-  { pos: [0, 14, -44], tgt: [0, 2, -72], stop: 4 },
-  { pos: [0, 8, -100], tgt: [0, 10, -170] },
-  { pos: [0, 7, -122], tgt: [0, 16, -170], stop: 5 },
+// ── Where the camera goes ───────────────────────────────────────
+// Waypoints [position, look-at], and the corridors between them. The camera always travels along
+// corridors, through doors and arches, never through a wall.
+const WAY = {
+  far: [[0, 52, 380], [0, 46, 0]],
+  garden: [[0, 16, 205], [0, 44, 0]],
+  avenue: [[0, 9, 128], [0, 34, 0]],
+  court: [[-8, 6.5, 86], [3, 19, 0]],
+  fountain: [[15, 4, 52], [0, 6, 10]],
+  steps: [[5, 3.6, 30], [0, 4.5, 0]],
+  doorC: [[0, 3.8, 16], [0, 4.2, -20]],
+  doorW: [[-6, 3.8, 16], [-6, 4.2, -20]],
+  doorE: [[6, 3.8, 16], [6, 4.2, -20]],
+  foyC: [[0, 5, 3], [0, 5.2, -30]],
+  foyW: [[-12, 5, 2], [-44, 5, -4]],
+  foyE: [[12, 5, 2], [44, 5, -4]],
+  concierge: [[1, 6, -4], [-15, 5.4, -23]],
+  coins: [[-3.5, 6.2, -26], [7.6, 4.4, -44]],
+  hallMid: [[-1, 9, -33], [0, 3, -66]],
+  casino: [[0, 14, -44], [0, 2, -72]],
+  hallEnd: [[0, 8, -100], [0, 12, -160]],
+  theater: [[0, 9, -126], [0, 14, -196]],
+  galIn: [[-44, 5.5, -2], [-44, 5, -60]],
+  gallery: [[-30, 6, -24], [-62, 5.2, -50]],
+  galEnd: [[-44, 6, -100], [-40, 7, -150]],
+  galGate: [[-42, 6.5, -116], [-10, 12, -176]],
+  resIn: [[44, 5.5, -2], [44, 5, -60]],
+  lobby: [[52, 6, -8], [26, 6, -24]],
+  reading: [[40, 6.2, -44], [62, 3.2, -62]],
+  resEnd: [[44, 6, -100], [40, 7, -150]],
+  resGate: [[42, 6.5, -116], [10, 12, -176]],
+};
+const CORRIDORS = [
+  ['far', 'garden'], ['garden', 'avenue'], ['avenue', 'court'], ['court', 'fountain'], ['fountain', 'steps'],
+  ['steps', 'doorC'], ['steps', 'doorW'], ['steps', 'doorE'], ['doorC', 'foyC'], ['doorW', 'foyW'], ['doorE', 'foyE'],
+  ['foyC', 'foyW'], ['foyC', 'foyE'], ['foyC', 'concierge'], ['concierge', 'coins'], ['coins', 'hallMid'], ['hallMid', 'casino'],
+  ['casino', 'hallEnd'], ['hallEnd', 'theater'],
+  ['foyW', 'galIn'], ['galIn', 'gallery'], ['gallery', 'galEnd'], ['galEnd', 'galGate'], ['galGate', 'theater'],
+  ['foyE', 'resIn'], ['resIn', 'lobby'], ['lobby', 'reading'], ['reading', 'resEnd'], ['resEnd', 'resGate'], ['resGate', 'theater'],
 ];
-export const STOP_KEYS = KEYS.map((k, i) => (k.stop !== undefined ? i : -1)).filter(i => i >= 0);
+// the stops, by index; 'room' and 'sky' are reached by the lifts
+export const STOP_IDS = ['garden', 'court', 'concierge', 'coins', 'casino', 'theater', 'gallery', 'lobby', 'reading', 'room', 'sky'];
 
 // The long walk: what wakes up in colour while the camera rests in each room.
-const ROOMS = [['portico'], ['fountain'], ['concierge', 'lifts'], ['keeper', 'globe', 'coin'], ['fortuna', 'ricochet', 'frontier', 'merchant'], ['theater']];
+const ROOMS = {
+  garden: ['portico', 'skygarden'], court: ['fountain'], concierge: ['concierge'], coins: ['keeper', 'globe', 'coin'],
+  casino: ['fortuna', 'ricochet', 'frontier', 'merchant'], theater: ['theater'], gallery: ARTWORKS.map((a, i) => `art-${i}`).slice(0, 4),
+  lobby: ['lifts'], reading: ['sofa', 'journals'],
+};
 
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const pose = ([p, t]) => ({ pos: V(...p), tgt: V(...t) });
+
+function route(from, to) {
+  // Dijkstra over the corridors
+  const dist = { [from]: 0 }, prev = {}, open = new Set(Object.keys(WAY));
+  while (open.size) {
+    let u = null;
+    for (const k of open) if (dist[k] !== undefined && (u === null || dist[k] < dist[u])) u = k;
+    if (u === null || u === to) break;
+    open.delete(u);
+    for (const [a, b] of CORRIDORS) {
+      const n = a === u ? b : b === u ? a : null;
+      if (!n || !open.has(n)) continue;
+      const d = dist[u] + V(...WAY[u][0]).distanceTo(V(...WAY[n][0]));
+      if (dist[n] === undefined || d < dist[n]) { dist[n] = d; prev[n] = u; }
+    }
+  }
+  const path = [to];
+  while (path[0] !== from) { const p = prev[path[0]]; if (!p) return [from, to]; path.unshift(p); }
+  return path;
+}
+
+// what each zone shows, and how far you can see in it
+const ZONES = {
+  out: { fog: [140, 560], far: 800 },
+  in: { fog: [60, 230], far: 800 },
+  lift: { fog: [30, 160], far: 800 },
+  room: { fog: [420, 3400], far: 3600 },
+  up: { fog: [420, 3400], far: 3600 },
+};
+const ROOM_POSE = { pos: V(33.2, ROOF + 2.6, -15.4), tgt: V(27.5, ROOF + 2.2, -36) };
+const SKY_POSES = {
+  avenue: { pos: V(0, ROOF + 6.4, -0.5), tgt: V(0, 6, 76) },
+  sea: { pos: V(0, ROOF + 5.8, -29), tgt: V(0, ROOF - 12, -520) },
+};
+const SOFA_POSE = { pos: V(61.4, 3.7, -55), tgt: V(38, 4.6, -56) };
+// the gallery: face the west wall, or turn round to the east one
+const GALLERY_VIEWS = { west: pose(WAY.gallery), east: { pos: V(-58, 6, -24), tgt: V(-26, 5.2, -50) } };
 
 export async function createVenue(canvas, { night, wash, onHover = () => {}, onActivate = () => {} }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -814,25 +661,49 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     fine: lineMaterial(0, 0.85, { opacity: 0.7 }),
     accent: lineMaterial(0, 1.2),
     water: lineMaterial(0, 1.1, { dashed: true }),
+    falls: Object.assign(lineMaterial(0, 0.75, { dashed: true, opacity: 0.45 }), { dashSize: 1.4, gapSize: 1.1 }),
     occluder: new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 8 }),
     window: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.55, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }),
     glow: new THREE.SpriteMaterial({ map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.85 }),
     panel: new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }),
   };
-  const lineMats = [mats.main, mats.fine, mats.accent, mats.water];
+  const lineMats = [mats.main, mats.fine, mats.accent, mats.water, mats.falls];
 
+  // ── the sheets: outside, inside, the far view, the lift shaft, the cage, the room at the top
   const rand = rng(1907);
   const ext = new Sheet();
   drawFacade(ext); drawTowers(ext, -1, rand); drawTowers(ext, 1, rand); drawCourt(ext, rand);
+  drawSkyGarden(ext, rng(74)); drawWaterfalls(ext);
   const exterior = build(ext, mats);
-  scene.add(exterior);
 
   const int = new Sheet();
-  drawHall(int); drawConcierge(int); drawCoinDesk(int); drawCasino(int); drawTheater(int);
+  drawFoyer(int); drawHall(int); drawWings(int); drawGallery(int); drawResort(int);
+  drawConcierge(int); drawCoinDesk(int); drawCasino(int); drawTheater(int);
   const clockFace = drawClock(int);
   const interior = build(int, mats);
-  interior.visible = false;
-  scene.add(interior);
+
+  const farSheet = new Sheet();
+  drawRear(farSheet); drawPanorama(farSheet, rng(2060));
+  const far = build(farSheet, mats);
+  const shaftSheet = new Sheet(); drawShaft(shaftSheet);
+  const shaft = build(shaftSheet, mats);
+  const cageSheet = new Sheet(); drawCage(cageSheet);
+  const cage = build(cageSheet, mats);
+  // the horse in motion rides in the cage: one frame at a time, picked by the lift's height
+  const horseTex = new THREE.CanvasTexture(horseInMotion(320, 240));
+  horseTex.colorSpace = THREE.SRGBColorSpace; horseTex.repeat.set(1 / HORSE_FRAMES, 1);
+  {
+    const { x, z0, z1, y0, y1 } = ZOETROPE;
+    const g = new THREE.PlaneGeometry(z1 - z0, y1 - y0); g.rotateY(-Math.PI / 2);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: horseTex, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    m.position.set(x - 0.02, (y0 + y1) / 2, (z0 + z1) / 2);
+    cage.add(m);
+  }
+  const roomSheet = new Sheet(); drawRoom(roomSheet);
+  const room = build(roomSheet, mats);
+  const groups = { exterior, interior, far, shaft, cage, room };
+  const SHOWS = { out: ['exterior'], in: ['interior'], lift: ['interior', 'shaft', 'cage'], room: ['room', 'far'], up: ['exterior', 'far'] };
+  Object.values(groups).forEach(g => { g.visible = false; scene.add(g); });
 
   // the house clock keeps real local time
   const clockGeo = new LineSegmentsGeometry();
@@ -866,20 +737,21 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     const solid = new THREE.Mesh(geo, mats.occluder); solid.renderOrder = -1; exterior.add(solid);
   }).catch(() => {});
 
-  // ── paintables: the things a guest can touch
+  // ── paintables: the things a guest can touch, and in which zones they can be touched
   const paintables = [];
-  const register = (group, inside) => group.userData.paints.forEach(p => {
-    paintables.push(Object.assign(new Paintable({ name: p.name, label: OBJECTS[p.name]?.label, materials: [p.material], hit: p.mesh, center: p.center, radius: p.radius }), { inside }));
+  const register = (group, zones, extra = {}) => group.userData.paints.forEach(p => {
+    paintables.push(Object.assign(new Paintable({ name: p.name, label: OBJECTS[p.name]?.label, materials: [p.material], hit: p.mesh, center: p.center, radius: p.radius }), { zones: extra[p.name] ?? zones }));
   });
-  register(exterior, false); register(interior, true);
+  register(exterior, ['out'], { skygarden: ['out', 'up'] });
+  register(interior, ['in']);
+  register(room, ['room']);
 
   const merchant = createMerchant();
   merchant.mesh.position.set(9, 0, -71);
   interior.add(merchant.mesh);
-  paintables.push(Object.assign(new Paintable({ name: 'merchant', materials: [merchant.material], hit: merchant.mesh, center: new THREE.Vector3(), radius: 1 }), { inside: true }));
+  paintables.push(Object.assign(new Paintable({ name: 'merchant', materials: [merchant.material], hit: merchant.mesh, center: new THREE.Vector3(), radius: 1 }), { zones: ['in'] }));
 
-  // ── the coin desk: Miss Sterling, her globe and the coin
-  // extra pieces join the paintable of the desk part they belong to, and wake with it
+  // extra pieces join the paintable of the drawn part they belong to, and wake with it
   const join = (name, material, mesh, radius) => {
     const pt = paintables.find(p => p.name === name);
     if (material) {
@@ -890,11 +762,40 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     }
     (pt.extraHits ??= []).push(mesh);
   };
+  // the people of the house
   const keeper = createKeeper();
   keeper.mesh.position.copy(KEEPER);
   interior.add(keeper.mesh);
   join('keeper', keeper.material, keeper.mesh);
-  const figures = [merchant, keeper];
+  const concierge = createConcierge();
+  concierge.mesh.position.set(-16.2, 0, -22);
+  interior.add(concierge.mesh);
+  join('concierge', concierge.material, concierge.mesh);
+  const figures = [merchant, keeper, concierge];
+
+  // a picture on a wall or a cover on the rack: a flat painting that washes in when touched
+  const picture = (canvasPromise, w, h, facing) => {
+    const material = watercolorMaterial();
+    const g = tint(new THREE.PlaneGeometry(w, h), '#ffffff'); g.rotateY(facing > 0 ? Math.PI / 2 : -Math.PI / 2);
+    const mesh = new THREE.Mesh(g, material); mesh.renderOrder = 1;
+    canvasPromise.then(c => {
+      const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+      material.uniforms.uMap.value = tex; material.uniforms.uHasMap.value = 1;
+    }).catch(() => {});
+    return { mesh, material };
+  };
+  for (const sp of GALLERY_SPOTS) {
+    const { mesh, material } = picture(artworkCanvas(ARTWORKS[sp.i], 512), sp.w, sp.h, sp.facing);
+    mesh.position.set(sp.x + sp.facing * 0.04, sp.y, sp.z);
+    interior.add(mesh);
+    join(`art-${sp.i}`, material, mesh, Math.max(sp.w, sp.h));
+  }
+  JOURNALS.forEach((j, k) => {
+    const { mesh, material } = picture(journalCover(j, 300), RACK.w, RACK.h, -1);
+    mesh.position.set(RACK.x - 0.06, RACK.y, RACK.zs[k]);
+    interior.add(mesh);
+    join('journals', material, mesh, 8);
+  });
 
   // the globe turns slowly on its tipped axis: ink lines over a hidden ball, watercolour seas and lands when touched
   const globeTilt = new THREE.Group(), globeSpin = new THREE.Group();
@@ -960,7 +861,6 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   }
   chipStacks(seatStacks, rng(52)).then(g => interior.add(g)).catch(() => {});
   const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), occluderMeshes = [];
-  // Ricochet's wheel turns on its table all night: six tiles around a chip hub
   // Ricochet's table piece: a gold zoetrope drum, always in colour like the chip
   const zoetrope = createZoetrope();
   zoetrope.group.position.set(TABLE.ricochet.x, 3.02, TABLE.ricochet.z);
@@ -970,23 +870,35 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   let monument = null;
   bigChip(1.7).then(c => { monument = c; c.position.set(0, 11.6, 48); exterior.add(c); }).catch(() => {});
 
+  // ── zones: which drawings show, how far the eye reaches
+  let override = null; // 'lift' | 'room' | 'up' while away from the ground floor
+  const zoneNow = () => override ?? (camera.position.z < DOOR_Z ? 'in' : 'out');
+  let shownZone = null;
+  function showZone(z) {
+    if (z === shownZone) return;
+    shownZone = z;
+    for (const [name, g] of Object.entries(groups)) g.visible = SHOWS[z].includes(name);
+    [scene.fog.near, scene.fog.far] = ZONES[z].fog;
+    camera.far = ZONES[z].far; camera.updateProjectionMatrix();
+  }
+
   // ── pointer: hover paints, click keeps the paint and acts
-  [exterior, interior].forEach(g => g.children.forEach(o => { if (o.isMesh && o.material === mats.occluder) occluderMeshes.push(o); }));
+  Object.values(groups).forEach(g => g.children.forEach(o => { if (o.isMesh && o.material === mats.occluder) occluderMeshes.push(o); }));
   let hovered = null, pointerIn = false, lastClient = { x: 0, y: 0 }, downAt = null;
   canvas.addEventListener('pointermove', e => { pointerIn = true; lastClient = { x: e.clientX, y: e.clientY }; ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); });
   canvas.addEventListener('pointerleave', () => { pointerIn = false; });
   canvas.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY }; });
   canvas.addEventListener('pointerup', e => {
-    if (tour || !downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
+    if (tour || busy || !downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) return;
     // touch screens have no hover: the first tap paints and picks
     if (e.pointerType !== 'mouse') { ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); pick(); }
     if (hovered) { hovered.keep(); onActivate(hovered.name); }
   });
 
   function pick() {
-    const inside = camera.position.z < HALL.z0;
+    const zone = zoneNow();
     raycaster.setFromCamera(ndc, camera);
-    const candidates = paintables.filter(p => p.inside === inside);
+    const candidates = paintables.filter(p => p.zones.includes(zone));
     const hits = raycaster.intersectObjects([...candidates.flatMap(p => [p.hit, ...(p.extraHits ?? [])]), ...occluderMeshes.filter(o => o.parent.visible)], false);
     let found = null, point = null, uv = null;
     const nearest = hits[0]?.distance ?? Infinity;
@@ -1013,7 +925,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     const t = THEMES[n ? 'night' : 'day'];
     renderer.setClearColor(t.paper);
     scene.fog.color.set(t.paper);
-    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water);
+    mats.main.color.set(t.ink); mats.fine.color.set(t.fine); mats.accent.color.set(t.accent); mats.water.color.set(t.water); mats.falls.color.set(t.water);
     mats.panel.color.set(t.ink);
     mats.window.color.set(t.window); mats.glow.color.set(t.glow);
     mats.fine.opacity = n ? 0.8 : 0.7;
@@ -1024,34 +936,108 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   setTheme(night);
 
   // ── camera
-  const posCurve = new THREE.CatmullRomCurve3(KEYS.map(k => new THREE.Vector3(...k.pos)), false, 'centripetal');
-  const tgtCurve = new THREE.CatmullRomCurve3(KEYS.map(k => new THREE.Vector3(...k.tgt)), false, 'centripetal');
-  const at = p => {
-    const u = THREE.MathUtils.clamp(p / (KEYS.length - 1), 0, 1);
-    return { pos: posCurve.getPoint(u), tgt: tgtCurve.getPoint(u) };
-  };
-
-  let p = 0;
-  let travel = null;       // {from, to, t0, dur, resolve}
+  let at = 'far';          // where the camera rests: a waypoint, or 'room' / 'sky'
+  let travel = null;       // {pos, tgt curves, t0, dur, to, resolve}
   let fly = null;          // {from:{pos,tgt}, to:{pos,tgt}, t0, dur, resolve}
-  let pose = at(0);
-  let free = null;         // a pose held off the path (e.g. hovering over a table)
+  let view = pose(WAY.far);
+  let free = null;         // a pose held off the corridors (a table, the room, the roof)
   let paused = false;
   let tour = null;         // the long walk, while it runs
+  let busy = false;        // on the way somewhere
+  let riding = false;      // in the lift, or cutting between the room and the roof: not to be interrupted
   let veil = 0, veilTo = 0; // a fade to paper, for cuts
+  let skyView = 'avenue', galleryView = 'west';
+  const rest = {};         // a stop's resting pose when it is not its waypoint's (the gallery, turned round)
   const pointer = new THREE.Vector2(), look = new THREE.Vector2();
   addEventListener('pointermove', e => { pointer.set(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5); });
 
-  function goToKey(k, dur) {
+  function walk(path, dur) {
     if (fly) return Promise.resolve();
     travel?.resolve?.();
-    const d = dur ?? 1.3 + Math.abs(k - p) * 0.55;
-    return new Promise(resolve => { travel = { from: p, to: k, t0: performance.now(), dur: d * 1000, resolve }; });
+    free = null;
+    if (path.length < 2) { at = path[0]; return Promise.resolve(); }
+    const pts = path.map(id => pose(WAY[id]));
+    pts[pts.length - 1] = rest[path[path.length - 1]] ?? pts[pts.length - 1];
+    // start from wherever the camera is now, so a walk interrupted by another never jumps
+    pts[0] = { pos: camera.position.clone(), tgt: view.tgt.clone() };
+    const curve = list => new THREE.CatmullRomCurve3(list, false, 'centripetal');
+    const d = dur ?? 1.2 + (path.length - 1) * 0.55;
+    return new Promise(resolve => {
+      travel = { pos: curve(pts.map(p => p.pos)), tgt: curve(pts.map(p => p.tgt)), t0: performance.now(), dur: d * 1000, to: path[path.length - 1], resolve };
+    });
   }
   function flyTo(to, dur = 1.6) {
     travel = null;
-    const from = { pos: camera.position.clone(), tgt: pose.tgt.clone() };
+    const from = { pos: camera.position.clone(), tgt: view.tgt.clone() };
     return new Promise(resolve => { fly = { from, to: { pos: to.pos.clone(), tgt: to.tgt.clone() }, t0: performance.now(), dur: dur * 1000, resolve }; });
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function fade(v, ms = 650) { veilTo = v; await sleep(ms); }
+
+  // the lift: into the middle cage, up past the hotel floors, out at the top
+  const cagePose = y => ({ pos: V(24.8, y, LIFT.ride - 0.6), tgt: V(40, y - 0.4, LIFT.ride - 0.6) });
+  const LIFT_LOW = 5.2, LIFT_HIGH = ROOF + 4.8;
+  function rideY(from, to, secs) {
+    return new Promise(resolve => {
+      const t0 = performance.now();
+      fly = null;
+      const step = () => {
+        const t = Math.min(1, (performance.now() - t0) / (secs * 1000)), e = t * t * (3 - 2 * t);
+        free = cagePose(from + (to - from) * e);
+        if (t < 1) requestAnimationFrame(step); else resolve();
+      };
+      step();
+    });
+  }
+  async function liftUp() {
+    riding = true;
+    if (at !== 'lobby') await walk(route(at, 'lobby'));
+    await flyTo(cagePose(LIFT_LOW), 1.6);
+    override = 'lift';
+    await rideY(LIFT_LOW, LIFT_HIGH, 7.5);
+    await fade(1);
+    override = 'room'; free = { ...ROOM_POSE }; at = 'room';
+    await fade(0);
+    riding = false;
+  }
+  async function liftDown() {
+    riding = true;
+    if (at === 'sky') await toRoom();
+    await fade(1);
+    override = 'lift'; free = cagePose(LIFT_HIGH);
+    await fade(0);
+    await rideY(LIFT_HIGH, LIFT_LOW, 7.5);
+    override = null;
+    await flyTo(pose(WAY.lobby), 1.5);
+    free = null; at = 'lobby';
+    riding = false;
+  }
+  async function cut(fn) { const was = riding; riding = true; await fade(1); fn(); await fade(0); riding = was; }
+  const toRoom = () => cut(() => { override = 'room'; free = { ...ROOM_POSE }; at = 'room'; });
+  const toSky = () => cut(() => { override = 'up'; free = { ...SKY_POSES[skyView] }; at = 'sky'; });
+
+  async function goToStop(i, dur) {
+    const target = STOP_IDS[i];
+    if (!target || (target === at && !travel)) return;
+    // already on the way there: just get there sooner
+    if (travel && travel.to === target) {
+      const now = performance.now(), t = Math.min(0.99, (now - travel.t0) / travel.dur), total = ((dur ?? 0.5) * 1000) / (1 - t);
+      travel.t0 = now - t * total; travel.dur = total;
+      return;
+    }
+    busy = true;
+    try {
+      if (at === 'room' || at === 'sky') {
+        if (target === 'room') await toRoom();
+        else if (target === 'sky') await toSky();
+        else { await liftDown(); await walk(route('lobby', target), dur); }
+      } else if (target === 'room' || target === 'sky') {
+        await liftUp();
+        if (target === 'sky') await toSky();
+      } else {
+        await walk(route(travel?.to ?? at, target), dur);
+      }
+    } finally { busy = false; }
   }
 
   function resize() {
@@ -1072,47 +1058,50 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     requestAnimationFrame(frame);
     if (paused) return;
     if (travel) {
-      const t = THREE.MathUtils.clamp((now - travel.t0) / travel.dur, 0, 1);
-      p = travel.from + (travel.to - travel.from) * ease(t);
-      if (t >= 1) { const r = travel.resolve; travel = null; r(); }
-    }
-    if (fly) {
+      const t = THREE.MathUtils.clamp((now - travel.t0) / travel.dur, 0, 1), e = ease(t);
+      view = { pos: travel.pos.getPoint(e), tgt: travel.tgt.getPoint(e) };
+      if (t >= 1) { at = travel.to; const r = travel.resolve; travel = null; r(); }
+    } else if (fly) {
       const t = THREE.MathUtils.clamp((now - fly.t0) / fly.dur, 0, 1), e = ease(t);
-      pose = { pos: fly.from.pos.clone().lerp(fly.to.pos, e), tgt: fly.from.tgt.clone().lerp(fly.to.tgt, e) };
+      view = { pos: fly.from.pos.clone().lerp(fly.to.pos, e), tgt: fly.from.tgt.clone().lerp(fly.to.tgt, e) };
       if (t >= 1) { free = fly.to; const r = fly.resolve; fly = null; r(); }
     } else if (free) {
-      pose = { pos: free.pos.clone(), tgt: free.tgt.clone() };
-    } else {
-      pose = at(p);
+      view = { pos: free.pos.clone(), tgt: free.tgt.clone() };
+    } else if (WAY[at]) {
+      view = rest[at] ?? pose(WAY[at]);
     }
     // a gentle breath and a glance toward the pointer
     const time = (now - clockStart) / 1000;
     look.lerp(pointer, 0.04);
     if (look.distanceToSquared(pointer) < 1e-6) look.copy(pointer);
-    camera.position.copy(pose.pos);
-    const tgt = pose.tgt.clone();
+    camera.position.copy(view.pos);
+    const tgt = view.tgt.clone();
     if (tour) { tgt.x += Math.sin(time * 0.23) * 1.6; tgt.y += Math.sin(time * 0.17) * 0.6; }
-    else if (!free) { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
+    else if (!free || override === 'room' || override === 'up') { tgt.x += look.x * 3; tgt.y -= look.y * 1.5; }
     camera.lookAt(tgt);
 
-    const z = camera.position.z, inside = z < HALL.z0;
-    exterior.visible = !inside; interior.visible = inside;
-    scene.fog.near = inside ? 60 : 140; scene.fog.far = inside ? 230 : 560;
+    const zone = zoneNow();
+    showZone(zone);
+    cage.position.y = camera.position.y - LIFT_LOW;
+    // a frame for every 0.55 units climbed: up, the horse runs on; down, it runs backward
+    if (cage.visible) horseTex.offset.x = (((Math.floor(cage.position.y / 0.55) % HORSE_FRAMES) + HORSE_FRAMES) % HORSE_FRAMES) / HORSE_FRAMES;
     veil += Math.sign(veilTo - veil) * Math.min(Math.abs(veilTo - veil), 0.035);
-    if (wash) wash.style.opacity = Math.max(veil, 1 - Math.abs(z - HALL.z0) / 5.5).toFixed(3);
+    const door = override ? 0 : 1 - Math.abs(camera.position.z - DOOR_Z) / 5.5;
+    if (wash) wash.style.opacity = Math.max(veil, door).toFixed(3);
 
     mats.water.dashOffset = -time * 1.6;
+    mats.falls.dashOffset = -time * 5;
 
     const dt = Math.min(0.05, (now - (frame.last ?? now)) / 1000); frame.last = now;
-    if (pointerIn && !fly && !free && !tour) pick();
-    else if (hovered && (fly || free || tour)) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
+    const still = !fly && !travel && !tour && !busy && (!free || override === 'room' || override === 'up');
+    if (pointerIn && still) pick();
+    else if (hovered && !still) { hovered.leave(); hovered = null; canvas.style.cursor = ''; onHover(null); }
     paintables.forEach(pt => pt.step(dt));
     // he sways, and always turns to face whoever is looking at him
-    const mm = merchant.mesh;
-    mm.rotation.set(0, Math.atan2(camera.position.x - mm.position.x, camera.position.z - mm.position.z), Math.sin(time * 1.3) * 0.045);
-    // Miss Sterling keeps her poise: she turns to you, and only just breathes
-    const km = keeper.mesh;
-    km.rotation.set(0, Math.atan2(camera.position.x - km.position.x, camera.position.z - km.position.z), Math.sin(time * 0.9) * 0.012);
+    const face = (m, sway) => m.rotation.set(0, Math.atan2(camera.position.x - m.position.x, camera.position.z - m.position.z), sway);
+    face(merchant.mesh, Math.sin(time * 1.3) * 0.045);
+    face(keeper.mesh, Math.sin(time * 0.9) * 0.012);
+    face(concierge.mesh, Math.sin(time * 0.7) * 0.01);
     globeSpin.rotation.y = time * 0.12;
     coinPivot.rotation.y = time * 0.55;
     if (monument) monument.rotation.y = Math.sin(time * 0.45) * 0.55;
@@ -1124,23 +1113,46 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
   return {
     setTheme,
     get night() { return isNight; },
-    stopCount: STOP_KEYS.length,
-    goToStop: (i, dur) => goToKey(STOP_KEYS[i], dur),
-    jumpToStop: i => { travel = null; p = STOP_KEYS[i]; },
+    get at() { return at; },
+    get riding() { return riding; },
+    goToStop,
     // up close to the globe or the coin on the desk
     flyToDesk: name => {
-      const at = name === 'globe' ? GLOBE.pos : COIN.pos;
-      return flyTo({ pos: at.clone().add(new THREE.Vector3(name === 'globe' ? 0.9 : -0.9, 0.5, 2.6)), tgt: at.clone() }, 1.5);
+      const p = name === 'globe' ? GLOBE.pos : COIN.pos;
+      return flyTo({ pos: p.clone().add(V(name === 'globe' ? 0.9 : -0.9, 0.5, 2.6)), tgt: p.clone() }, 1.5);
     },
     flyToTable: (name = 'fortuna') => name === 'ricochet'
       // low and from the side, so the galloping band passes right in front of you
-      ? flyTo({ pos: TABLE.ricochet.clone().add(new THREE.Vector3(0.6, 1.9, 4.6)), tgt: TABLE.ricochet.clone().add(new THREE.Vector3(0, 0.45, 0)) }, 1.8)
-      : flyTo({ pos: TABLE[name].clone().add(new THREE.Vector3(0, 9, 0.6)), tgt: TABLE[name].clone() }, 1.5),
-    async returnToStop(i) {
-      const back = at(STOP_KEYS[i]);
-      await flyTo(back, 1.4);
-      free = null; p = STOP_KEYS[i];
+      ? flyTo({ pos: TABLE.ricochet.clone().add(V(0.6, 1.9, 4.6)), tgt: TABLE.ricochet.clone().add(V(0, 0.45, 0)) }, 1.8)
+      : flyTo({ pos: TABLE[name].clone().add(V(0, 9, 0.6)), tgt: TABLE[name].clone() }, 1.5),
+    // closer to a picture on the gallery wall
+    flyToArt: i => {
+      const sp = GALLERY_SPOTS.find(s => s.i === i);
+      return flyTo({ pos: V(sp.x + sp.facing * Math.max(sp.w, sp.h) * 1.5, sp.y, sp.z), tgt: V(sp.x, sp.y, sp.z) }, 1.5);
     },
+    flyToRack: () => flyTo({ pos: V(56, 4.2, (RACK.zs[0] + RACK.zs[RACK.zs.length - 1]) / 2), tgt: V(RACK.x, RACK.y, (RACK.zs[0] + RACK.zs[RACK.zs.length - 1]) / 2) }, 1.5),
+    sitDown: () => flyTo(SOFA_POSE, 1.8),
+    fade,
+    async returnToStop(i) {
+      const id = STOP_IDS[i];
+      if (id === 'room') { await flyTo(ROOM_POSE, 1.2); free = { ...ROOM_POSE }; return; }
+      if (id === 'sky') { await flyTo(SKY_POSES[skyView], 1.2); free = { ...SKY_POSES[skyView] }; return; }
+      await flyTo(rest[id] ?? pose(WAY[id]), 1.4);
+      free = null; at = id;
+    },
+    // on the roof: down the avenue, or out to sea; in the gallery: the west wall, or the east
+    async lookOut(which) {
+      if (at === 'sky' && SKY_POSES[which] && skyView !== which) {
+        skyView = which;
+        await flyTo(SKY_POSES[which], 1.8);
+      } else if (at === 'gallery' && GALLERY_VIEWS[which] && galleryView !== which && !travel) {
+        galleryView = which;
+        await flyTo(GALLERY_VIEWS[which], 1.6);
+        free = null; rest.gallery = GALLERY_VIEWS[which];
+      }
+    },
+    get skyView() { return skyView; },
+    get galleryView() { return galleryView; },
     setPaused(v) { paused = v; },
     tour: runTour,
     endTour() { if (!tour || tour.cancelled) return; tour.cancelled = true; tour.wake?.(); if (travel) { const r = travel.resolve; travel = null; r(); } },
@@ -1148,7 +1160,7 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
 
   // ── the long walk: from the far approach through every room, resting in each while it comes to colour
   async function runTour() {
-    if (tour || fly || free) return;
+    if (tour || fly || free || busy) return;
     const t = tour = { cancelled: false, wake: null };
     hovered?.leave(); hovered = null; canvas.style.cursor = ''; onHover(null);
     const wait = ms => new Promise(r => { const id = setTimeout(r, ms); t.wake = () => { clearTimeout(id); r(); }; });
@@ -1156,16 +1168,15 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     const lit = [];
 
     await veilTo_(1);
-    resize(); travel = null; p = 0;
+    resize(); travel = null; at = 'far';
     if (!t.cancelled) await veilTo_(0, 700);
-    let from = 0;
-    for (const [i, key] of STOP_KEYS.entries()) {
+    for (const id of ['garden', 'court', 'concierge', 'coins', 'casino', 'theater', 'gallery', 'lobby', 'reading']) {
       if (t.cancelled) break;
-      await goToKey(key, 2.6 + (key - from) * 1.5);
-      from = key;
+      const path = route(at, id);
+      await walk(path, 2.6 + (path.length - 1) * 1.1);
       if (t.cancelled) break;
       // the room wakes up, one thing after another
-      for (const name of ROOMS[i]) {
+      for (const name of ROOMS[id]) {
         const pt = paintables.find(x => x.name === name);
         if (!pt) continue;
         pt.touch(pt.center); lit.push(pt);
@@ -1177,9 +1188,9 @@ export async function createVenue(canvas, { night, wash, onHover = () => {}, onA
     }
     lit.forEach(pt => pt.leave());
     t.wake = null;
-    // back to the doors
+    // back to the garden
     veilTo = 1; await new Promise(r => setTimeout(r, 900));
-    travel = null; p = STOP_KEYS[0];
+    travel = null; at = 'garden';
     tour = null; resize();
     veilTo = 0; await new Promise(r => setTimeout(r, 700));
   }
