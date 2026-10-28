@@ -6,7 +6,7 @@ so this inlines the CSS, the JS modules (in dependency order) and the assets.
 Three.js still comes from the CDN, which allows it.
 
     python3 build.py           # the full game → index.html
-    python3 build.py --demo    # 10 minutes a day → Casino Camino Demo/index.html
+    python3 build.py --demo    # 5 minutes a day → Casino Camino Demo/index.html
     python3 build.py --archive # the C2 coin on its own, not linked from the game → Coin Archive/index.html
 """
 import base64

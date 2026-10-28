@@ -1,4 +1,4 @@
-/* ── demo build only: 10 minutes of play per day (injected by build.py --demo) */
+/* ── demo build only: 5 minutes of play per day (injected by build.py --demo) */
 .demo-timer {
   position: fixed; z-index: 40; left: 24px; bottom: 24px;
   display: inline-flex; align-items: center; gap: 10px; height: 34px; padding: 0 14px;

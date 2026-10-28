@@ -1,7 +1,7 @@
-// Demo build only (injected by build.py --demo): 10 minutes of play per day.
+// Demo build only (injected by build.py --demo): 5 minutes of play per day.
 // Time only runs while the page is visible; the allowance refills at local midnight.
 (() => {
-  const LIMIT = 10 * 60;
+  const LIMIT = 5 * 60;
   const KEY = 'camino_demo';
   const ARCADE = 'https://simonallmer.com/arcade';
   const ABOUT = 'https://simonallmer.com/aboutarcade';
@@ -43,7 +43,7 @@
         </div>`
       : `<div class="demo-card">
           <p class="kicker">Arcade Subscription</p>
-          <h2>Ten minutes a day.</h2>
+          <h2>Five minutes a day.</h2>
           <p>This is the demo of Casino Camino. Access unlimited play with an Arcade Subscription.</p>
           <div class="demo-actions">
             <a class="demo-primary" href="${ABOUT}" target="_blank" rel="noopener">Learn more</a>
